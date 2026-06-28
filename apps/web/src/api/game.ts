@@ -1,0 +1,36 @@
+import type {
+  AnswerInput, AnswerResult, OnboardingInput, PublicUser,
+  StagePlay, WorldDetail, WorldSummary, StatsResult, RangeGrid, LessonResult,
+  AchievementView, MissionView, MissionClaimResult,
+} from '@pokerpath/shared';
+import { apiRequest } from '../lib/api.js';
+
+export interface RangeFilters {
+  gameType: string; tableSize: string; stack: number; position: string;
+}
+
+/** Chamadas da API do loop de jogo (PRD 5, 6, 7, 15.3). */
+export const gameApi = {
+  worlds: () => apiRequest<{ worlds: WorldSummary[] }>('/worlds').then((r) => r.worlds),
+  world: (worldId: string) => apiRequest<{ world: WorldDetail }>(`/worlds/${worldId}`).then((r) => r.world),
+  stage: (stageId: string) => apiRequest<StagePlay>(`/stages/${stageId}`),
+  answer: (input: AnswerInput) => apiRequest<AnswerResult>('/answers', { method: 'POST', body: input }),
+  completeLesson: (stageId: string) => apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST' }),
+  stats: () => apiRequest<StatsResult>('/stats'),
+  range: (f: RangeFilters) =>
+    apiRequest<{ range: RangeGrid | null }>(
+      `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}`,
+    ).then((r) => r.range),
+  achievements: () => apiRequest<{ achievements: AchievementView[] }>('/achievements').then((r) => r.achievements),
+  missions: () => apiRequest<{ missions: MissionView[] }>('/missions').then((r) => r.missions),
+  claimMission: (code: string) => apiRequest<MissionClaimResult>(`/missions/${code}/claim`, { method: 'POST' }),
+  resetProgress: () => apiRequest<{ ok: true }>('/progress/reset', { method: 'POST' }),
+  debugSetPlan: (plan: 'FREE' | 'PREMIUM') => apiRequest<{ ok: true; plan: string }>('/debug/plan', { method: 'POST', body: { plan } }),
+  debugAddXp: (amount: number) => apiRequest<{ ok: true; totalXp: number }>('/debug/xp', { method: 'POST', body: { amount } }),
+  debugCompleteAll: () => apiRequest<{ ok: true; count: number }>('/debug/complete-all', { method: 'POST' }),
+};
+
+export const userApi = {
+  onboarding: (input: OnboardingInput) =>
+    apiRequest<{ user: PublicUser }>('/onboarding', { method: 'POST', body: input }).then((r) => r.user),
+};

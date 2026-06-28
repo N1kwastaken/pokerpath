@@ -1,0 +1,138 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  GAME_TYPES, TABLE_SIZES, STACK_OPTIONS, POSITIONS,
+  type CellAction,
+} from '@pokerpath/shared';
+import { useRange } from '../hooks/useGame.js';
+import { LogoLoader } from '../components/LogoLoader.js';
+
+/** Charts — grid 13x13 de ranges (estilo Preflop Wizard) com filtros. */
+const CELL_COLOR: Record<CellAction, string> = {
+  RAISE: 'bg-success text-white',
+  CALL: 'bg-call text-white',
+  FOLD: 'bg-card2 text-subtle',
+  MIXED: 'bg-gradient-to-br from-success to-call text-white',
+};
+const GAME_LABEL: Record<string, string> = { CASH: 'Cash', TOURNAMENT: 'Torneio' };
+const SIZE_LABEL: Record<string, string> = { SIX_MAX: '6-max', NINE_MAX: '9-max' };
+
+export function ChartsPage() {
+  const [gameType, setGameType] = useState<string>('CASH');
+  const [tableSize, setTableSize] = useState<string>('SIX_MAX');
+  const [stack, setStack] = useState<number>(100);
+  const [position, setPosition] = useState<string>('BTN');
+  const [help, setHelp] = useState<boolean>(false);
+
+  const { data: range, isLoading } = useRange({ gameType, tableSize, stack, position });
+
+  return (
+    <div className="px-5 py-8">
+      <header className="mb-4">
+        <p className="text-sm text-subtle">Estudo</p>
+        <h1 className="text-3xl font-bold text-title">Charts</h1>
+      </header>
+
+      <button
+        onClick={() => setHelp((h) => !h)}
+        className="mb-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 text-left active:scale-[0.99]"
+      >
+        <span className="font-semibold text-title">Como ler o chart</span>
+        <span className="text-subtle">{help ? '▲' : '▼'}</span>
+      </button>
+      {help && (
+        <div className="mb-4 space-y-3 rounded-2xl border border-line bg-card2 p-4 text-sm text-text">
+          <p>Cada quadradinho é uma <b>mão inicial</b> (suas 2 cartas). São 169 combinações possíveis no Hold'em.</p>
+          <p>
+            A <b>diagonal</b> são os pares (AA, KK, …). <b>Acima</b> dela ficam as mãos do mesmo naipe
+            (<i>suited</i>, ex.: AKs). <b>Abaixo</b>, as de naipes diferentes (<i>offsuit</i>, ex.: AKo).
+          </p>
+          <p>A cor diz a ação recomendada quando você é o primeiro a entrar no pote (RFI):</p>
+          <div className="flex flex-wrap gap-3">
+            <Legend color="bg-success" label="Raise (abrir)" />
+            <Legend color="bg-call" label="Call" />
+            <Legend color="bg-gradient-to-br from-success to-call" label="Mista" />
+            <Legend color="bg-card2 border border-line" label="Fold" />
+          </div>
+          <p className="text-subtle">
+            Os <b>filtros</b> mudam o cenário: tipo de jogo, tamanho da mesa, seu <i>stack</i> (fichas, em BB) e sua{' '}
+            <b>posição</b>. Quanto mais tarde a posição (BTN), maior o range.
+          </p>
+          <Link to="/glossary" className="inline-block font-semibold text-primary">Ver glossário de termos →</Link>
+        </div>
+      )}
+
+      <FilterCard title="Tipo de jogo">
+        {GAME_TYPES.map((g) => <Chip key={g} on={gameType === g} onClick={() => setGameType(g)}>{GAME_LABEL[g]}</Chip>)}
+      </FilterCard>
+      <FilterCard title="Mesa">
+        {TABLE_SIZES.map((t) => <Chip key={t} on={tableSize === t} onClick={() => setTableSize(t)}>{SIZE_LABEL[t]}</Chip>)}
+      </FilterCard>
+      <FilterCard title="Stack (BB)">
+        {STACK_OPTIONS.map((s) => <Chip key={s} on={stack === s} onClick={() => setStack(s)}>{s}</Chip>)}
+      </FilterCard>
+      <FilterCard title="Posição">
+        {POSITIONS.map((p) => <Chip key={p} on={position === p} onClick={() => setPosition(p)}>{p}</Chip>)}
+      </FilterCard>
+
+      <div className="mt-6">
+        {isLoading ? (
+          <div className="card"><LogoLoader inline /></div>
+        ) : range && range.cells.length ? (
+          <div className="card p-3">
+            <p className="mb-3 px-1 text-sm font-bold text-title">{range.label}</p>
+            <div className="grid gap-[2px]" style={{ gridTemplateColumns: 'repeat(13, minmax(0, 1fr))' }}>
+              {range.cells.flatMap((row, r) =>
+                row.map((cell, c) => (
+                  <div
+                    key={`${r}-${c}`}
+                    className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none sm:text-[9px] ${CELL_COLOR[cell.action]}`}
+                    title={`${cell.hand} · ${cell.action}`}
+                  >
+                    {cell.hand}
+                  </div>
+                )),
+              )}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-4 px-1">
+              <Legend color="bg-success" label="Raise" />
+              <Legend color="bg-call" label="Call" />
+              <Legend color="bg-gradient-to-br from-success to-call" label="Mista" />
+              <Legend color="bg-card2 border border-line" label="Fold" />
+            </div>
+          </div>
+        ) : (
+          <div className="card p-8 text-center">
+            <p className="text-3xl">🗂️</p>
+            <p className="mt-2 font-semibold text-title">Sem dados para esse filtro</p>
+            <p className="mt-1 text-sm text-subtle">
+              Por enquanto temos Cash · 6-max · 100BB para UTG, MP, CO, BTN e SB.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FilterCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-3">
+      <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-subtle">{title}</h2>
+      <div className="flex flex-wrap gap-2">{children}</div>
+    </section>
+  );
+}
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className={`chip ${on ? 'chip-on' : 'chip-off'} px-3.5 py-2 text-sm`}>{children}</button>
+  );
+}
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={`h-3 w-3 rounded ${color}`} />
+      <span className="text-xs font-medium text-text">{label}</span>
+    </div>
+  );
+}

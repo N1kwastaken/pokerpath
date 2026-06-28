@@ -1,0 +1,33 @@
+{
+  "name": "pokerpath",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PokerPath — aprenda poker como um jogo. Monorepo (web + api + shared).",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @pokerpath/api\" \"npm run dev -w @pokerpath/web\"",
+    "dev:web": "npm run dev -w @pokerpath/web",
+    "dev:api": "npm run dev -w @pokerpath/api",
+    "build": "npm run build -w @pokerpath/shared && npm run build -w @pokerpath/api && npm run build -w @pokerpath/web",
+    "build:shared": "npm run build -w @pokerpath/shared",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @pokerpath/api",
+    "db:migrate": "npm run db:migrate -w @pokerpath/api",
+    "db:seed": "npm run db:seed -w @pokerpath/api",
+    "db:premium": "npm run db:premium -w @pokerpath/api",
+    "db:studio": "npm run db:studio -w @pokerpath/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prisma": "^7.8.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

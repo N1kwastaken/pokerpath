@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* LIGHT (padrão) — linguagem Preflop Wizard */
+  :root {
+    --bg: 250 250 251;
+    --card: 255 255 255;
+    --card2: 247 248 250;
+    --line: 233 236 240;
+    --title: 17 24 39;
+    --text: 71 85 105;
+    --subtle: 148 163 184;
+    --primary: 27 138 76;
+    --primary2: 20 92 52;
+    --primary-soft: 214 240 224;
+    color-scheme: light;
+  }
+  [data-theme='dark'] {
+    --bg: 8 9 12;
+    --card: 17 21 28;
+    --card2: 24 30 40;
+    --line: 38 44 56;
+    --title: 244 247 251;
+    --text: 190 199 212;
+    --subtle: 120 132 150;
+    --primary: 47 190 110;
+    --primary2: 27 138 76;
+    --primary-soft: 17 56 36;
+    color-scheme: dark;
+  }
+
+  html { height: 100%; }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    margin: 0;
+    min-height: 100%;
+    /* Evita "puxões" de scroll e barras horizontais no mobile/Android. */
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+  }
+  /* Coluna fluida e responsiva: cresce com o conteúdo (sem moldura fixa). */
+  #root {
+    @apply relative mx-auto w-full max-w-md bg-bg;
+    min-height: 100vh;   /* fallback */
+    min-height: 100dvh;  /* respeita a barra do navegador no mobile */
+  }
+  /* No desktop, delimita a coluna com bordas que acompanham o scroll. */
+  @media (min-width: 480px) {
+    #root { @apply border-x border-line; }
+  }
+  h1, h2, h3 { @apply font-display text-title; }
+  * { transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-line; }
+}
+
+@layer components {
+  /* Cards consistentes */
+  .card { @apply rounded-3xl border border-line bg-card shadow-card; }
+  .card-2 { @apply rounded-2xl border border-line bg-card2; }
+  /* Aliases legados -> mesmo visual limpo (telas antigas continuam ok) */
+  .glass { @apply card; }
+  .glass-soft { @apply rounded-2xl border border-line bg-card shadow-soft; }
+
+  /* Botões — base 2.5D (estilo Duolingo): aresta inferior que afunda ao tocar */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5
+      text-base font-bold transition-[transform,box-shadow,background-color] duration-100
+      disabled:cursor-not-allowed disabled:opacity-50;
+    box-shadow: 0 4px 0 0 var(--btn-edge, rgba(15, 23, 42, 0.16));
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 var(--btn-edge, rgba(15, 23, 42, 0.16));
+  }
+  .btn-primary { @apply btn bg-gradient-to-b from-primary to-primary-press text-white hover:brightness-105; --btn-edge: rgb(var(--primary2)); }
+  .btn-outline { @apply btn border-2 border-primary/50 bg-card text-primary hover:bg-primary-soft; --btn-edge: rgb(var(--line)); }
+  .btn-soft { @apply btn bg-card2 text-title hover:bg-line; --btn-edge: rgb(var(--line)); }
+  .btn-ghost { @apply btn text-text hover:bg-card2; box-shadow: none; }
+  .btn-ghost:active:not(:disabled) { transform: none; box-shadow: none; }
+
+  /* Utilitário 2.5D para botões coloridos avulsos (ações do jogo) */
+  .btn3d {
+    box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.22);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+  }
+  .btn3d:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.22);
+  }
+
+  /* Inputs */
+  .field {
+    @apply w-full rounded-2xl border border-line bg-card px-4 py-3.5 text-base
+      text-title placeholder:text-subtle outline-none transition-all
+      focus:border-primary focus:ring-4 focus:ring-primary/15;
+  }
+  .field-error { @apply border-error focus:border-error focus:ring-error/15; }
+
+  /* Pílula de seleção (selecionado = azul, não = contorno) */
+  .chip { @apply rounded-2xl border px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98]; }
+  .chip-on { @apply border-primary bg-primary text-white shadow-pop; }
+  .chip-off { @apply border-line bg-card text-text hover:border-primary/50; }
+
+  /* Texto em gradiente (sutil) */
+  .text-gradient { @apply bg-gradient-to-r from-primary to-brand bg-clip-text text-transparent; }
+  .text-gradient-accent { @apply bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent; }
+
+  /* Balão do mascote */
+  .speech { @apply relative rounded-2xl border border-line bg-card px-4 py-3 text-text shadow-card; }
+  .speech::after { content: ''; @apply absolute -bottom-2 left-8 h-4 w-4 rotate-45 border-b border-r border-line bg-card; }
+
+  .shimmer {
+    background-image: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.45) 50%, transparent 65%);
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+}

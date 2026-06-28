@@ -1,0 +1,279 @@
+// PokerPath -- schema do banco de dados.
+// Reflete o PRD secao 10 (Banco de Dados). Cada entidade do PRD vira um model.
+//
+// Nota de ambiente: o alvo de producao e PostgreSQL (PRD 15.2), mas para
+// desenvolvimento local usamos SQLite (file:./dev.db) -- basta trocar o
+// provider e a DATABASE_URL.
+//
+// IMPORTANTE -- enums: o SQLite nao suporta `enum` no Prisma. Por isso os
+// campos que no PRD sao enums (Position, ActionType, Difficulty, Category,
+// ProgressStatus, Plan, MissionType) sao modelados como String. A validacao
+// dos valores validos e garantida na camada de aplicacao pelos schemas Zod e
+// constantes em packages/shared/src/domain.ts -- a fonte unica de verdade.
+// Ao migrar para Postgres em producao, esses campos podem virar enums nativos.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------------------------------------------
+// USERS (PRD 10.1)
+// -------------------------------------------------------------
+
+model User {
+  id                  String   @id @default(uuid())
+  name                String
+  email               String   @unique
+  passwordHash        String
+  plan                String   @default("FREE")
+  totalXp             Int      @default(0)
+  onboardingCompleted Boolean  @default(false)
+
+  // Respostas do onboarding (PRD 4.1) -- opcionais ate completar.
+  experienceLevel     String?
+  playFrequency       String?
+  goal                String?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  progress            UserProgress[]
+  answers             UserAnswer[]
+  achievements        UserAchievement[]
+  streak              Streak?
+  missions            UserMission[]
+  refreshTokens       RefreshToken[]
+
+  @@map("users")
+}
+
+// Tokens de refresh persistidos para permitir revogacao (PRD 15.5).
+model RefreshToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// -------------------------------------------------------------
+// WORLDS (PRD 5)
+// -------------------------------------------------------------
+
+model World {
+  id          String   @id @default(uuid())
+  order       Int      @unique
+  name        String
+  description String
+  icon        String
+  color       String
+  createdAt   DateTime @default(now())
+
+  stages      Stage[]
+
+  @@map("worlds")
+}
+
+// -------------------------------------------------------------
+// STAGES / Fases (PRD 6)
+// -------------------------------------------------------------
+
+model Stage {
+  id           String   @id @default(uuid())
+  worldId      String
+  world        World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  order        Int
+  title        String
+  concept      String
+  description  String
+  minExercises Int      @default(5)
+  maxExercises Int      @default(20)
+  passRate     Float    @default(0.7)
+  xpReward     Int      @default(50)
+  createdAt    DateTime @default(now())
+
+  exercises    Exercise[]
+  progress     UserProgress[]
+
+  @@unique([worldId, order])
+  @@map("stages")
+}
+
+// -------------------------------------------------------------
+// EXERCISES (PRD 7)
+// -------------------------------------------------------------
+
+model Exercise {
+  id              String   @id @default(uuid())
+  stageId         String
+  stage           Stage    @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  order           Int
+  heroPosition    String
+  villainPosition String?
+  stackBb         Int      @default(100)
+  potSize         Float    @default(1.5)
+  heroHand        String
+  board           String?
+  villainAction   String?
+  correctAction   String
+  explanation     String
+  difficulty      String   @default("EASY")
+  category        String
+  xpValue         Int      @default(10)
+  frequencies     String?  // JSON de frequencias GTO {FOLD,CALL,RAISE,ALLIN}
+  createdAt       DateTime @default(now())
+
+  answers         UserAnswer[]
+
+  @@unique([stageId, order])
+  @@index([stageId])
+  @@map("exercises")
+}
+
+// -------------------------------------------------------------
+// USER_PROGRESS (PRD 10.3)
+// -------------------------------------------------------------
+
+model UserProgress {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stageId        String
+  stage          Stage     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  status         String    @default("LOCKED")
+  exercisesDone  Int       @default(0)
+  correctAnswers Int       @default(0)
+  accuracy       Float     @default(0)
+  xpEarned       Int       @default(0)
+  completedAt    DateTime?
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([userId, stageId])
+  @@index([userId])
+  @@map("user_progress")
+}
+
+// -------------------------------------------------------------
+// USER_ANSWERS (PRD 10.1)
+// -------------------------------------------------------------
+
+model UserAnswer {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId     String
+  exercise       Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  selectedAction String
+  isCorrect      Boolean
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([exerciseId])
+  @@map("user_answers")
+}
+
+// -------------------------------------------------------------
+// ACHIEVEMENTS (PRD 9.5)
+// -------------------------------------------------------------
+
+model Achievement {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String
+  icon        String
+  createdAt   DateTime @default(now())
+
+  users       UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+// -------------------------------------------------------------
+// STREAKS (PRD 9.3)
+// -------------------------------------------------------------
+
+model Streak {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStreak Int       @default(0)
+  maxStreak     Int       @default(0)
+  lastActiveAt  DateTime?
+  updatedAt     DateTime  @updatedAt
+
+  @@map("streaks")
+}
+
+// -------------------------------------------------------------
+// MISSIONS (PRD 9.4)
+// -------------------------------------------------------------
+
+model Mission {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  title       String
+  description String
+  type        String
+  xpReward    Int
+  target      Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  users       UserMission[]
+
+  @@map("missions")
+}
+
+model UserMission {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missionId   String
+  mission     Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  progress    Int       @default(0)
+  completedAt DateTime?
+  assignedAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@map("user_missions")
+}
+
+// -------------------------------------------------------------
+// RANGES (grid 13x13 de pre-flop) — dados GTO de referencia
+// -------------------------------------------------------------
+
+model Range {
+  id        String   @id @default(uuid())
+  gameType  String
+  tableSize String
+  stackBb   Int
+  position  String
+  label     String
+  cells     String   // JSON: 13x13 de { hand, action }
+  createdAt DateTime @default(now())
+
+  @@unique([gameType, tableSize, stackBb, position])
+  @@map("ranges")
+}
