@@ -194,3 +194,20 @@ export interface LessonResult {
 
 /** Erro de limite diário no plano FREE (PRD 13.2). */
 export const DAILY_LIMIT_CODE = 'DAILY_LIMIT_REACHED';
+
+/** Item de revisão: uma mão que o usuário ERROU (com gabarito, para estudo). */
+export interface ReviewItem {
+  id: string;
+  heroPosition: Position;
+  villainPosition: Position | null;
+  stackBb: number;
+  potSize: number;
+  heroHand: string;
+  board: string | null;
+  villainAction: string | null;
+  correctAction: Action;
+  yourAction: Action;
+  explanation: string;
+  frequencies: Frequencies;
+  category: Category;
+}

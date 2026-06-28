@@ -29,7 +29,7 @@ export function AchievementsPage() {
               <span className="text-4xl">🏆</span>
             </div>
             <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-card2">
-              <div className="h-full origin-left rounded-full bg-gradient-to-r from-gold to-primary animate-grow-x" style={{ width: `${pct}%` }} />
+              <div className="h-full origin-left rounded-full bg-gold animate-grow-x" style={{ width: `${pct}%` }} />
             </div>
           </div>
 
@@ -45,10 +45,10 @@ export function AchievementsPage() {
 function Tile({ a }: { a: AchievementView }) {
   return (
     <div className={`relative overflow-hidden rounded-3xl border p-5 text-center transition-all ${
-      a.unlocked ? 'border-gold/30 bg-gradient-to-b from-gold/10 to-transparent shadow-card' : 'border-line bg-card2'
+      a.unlocked ? 'border-gold/30 bg-gold/10 shadow-card' : 'border-line bg-card2'
     }`}>
       <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl text-3xl ${
-        a.unlocked ? 'bg-gradient-to-br from-gold to-primary shadow-glow-gold' : 'bg-card grayscale'
+        a.unlocked ? 'bg-gold ' : 'bg-card grayscale'
       }`}>
         {a.unlocked ? a.icon : <IconLock size={26} className="text-subtle" />}
       </div>

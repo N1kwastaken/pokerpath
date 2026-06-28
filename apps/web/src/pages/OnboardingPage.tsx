@@ -4,7 +4,6 @@ import type { ExperienceLevel, Goal, PlayFrequency } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { userApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
-import { Mascot } from '../components/Mascot.js';
 
 const EXPERIENCE: { value: ExperienceLevel; label: string }[] = [
   { value: 'beginner', label: '🌱 Nunca joguei' }, { value: 'recreational', label: '🎲 Casualmente' },
@@ -40,11 +39,10 @@ export function OnboardingPage() {
 
   return (
     <div className="min-h-dvh px-6 py-10">
-      <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-accent p-7 text-center text-white shadow-pop">
-        <div className="mx-auto w-fit"><Mascot mood="happy" size={104} /></div>
-        <h1 className="mt-4 text-3xl font-bold text-white">Bem-vindo!</h1>
-        <p className="mt-1 text-white/85">Três perguntas rápidas para personalizar sua jornada.</p>
-      </div>
+      <header className="mb-2">
+        <h1 className="text-3xl font-bold text-title">Bem-vindo!</h1>
+        <p className="mt-1 text-subtle">Três perguntas rápidas para personalizar sua jornada.</p>
+      </header>
 
       <Group title="Qual seu nível?">
         {EXPERIENCE.map((o) => <Choice key={o.value} on={experienceLevel === o.value} onClick={() => setExperience(o.value)}>{o.label}</Choice>)}

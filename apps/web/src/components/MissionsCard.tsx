@@ -61,7 +61,7 @@ function Row({ m, onClaim, pending }: { m: MissionView; onClaim: () => void; pen
           </span>
         ) : m.completed ? (
           <button onClick={onClaim} disabled={pending}
-            className="shrink-0 rounded-full bg-gradient-to-b from-gold to-gold/80 px-4 py-1.5 text-xs font-bold text-white shadow-glow-gold active:scale-95">
+            className="shrink-0 rounded-full bg-gold px-4 py-1.5 text-xs font-bold text-black active:scale-95">
             Resgatar +{m.xpReward}
           </button>
         ) : null}

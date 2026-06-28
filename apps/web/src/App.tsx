@@ -6,11 +6,12 @@ import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { OnboardingPage } from './pages/OnboardingPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
-import { WorldsPage } from './pages/WorldsPage.js';
+import { TrailPage } from './pages/TrailPage.js';
 import { WorldDetailPage } from './pages/WorldDetailPage.js';
 import { StagePlayPage } from './pages/StagePlayPage.js';
 import { PremiumPage } from './pages/PremiumPage.js';
 import { ChartsPage } from './pages/ChartsPage.js';
+import { ReviewHubPage } from './pages/ReviewHubPage.js';
 import { StatsPage } from './pages/StatsPage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { AchievementsPage } from './pages/AchievementsPage.js';
@@ -38,9 +39,10 @@ export function App() {
             {/* Telas com navegação inferior */}
             <Route element={<AppShell />}>
               <Route path="/" element={<DashboardPage />} />
-              <Route path="/worlds" element={<WorldsPage />} />
+              <Route path="/worlds" element={<TrailPage />} />
               <Route path="/worlds/:worldId" element={<WorldDetailPage />} />
               <Route path="/charts" element={<ChartsPage />} />
+              <Route path="/review" element={<ReviewHubPage />} />
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/achievements" element={<AchievementsPage />} />

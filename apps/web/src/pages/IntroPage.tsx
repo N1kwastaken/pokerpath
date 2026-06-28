@@ -1,22 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo.js';
-import { Mascot, type MascotMood } from '../components/Mascot.js';
+import { LureVisual } from '../components/LureVisual.js';
 import { hasSeenIntro, markIntroSeen } from '../lib/intro.js';
 
 /**
- * Tour de introdução.
- * - Padrão (pré-login): só aparece na 1ª abertura; depois vai direto ao login.
- *   O botão "Voltar" do login chama /welcome?replay=1 para reabrir o tour.
- * - `review` (a partir do Perfil): sempre mostra e volta para o app ao fim.
+ * Tour de introdução — usa a PRÓPRIA UI do app como vitrine (mesa, GTO, charts,
+ * progresso), sem mascote.
  */
-type Slide = { mood: MascotMood; from: string; to: string; title: string; text: string };
+type Kind = 'cards' | 'table' | 'gto' | 'grid' | 'progress';
+type Slide = { kind: Kind; title: string; text: string };
 
 const SLIDES: Slide[] = [
-  { mood: 'wave', from: '#3B82F6', to: '#7C5CFF', title: 'Bem-vindo ao PokerPath', text: 'Aprenda poker como um jogo: rápido, visual e viciante.' },
-  { mood: 'teaching', from: '#7C5CFF', to: '#16A34A', title: 'Treine na mesa', text: 'Decida Fold, Call ou Raise em mãos reais e veja a frequência GTO certa.' },
-  { mood: 'happy', from: '#16A34A', to: '#F59E0B', title: 'Estude de verdade', text: 'Charts de ranges 13×13 por posição e estatísticas da sua precisão.' },
-  { mood: 'excited', from: '#F59E0B', to: '#3B82F6', title: 'Evolua jogando', text: 'Ganhe XP, mantenha seu streak e avance por uma trilha de mundos.' },
+  { kind: 'cards', title: 'Bem-vindo ao PokerPath', text: 'Aprenda poker como um jogo: rápido, visual e direto ao ponto.' },
+  { kind: 'gto', title: 'Treine na mesa', text: 'Decida Fold, Call ou Raise em mãos reais e veja a frequência GTO certa.' },
+  { kind: 'grid', title: 'Estude de verdade', text: 'Charts de ranges 13×13 por posição e estatísticas da sua precisão.' },
+  { kind: 'progress', title: 'Evolua jogando', text: 'Ganhe XP, mantenha seu streak e avance por uma trilha de fases.' },
 ];
 
 export function IntroPage({ review = false }: { review?: boolean }) {
@@ -56,9 +55,8 @@ export function IntroPage({ review = false }: { review?: boolean }) {
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <div className="flex h-60 w-full max-w-xs items-center justify-center rounded-3xl shadow-pop"
-          style={{ background: `linear-gradient(135deg, ${s.from}, ${s.to})` }}>
-          <Mascot key={s.mood} mood={s.mood} size={170} />
+        <div className="flex h-64 w-full max-w-xs items-center justify-center rounded-3xl border border-line bg-card2 p-4">
+          <LureVisual key={s.kind} kind={s.kind} />
         </div>
         <h1 className="mt-8 text-3xl font-bold text-title">{s.title}</h1>
         <p className="mt-3 max-w-xs text-text">{s.text}</p>

@@ -4,7 +4,7 @@ import { IconHome, IconTarget, IconGrid, IconChart, IconUser } from './Icons.js'
 const TABS = [
   { to: '/', label: 'Início', Icon: IconHome, end: true },
   { to: '/worlds', label: 'Treino', Icon: IconTarget, end: false },
-  { to: '/charts', label: 'Charts', Icon: IconGrid, end: false },
+  { to: '/review', label: 'Revisão', Icon: IconGrid, end: false },
   { to: '/stats', label: 'Stats', Icon: IconChart, end: false },
   { to: '/profile', label: 'Perfil', Icon: IconUser, end: false },
 ];
@@ -12,7 +12,7 @@ const TABS = [
 /** Navegação inferior minimalista (iOS-like). */
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-line bg-card/90 backdrop-blur-xl">
+    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-line bg-card">
       <div className="flex items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)] pt-2">
         {TABS.map(({ to, label, Icon, end }) => (
           <NavLink

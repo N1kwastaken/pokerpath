@@ -28,9 +28,6 @@ export function LessonHandTable({ position, hand }: { position: Position; hand: 
 
   return (
     <div>
-      <p className="mb-2 text-center text-sm font-semibold text-subtle">
-        Você está em <span className="font-bold text-primary">{position}</span>
-      </p>
       <div className="relative mx-auto aspect-[10/8] w-full max-w-xs">
         <div className="absolute inset-2 rounded-[44%] border border-line bg-gradient-to-b from-card2 to-card shadow-card" />
         <div className="absolute inset-6 rounded-[44%] border border-line/60" />
@@ -53,7 +50,6 @@ export function LessonHandTable({ position, hand }: { position: Position; hand: 
           className="absolute z-20 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-out"
           style={{ left: `${hero.x}%`, top: `${hero.y}%` }}
         >
-          <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-pop">Você</span>
           <span className="flex items-center gap-1 rounded-full border-2 border-primary bg-primary px-2.5 py-0.5 text-[11px] font-bold text-white shadow-pop">
             {position}
             {position === 'BTN' && <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-black text-[#16181D]">D</span>}

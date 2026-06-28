@@ -1,9 +1,6 @@
 /**
- * Carta de poker no estilo real (PRD 12.3): fundo branco, naipe colorido,
- * valor no canto superior esquerdo e inferior direito.
- *
- * Importante: a carta é sempre branca, então usamos cores FIXAS (preto/vermelho)
- * para o texto — não os tokens do tema (que no dark seriam claros e sumiriam).
+ * Carta de poker — tamanho fixo, um pouco menor no mobile e maior no desktop (sm:).
+ * Fundo branco; naipes vermelho/preto fixos (não usam tokens do tema).
  */
 const RED_SUITS = new Set(['♥', '♦']);
 const INK = '#16181D';
@@ -21,32 +18,28 @@ export function Card({ token }: { token: string }) {
 
   return (
     <div
-      className="relative flex h-24 w-16 flex-col justify-between rounded-lg border border-black/10 bg-white p-1.5 shadow-md sm:h-28 sm:w-20"
+      className="relative flex h-20 w-14 shrink-0 flex-col justify-between overflow-hidden rounded-md border border-black/10 bg-white p-1 shadow-md sm:h-24 sm:w-16"
       style={{ color }}
       aria-label={`${label} de ${suit}`}
     >
-      <span className="text-base font-black leading-none">
-        {label}
-        <span className="block text-sm">{suit}</span>
+      <span className="text-sm font-black leading-none sm:text-base">
+        {label}<span className="block text-[0.6rem] leading-none sm:text-xs">{suit}</span>
       </span>
-      <span className="self-center text-2xl">{suit}</span>
-      <span className="rotate-180 self-end text-base font-black leading-none">
-        {label}
-        <span className="block text-sm">{suit}</span>
+      <span className="self-center text-xl leading-none sm:text-2xl">{suit}</span>
+      <span className="rotate-180 self-end text-sm font-black leading-none sm:text-base">
+        {label}<span className="block text-[0.6rem] leading-none sm:text-xs">{suit}</span>
       </span>
     </div>
   );
 }
 
-/** Quebra uma mão "A♠J♣" em tokens ["A♠","J♣"] e renderiza as cartas. */
+/** Quebra "A♠J♣" em cartas e renderiza. */
 export function Hand({ hand }: { hand: string }) {
   const tokens: string[] = [];
   for (let i = 0; i < hand.length; i += 2) tokens.push(hand.slice(i, i + 2));
   return (
     <div className="flex justify-center gap-3">
-      {tokens.map((t, i) => (
-        <Card key={i} token={t} />
-      ))}
+      {tokens.map((t, i) => <Card key={i} token={t} />)}
     </div>
   );
 }

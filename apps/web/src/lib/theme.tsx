@@ -12,7 +12,7 @@ function apply(theme: Theme) {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem(KEY) as Theme | null;
-    return saved ?? 'light';
+    return saved ?? 'dark';
   });
   useEffect(() => { apply(theme); localStorage.setItem(KEY, theme); }, [theme]);
   return (

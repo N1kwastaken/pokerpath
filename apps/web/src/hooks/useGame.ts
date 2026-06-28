@@ -4,6 +4,9 @@ import { gameApi, type RangeFilters } from '../api/game.js';
 export function useWorlds() {
   return useQuery({ queryKey: ['worlds'], queryFn: gameApi.worlds });
 }
+export function useTrail() {
+  return useQuery({ queryKey: ['trail'], queryFn: gameApi.trail });
+}
 export function useWorld(worldId: string | undefined) {
   return useQuery({ queryKey: ['world', worldId], queryFn: () => gameApi.world(worldId!), enabled: !!worldId });
 }
@@ -12,6 +15,9 @@ export function useStage(stageId: string | undefined) {
 }
 export function useStats() {
   return useQuery({ queryKey: ['stats'], queryFn: gameApi.stats });
+}
+export function useReview() {
+  return useQuery({ queryKey: ['review'], queryFn: gameApi.review });
 }
 export function useRange(filters: RangeFilters, opts?: { enabled?: boolean }) {
   return useQuery({ queryKey: ['range', filters], queryFn: () => gameApi.range(filters), enabled: opts?.enabled ?? true });

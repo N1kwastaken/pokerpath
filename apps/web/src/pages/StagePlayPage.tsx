@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
+import { USER_LEVELS } from '@pokerpath/shared';
 import { useStage, useRange } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
@@ -11,7 +12,7 @@ import { ProgressBar } from '../components/ProgressBar.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
 import { GtoBars } from '../components/GtoBars.js';
-import { IconX } from '../components/Icons.js';
+import { IconX, IconCheck } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
 import { LessonHandTable } from '../components/LessonHandTable.js';
@@ -20,12 +21,11 @@ import { LessonVisual } from '../components/LessonVisual.js';
 import { lessonFor } from '../content/lessons.js';
 import { sound } from '../lib/sound.js';
 
-type ButtonAction = Action | 'ALLIN';
-const BTNS: { key: ButtonAction; label: string; color: string }[] = [
+// Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
+const ACT: { key: Action; label: string; color: string }[] = [
   { key: 'FOLD', label: 'Fold', color: 'bg-subtle' },
   { key: 'CALL', label: 'Call', color: 'bg-call' },
-  { key: 'RAISE', label: 'Raise', color: 'bg-success' },
-  { key: 'ALLIN', label: 'All In', color: 'bg-danger' },
+  { key: 'RAISE', label: 'Raise', color: 'bg-primary' },
 ];
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
 const LESSON_POSITION: Record<string, Position> = {
@@ -35,6 +35,12 @@ const LESSON_POSITION: Record<string, Position> = {
   'BTN explicado': 'BTN', 'Range de BTN': 'BTN',
   'SB explicado': 'SB', 'Range de SB': 'SB',
 };
+function xpProgress(totalXp: number, level: number): { pct: number; hasNext: boolean } {
+  const cur = USER_LEVELS[level - 1]?.xpRequired ?? 0;
+  const nx = USER_LEVELS[level]?.xpRequired;
+  if (nx == null) return { pct: 100, hasNext: false };
+  return { pct: Math.max(0, Math.min(100, Math.round(((totalXp - cur) / (nx - cur)) * 100))), hasNext: true };
+}
 type Phase = 'playing' | 'feedback' | 'summary';
 
 export function StagePlayPage() {
@@ -55,21 +61,24 @@ export function StagePlayPage() {
   const [phase, setPhase] = useState<Phase>('playing');
   const [idx, setIdx] = useState(0);
   const [result, setResult] = useState<AnswerResult | null>(null);
+  const [lastChoice, setLastChoice] = useState<Action | null>(null);
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [sessionXp, setSessionXp] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [worldDone, setWorldDone] = useState(false);
 
   function scrollTop() { window.scrollTo({ top: 0 }); }
-  function backToWorld() {
+  function invalidateProgress() {
     queryClient.invalidateQueries({ queryKey: ['worlds'] });
-    queryClient.invalidateQueries({ queryKey: ['world', data?.worldId] });
+    queryClient.invalidateQueries({ queryKey: ['trail'] });
     queryClient.invalidateQueries({ queryKey: ['stats'] });
-    navigate(`/worlds/${data?.worldId}`, { replace: true });
+  }
+  function backToWorld() {
+    invalidateProgress();
+    navigate('/worlds', { replace: true, state: { fromExercise: true } });
   }
   function goHome() {
-    queryClient.invalidateQueries({ queryKey: ['worlds'] });
-    queryClient.invalidateQueries({ queryKey: ['stats'] });
+    invalidateProgress();
     navigate('/', { replace: true });
   }
 
@@ -77,6 +86,7 @@ export function StagePlayPage() {
     mutationFn: () => gameApi.completeLesson(stageId!),
     onSuccess: (res) => {
       sound.correct();
+      if (stageId) localStorage.setItem('pp.justCompleted', stageId);
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak });
       backToWorld();
     },
@@ -91,19 +101,18 @@ export function StagePlayPage() {
       setResult(res);
       setAnswers((a) => [...a, res.correct]);
       setSessionXp((x) => x + res.xpGained);
-      if (res.stageCompleted) setCompleted(true);
+      if (res.stageCompleted) { setCompleted(true); if (stageId) localStorage.setItem('pp.justCompleted', stageId); }
       if (res.worldCompleted) setWorldDone(true);
       res.correct ? sound.correct() : sound.wrong();
       if (res.leveledUp) setTimeout(() => sound.levelUp(), 250);
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak });
       setPhase('feedback');
-      setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 60);
     },
     onError: (err) => { if (err instanceof ApiError && err.code === 'DAILY_LIMIT_REACHED') navigate('/premium'); },
   });
 
   useEffect(() => {
-    if (error instanceof ApiError) navigate(error.code === 'PREMIUM_REQUIRED' ? '/premium' : '/worlds', { replace: true });
+    if (error instanceof ApiError) navigate(error.code === 'PREMIUM_REQUIRED' ? '/premium' : '/worlds', { replace: true, state: { fromExercise: true } });
   }, [error, navigate]);
 
   if (error) return null;
@@ -124,15 +133,19 @@ export function StagePlayPage() {
           <Link to="/glossary" className="text-sm font-medium text-primary">📖 Glossário</Link>
         </div>
 
-        <div className="mt-2 flex items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-accent p-6 text-white shadow-pop">
-          <Mascot mood="happy" size={88} />
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-white/70">Aula</p>
-            <h1 className="mt-1 text-2xl font-bold leading-tight text-white">{data.stage.title}</h1>
+        <div className="mt-4 flex items-center gap-3">
+          <Mascot mood="happy" size={44} float={false} />
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Aula</p>
+            <h1 className="truncate text-xl font-extrabold leading-tight text-title">{data.stage.title}</h1>
           </div>
         </div>
 
-        <div className="mt-6 flex flex-1 flex-col">
+        <div className="mt-4 flex justify-center gap-1.5">
+          {steps.map((_, i) => <span key={i} className={`h-1.5 rounded-full transition-all ${i === lessonIdx ? 'w-6 bg-primary' : 'w-1.5 bg-line'}`} />)}
+        </div>
+
+        <div className="mt-5 flex flex-1 flex-col">
           {step.kind === 'visual' ? (
             <LessonVisual visual={step.visual} />
           ) : step.kind === 'hand' ? (
@@ -140,8 +153,8 @@ export function StagePlayPage() {
               <LessonHandTable position={step.position} hand={step.hand} />
               {answered ? (
                 <>
-                  <div className={`rounded-2xl border p-4 ${handPick === step.answer ? 'border-success/30 bg-success/10' : 'border-error/30 bg-error/10'}`}>
-                    <p className={`font-bold ${handPick === step.answer ? 'text-success' : 'text-error'}`}>
+                  <div className={`rounded-2xl border p-4 ${handPick === step.answer ? 'border-primary/40 bg-primary/10' : 'border-error/40 bg-error/10'}`}>
+                    <p className={`font-bold ${handPick === step.answer ? 'text-primary' : 'text-error'}`}>
                       {handPick === step.answer ? 'Correto!' : `Era ${step.answer === 'RAISE' ? 'Raise' : 'Fold'}`}
                     </p>
                     <p className="mt-0.5 text-sm text-text">{step.explain}</p>
@@ -151,18 +164,16 @@ export function StagePlayPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => { setHandPick('FOLD'); step.answer === 'FOLD' ? sound.correct() : sound.wrong(); }} className="btn3d rounded-2xl bg-subtle py-4 font-bold text-white">Fold</button>
-                  <button onClick={() => { setHandPick('RAISE'); step.answer === 'RAISE' ? sound.correct() : sound.wrong(); }} className="btn3d rounded-2xl bg-success py-4 font-bold text-white">Raise</button>
+                  <button onClick={() => { setHandPick('RAISE'); step.answer === 'RAISE' ? sound.correct() : sound.wrong(); }} className="btn3d rounded-2xl bg-primary py-4 font-bold text-white">Raise</button>
                 </div>
               )}
             </div>
           ) : step.kind === 'text' ? (
             <>
-              <div className="card whitespace-pre-line p-6 text-lg leading-relaxed text-text">{step.text}</div>
+              <div className="whitespace-pre-line px-1 text-xl font-medium leading-relaxed text-title">{step.text}</div>
               {lessonPosition && rangeQ.data && rangeQ.data.cells.length > 0 && (
                 <div className="card mt-4 p-4">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-subtle">
-                    Range de abertura · {lessonPosition}
-                  </p>
+                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-subtle">Range de abertura · {lessonPosition}</p>
                   <RangeGridView grid={rangeQ.data} />
                 </div>
               )}
@@ -175,46 +186,28 @@ export function StagePlayPage() {
                   const correct = i === step.answer;
                   let cls = 'chip-off';
                   if (answered) {
-                    if (correct) cls = 'border-success bg-success/10 text-success';
+                    if (correct) cls = 'border-primary bg-primary/10 text-primary';
                     else if (quizPick === i) cls = 'border-error bg-error/10 text-error';
                     else cls = 'chip-off opacity-50';
                   }
                   return (
-                    <button
-                      key={i}
-                      disabled={answered}
-                      onClick={() => { setQuizPick(i); correct ? sound.correct() : sound.wrong(); }}
-                      className={`chip w-full text-left ${cls}`}
-                    >
-                      {opt}
-                    </button>
+                    <button key={i} disabled={answered} onClick={() => { setQuizPick(i); correct ? sound.correct() : sound.wrong(); }} className={`chip w-full text-left ${cls}`}>{opt}</button>
                   );
                 })}
               </div>
               {answered && (
-                <div className={`mt-4 rounded-2xl p-3 text-sm ${quizPick === step.answer ? 'bg-success/10' : 'bg-error/10'}`}>
-                  <span className={`font-bold ${quizPick === step.answer ? 'text-success' : 'text-error'}`}>
-                    {quizPick === step.answer ? 'Correto! ' : 'Quase! '}
-                  </span>
+                <div className={`mt-4 rounded-xl p-3 text-sm ${quizPick === step.answer ? 'bg-primary/10' : 'bg-error/10'}`}>
+                  <span className={`font-bold ${quizPick === step.answer ? 'text-primary' : 'text-error'}`}>{quizPick === step.answer ? 'Correto! ' : 'Quase! '}</span>
                   <span className="text-text">{step.explain}</span>
                 </div>
               )}
             </div>
           )}
-          <div className="mt-5 flex justify-center gap-1.5">
-            {steps.map((_, i) => <span key={i} className={`h-1.5 rounded-full transition-all ${i === lessonIdx ? 'w-6 bg-primary' : 'w-1.5 bg-line'}`} />)}
-          </div>
         </div>
 
         <div className="space-y-3 pt-4">
-          <button
-            className="btn-primary w-full"
-            disabled={(needsAnswer && !answered) || lessonMut.isPending}
-            onClick={() => {
-              if (last) { sound.click(); lessonMut.mutate(); }
-              else { sound.click(); setLessonIdx((i) => i + 1); setQuizPick(null); setHandPick(null); }
-            }}
-          >
+          <button className="btn-primary w-full" disabled={(needsAnswer && !answered) || lessonMut.isPending}
+            onClick={() => { if (last) { sound.click(); lessonMut.mutate(); } else { sound.click(); setLessonIdx((i) => i + 1); setQuizPick(null); setHandPick(null); } }}>
             {needsAnswer && !answered ? 'Responda para continuar' : last ? (lessonMut.isPending ? 'Concluindo...' : 'Concluir aula') : 'Próximo'}
           </button>
           {!last && <button className="btn-ghost w-full" onClick={() => { setLessonIdx(steps.length - 1); setQuizPick(null); setHandPick(null); }}>Pular ao fim</button>}
@@ -228,15 +221,15 @@ export function StagePlayPage() {
   function advance() {
     const isLast = idx + 1 >= exercises.length;
     if (completed || isLast) { scrollTop(); return setPhase('summary'); }
-    setIdx((i) => i + 1); setResult(null); setPhase('playing'); scrollTop();
+    setIdx((i) => i + 1); setResult(null); setLastChoice(null); setPhase('playing');
   }
   function retry() {
-    setIdx(0); setAnswers([]); setSessionXp(0); setResult(null);
+    setIdx(0); setAnswers([]); setSessionXp(0); setResult(null); setLastChoice(null);
     setCompleted(false); setWorldDone(false); setPhase('playing'); scrollTop();
   }
   function choose(action: Action) {
     if (mutation.isPending || phase !== 'playing') return;
-    sound.click(); mutation.mutate(action);
+    setLastChoice(action); sound.click(); mutation.mutate(action);
   }
 
   // ─── RESUMO ──────────────────────────────────────────────────
@@ -245,11 +238,12 @@ export function StagePlayPage() {
     const accuracy = answers.length ? Math.round((correct / answers.length) * 100) : 0;
     return (
       <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
-        {completed && <Confetti count={60} />}
-        <Mascot mood={completed ? 'excited' : 'sad'} size={140} />
+        {completed && <Confetti count={50} />}
+        <Mascot mood={completed ? 'excited' : 'sad'} size={132} />
         <h1 className="mt-5 text-3xl font-bold text-title">{completed ? 'Fase concluída!' : 'Quase lá!'}</h1>
-        {worldDone && <p className="mt-1 font-bold text-gradient">Mundo completo! 🏆</p>}
+        {worldDone && <p className="mt-1 font-bold text-primary">Mundo completo! 🏆</p>}
         {!completed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
+        {completed && <div className="mt-4 animate-deal-in text-5xl">🎁</div>}
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
           <Stat label="Acerto" value={`${accuracy}%`} />
           <Stat label="Acertos" value={`${correct}/${answers.length}`} />
@@ -266,7 +260,7 @@ export function StagePlayPage() {
           ) : (
             <>
               <button className="btn-primary w-full" onClick={retry}>Tentar de novo</button>
-              <button className="btn-soft w-full" onClick={backToWorld}>Voltar ao mundo</button>
+              <button className="btn-soft w-full" onClick={backToWorld}>Voltar à trilha</button>
             </>
           )}
         </div>
@@ -274,54 +268,102 @@ export function StagePlayPage() {
     );
   }
 
-  // ─── TRAINER ─────────────────────────────────────────────────
+  // ─── EXERCÍCIO (1 tela, sem scroll) ──────────────────────────
   const fb = phase === 'feedback' && result;
+  const correctCount = answers.filter(Boolean).length;
   return (
-    <div className="relative flex min-h-dvh flex-col px-5 py-5">
-      {fb && result?.correct && <Confetti key={idx} count={26} />}
-      <div className="mb-3 flex items-center gap-3">
+    <div className="fixed inset-0 z-30 bg-bg">
+      {fb && result?.correct && <Confetti key={idx} count={20} />}
+      <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3 lg:max-w-5xl lg:flex-row lg:items-stretch lg:gap-6 lg:px-8 lg:py-6">
+      <div className="flex min-h-0 flex-1 flex-col">
+
+      <div className="flex items-center gap-3">
         <button onClick={backToWorld} className="text-subtle" aria-label="Sair"><IconX size={20} /></button>
         <div className="flex-1"><ProgressBar value={answers.length} max={exercises.length} /></div>
-        <span className="text-xs font-bold text-subtle">{answers.length}/{exercises.length}</span>
+        <span className="text-xs font-bold tabular-nums text-subtle">{answers.length}/{exercises.length}</span>
+        {user && <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-title">{user.currentStreak}🔥</span>}
       </div>
-      <p className="text-center text-xs font-bold uppercase tracking-widest text-subtle">{data.stage.title}</p>
-      <div className={`mt-1 ${fb && result && !result.correct ? 'animate-shake' : ''}`}><PokerTable ex={current} /></div>
-      <div className="flex-1" />
 
-      {fb && result && (
-        <div className="mb-4 animate-slide-up space-y-4">
-          <div className={`flex items-center gap-3 rounded-2xl border p-4 ${result.correct ? 'border-success/30 bg-success/10' : 'border-error/30 bg-error/10'}`}>
-            <Mascot mood={result.correct ? 'happy' : 'sad'} size={48} float={false} />
+      <div className="flex flex-1 flex-col justify-center">
+        <div className={`w-full ${fb && result && !result.correct ? 'animate-shake' : ''}`}><PokerTable ex={current} /></div>
+      </div>
+
+      {fb && result ? (
+        <div className="animate-slide-up space-y-3 rounded-2xl border border-line bg-card p-4">
+          <div className="flex items-center gap-3">
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${result.correct ? 'bg-primary' : 'bg-error'}`}>
+              {result.correct ? <IconCheck size={20} /> : <span className="text-lg font-black">✕</span>}
+            </span>
             <div className="min-w-0 flex-1">
-              <p className={`font-bold ${result.correct ? 'text-success' : 'text-error'}`}>{result.correct ? 'Correto!' : `Incorreto — era ${LABEL[result.correctAction]}`}</p>
-              {result.explanation && <p className="text-sm text-text">{result.explanation}</p>}
+              <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
+                {result.correct ? 'Correto' : `Incorreto — era ${LABEL[result.correctAction]}`}
+              </p>
+              {result.explanation && <p className="text-xs leading-snug text-text">{result.explanation}</p>}
             </div>
-            {result.correct && <span className="shrink-0 font-bold text-success">+{result.xpGained} XP</span>}
+            {result.correct && <span className="shrink-0 text-sm font-black text-primary">+{result.xpGained} XP</span>}
           </div>
-          <div className="card p-4"><GtoBars freq={result.frequencies} /></div>
+
+          {(() => {
+            const xp = xpProgress(result.totalXp, result.level);
+            return (
+              <div className="flex items-center gap-2">
+                <span className="w-9 shrink-0 text-[10px] font-bold text-subtle">Nv {result.level}</span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/30">
+                  <div key={result.totalXp} className="h-full origin-left rounded-full bg-gold animate-grow-x" style={{ width: `${xp.pct}%` }} />
+                </div>
+                <span className="w-9 shrink-0 text-right text-[10px] font-bold text-subtle">{xp.hasNext ? `Nv ${result.level + 1}` : 'MAX'}</span>
+              </div>
+            );
+          })()}
+          {result.leveledUp && (
+            <div className="animate-slide-up rounded-xl bg-primary/15 py-1.5 text-center text-sm font-black text-primary">⭐ Subiu de nível — {result.levelName}!</div>
+          )}
+
+          <GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} />
+
           {result.newAchievements.length > 0 && (
-            <div className="rounded-2xl border border-gold/30 bg-gold/10 p-3 text-center text-sm font-semibold text-gold">
+            <div className="rounded-xl border border-gold/30 bg-gold/10 p-2 text-center text-xs font-semibold text-gold">
               {result.newAchievements.map((a) => `${a.icon} ${a.name}`).join(' · ')}
             </div>
           )}
-        </div>
-      )}
 
-      {fb ? (
-        <button className="btn-primary w-full" onClick={advance}>Próximo</button>
+          <button className="btn-primary w-full" onClick={advance}>Continuar</button>
+        </div>
       ) : (
-        <div className="grid grid-cols-4 gap-2">
-          {BTNS.map((b) => {
-            const disabled = b.key === 'ALLIN' || mutation.isPending;
-            return (
-              <button key={b.key} onClick={() => b.key !== 'ALLIN' && choose(b.key as Action)} disabled={disabled}
-                className={`btn3d rounded-2xl py-4 text-sm font-bold text-white ${b.color} ${b.key === 'ALLIN' ? 'opacity-30' : 'hover:brightness-110'}`}>
-                {b.label}
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-3 gap-2.5">
+          {ACT.map((b) => (
+            <button key={b.key} onClick={() => choose(b.key)} disabled={mutation.isPending}
+              className={`btn3d rounded-2xl py-5 text-base font-extrabold text-white ${b.color} hover:brightness-110`}>
+              {b.label}
+            </button>
+          ))}
         </div>
       )}
+      </div>
+
+      <aside className="hidden w-[300px] shrink-0 flex-col gap-3 lg:flex">
+        <div className="card p-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Sessão</p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {answers.map((ok, i) => <span key={i} className={`h-4 w-4 rounded ${ok ? 'bg-primary' : 'bg-error'}`} />)}
+            {answers.length === 0 && <span className="text-xs text-subtle">Sem respostas ainda.</span>}
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+            <div className="card-2 p-2"><p className="text-lg font-bold text-title">{answers.length}/{exercises.length}</p><p className="text-[10px] text-subtle">Fase</p></div>
+            <div className="card-2 p-2"><p className="text-lg font-bold text-title">{answers.length ? Math.round((correctCount / answers.length) * 100) : 0}%</p><p className="text-[10px] text-subtle">Acerto</p></div>
+          </div>
+        </div>
+        <div className="card flex-1 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia</p>
+          {fb && result ? (
+            <div className="mt-3"><GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} /></div>
+          ) : (
+            <p className="mt-3 text-sm text-subtle">Responda a mão para ver as frequências GTO.</p>
+          )}
+        </div>
+      </aside>
+
+      </div>
     </div>
   );
 }

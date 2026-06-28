@@ -10,6 +10,8 @@ import {
   completeLesson,
   getStats,
   getRange,
+  getTrail,
+  getReview,
   resetProgress,
   debugSetPlan,
   debugAddXp,
@@ -53,6 +55,11 @@ export async function gameRoutes(app: FastifyInstance) {
     const { plan, godmode } = await accountOf(request.user.sub);
     const worlds = await getWorldsForUser(request.user.sub, plan, godmode);
     return { worlds };
+  });
+
+  app.get('/trail', async (request) => {
+    const { plan, godmode } = await accountOf(request.user.sub);
+    return { trail: await getTrail(request.user.sub, plan, godmode) };
   });
 
   app.get<{ Params: { worldId: string } }>(
@@ -102,6 +109,10 @@ export async function gameRoutes(app: FastifyInstance) {
 
   app.get('/stats', async (request) => {
     return getStats(request.user.sub);
+  });
+
+  app.get('/review', async (request) => {
+    return { review: await getReview(request.user.sub) };
   });
 
   app.post('/progress/reset', async (request) => {

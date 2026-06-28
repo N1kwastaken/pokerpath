@@ -24,6 +24,7 @@ import {
   type PublicExercise,
   type StageSummary,
   type StagePlay,
+  type ReviewItem,
   type WorldDetail,
   type WorldSummary,
 } from '@pokerpath/shared';
@@ -183,6 +184,43 @@ export async function getWorldDetail(
     premiumLocked,
     stages,
   };
+}
+
+// ─── Trilha unificada: todos os mundos + fases num fluxo só ─────
+export async function getTrail(userId: string, plan: string, godmode = false): Promise<WorldDetail[]> {
+  const worlds = await prisma.world.findMany({
+    orderBy: { order: 'asc' },
+    include: { stages: { orderBy: { order: 'asc' }, include: { _count: { select: { exercises: true } } } } },
+  });
+  const progress = await prisma.userProgress.findMany({ where: { userId } });
+  const byStage = new Map(progress.map((p) => [p.stageId, p]));
+
+  const out: WorldDetail[] = [];
+  let prevWorldComplete = true;
+  for (const w of worlds) {
+    const premiumLocked = godmode ? false : isPremiumLocked(plan, w.order);
+    const progressionLocked = godmode ? false : w.order > 0 && !prevWorldComplete;
+    const accessible = !premiumLocked && !progressionLocked;
+
+    const stages: StageSummary[] = [];
+    let prevStageComplete = true;
+    let completedCount = 0;
+    for (const s of w.stages) {
+      const p = byStage.get(s.id);
+      let status: ProgressStatus;
+      if (p?.status === 'COMPLETED') { status = 'COMPLETED'; completedCount++; }
+      else if (accessible && (godmode || prevStageComplete)) status = 'IN_PROGRESS';
+      else status = 'LOCKED';
+      stages.push(toStageSummary(s, status, s._count.exercises === 0, p));
+      prevStageComplete = p?.status === 'COMPLETED';
+    }
+    out.push({
+      id: w.id, order: w.order, name: w.name, description: w.description,
+      icon: w.icon, color: w.color, locked: progressionLocked, premiumLocked, stages,
+    });
+    prevWorldComplete = w.stages.length > 0 && completedCount === w.stages.length;
+  }
+  return out;
 }
 
 /** Verdadeiro se o mundo está bloqueado porque o anterior não foi concluído. */
@@ -634,6 +672,41 @@ export async function getStats(userId: string): Promise<StatsResult> {
     overallAccuracy: rows.length ? totalCorrect / rows.length : 0,
     byCategory,
   };
+}
+
+// ─── Revisão: mãos que o usuário ERROU ─────────────────────────
+export async function getReview(userId: string): Promise<ReviewItem[]> {
+  const wrong = await prisma.userAnswer.findMany({
+    where: { userId, isCorrect: false },
+    orderBy: { createdAt: 'desc' },
+    include: { exercise: true },
+    take: 200,
+  });
+  const seen = new Set<string>();
+  const out: ReviewItem[] = [];
+  for (const a of wrong) {
+    if (seen.has(a.exerciseId)) continue;
+    seen.add(a.exerciseId);
+    const ex = a.exercise;
+    const correct = ex.correctAction as Action;
+    out.push({
+      id: ex.id,
+      heroPosition: ex.heroPosition as Position,
+      villainPosition: (ex.villainPosition as Position | null) ?? null,
+      stackBb: ex.stackBb,
+      potSize: ex.potSize,
+      heroHand: ex.heroHand,
+      board: ex.board,
+      villainAction: ex.villainAction,
+      correctAction: correct,
+      yourAction: a.selectedAction as Action,
+      explanation: ex.explanation,
+      frequencies: parseFrequencies(ex.frequencies, correct),
+      category: ex.category as Category,
+    });
+    if (out.length >= 40) break;
+  }
+  return out;
 }
 
 // ─── Range (grid 13x13) ────────────────────────────────────────

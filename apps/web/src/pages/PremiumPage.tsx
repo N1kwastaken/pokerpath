@@ -10,7 +10,7 @@ export function PremiumPage() {
   return (
     <div className="px-5 py-8">
       <Link to="/profile" className="mb-6 inline-block text-sm font-medium text-subtle">← Voltar</Link>
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-accent p-7 text-center text-white shadow-pop">
+      <div className="relative overflow-hidden rounded-3xl bg-primary p-7 text-center text-white shadow-pop">
         <div className="pointer-events-none absolute inset-0 shimmer opacity-40" />
         <div className="relative text-5xl">⭐</div>
         <h1 className="relative mt-2 text-3xl font-bold text-white">PokerPath Premium</h1>

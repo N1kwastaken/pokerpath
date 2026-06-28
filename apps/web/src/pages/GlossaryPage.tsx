@@ -63,14 +63,18 @@ const SECTIONS: Section[] = [
   },
 ];
 
-export function GlossaryPage() {
+export function GlossaryPage({ embedded = false }: { embedded?: boolean }) {
   const [open, setOpen] = useState<string | null>('Ações');
 
   return (
-    <div className="px-5 py-8">
-      <Link to="/profile" className="mb-4 inline-block text-sm font-medium text-subtle">← Perfil</Link>
-      <h1 className="text-3xl font-bold text-title">Glossário</h1>
-      <p className="mt-1 text-subtle">Toque numa seção para ver os termos.</p>
+    <div className={embedded ? '' : 'px-5 py-8'}>
+      {!embedded && (
+        <>
+          <Link to="/profile" className="mb-4 inline-block text-sm font-medium text-subtle">← Perfil</Link>
+          <h1 className="text-3xl font-bold text-title">Glossário</h1>
+          <p className="mt-1 text-subtle">Toque numa seção para ver os termos.</p>
+        </>
+      )}
 
       <div className="mt-5 space-y-3">
         {SECTIONS.map((sec) => {

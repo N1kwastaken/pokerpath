@@ -1,5 +1,5 @@
 /**
- * Sons curtos via Web Audio (sem arquivos/dependências). Feedback "viciante"
+ * Sons curtos via Web Audio (sem arquivos/dependências). Feedback satisfatório
  * de acerto/erro/level-up (PRD 11.1 — som opcional, ligado por padrão).
  * Preferência de mudo persistida em localStorage.
  */

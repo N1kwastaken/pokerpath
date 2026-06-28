@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../components/Logo.js';
 import { Card } from '../components/Card.js';
-import { Mascot } from '../components/Mascot.js';
+import { LureVisual } from '../components/LureVisual.js';
 import { ThemeToggle } from '../components/ThemeToggle.js';
 import { IconTarget, IconGrid, IconChart } from '../components/Icons.js';
 
@@ -41,13 +41,13 @@ export function LandingPage() {
 
       {/* Hero ilustrado (gradiente + cartas flutuantes) */}
       <section className="mt-6">
-        <div className="relative h-56 overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-accent to-primary-press shadow-pop">
+        <div className="relative h-56 overflow-hidden rounded-3xl bg-primary shadow-pop">
           <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
           <div className="absolute -right-6 bottom-0 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="absolute -translate-x-20 translate-y-3 -rotate-[16deg] animate-float-slow"><Card token="A♠" /></div>
             <div className="absolute translate-x-20 translate-y-3 rotate-[16deg] animate-float-slow" style={{ animationDelay: '-3s' }}><Card token="K♥" /></div>
-            <div className="relative z-10"><Mascot mood="excited" size={132} /></div>
+            <div className="relative z-10 w-56"><LureVisual kind="gto" /></div>
           </div>
         </div>
         <div className="mt-6 text-center">
@@ -58,7 +58,7 @@ export function LandingPage() {
             Domine o <span className="text-gradient">pré-flop</span>.
           </h1>
           <p className="mt-4 mx-auto max-w-xs text-text">
-            Treine ranges com feedback GTO, do iniciante ao avançado — limpo, rápido e viciante.
+            Treine ranges com feedback GTO, do iniciante ao avançado — limpo, rápido e direto.
           </p>
           <div className="mt-7 mx-auto w-full max-w-xs space-y-3">
             <Link to="/register" className="btn-primary w-full text-lg">Criar conta grátis</Link>
@@ -84,7 +84,7 @@ export function LandingPage() {
           {STEPS.map(([n, t, d], i) => (
             <Reveal key={n} delay={i * 80}>
               <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent font-bold text-white shadow-pop">{n}</div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-white shadow-pop">{n}</div>
                 <div><h3 className="font-bold text-title">{t}</h3><p className="text-sm text-subtle">{d}</p></div>
               </div>
             </Reveal>

@@ -1,7 +1,7 @@
 import type {
   AnswerInput, AnswerResult, OnboardingInput, PublicUser,
   StagePlay, WorldDetail, WorldSummary, StatsResult, RangeGrid, LessonResult,
-  AchievementView, MissionView, MissionClaimResult,
+  AchievementView, MissionView, MissionClaimResult, ReviewItem,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
 
@@ -12,11 +12,13 @@ export interface RangeFilters {
 /** Chamadas da API do loop de jogo (PRD 5, 6, 7, 15.3). */
 export const gameApi = {
   worlds: () => apiRequest<{ worlds: WorldSummary[] }>('/worlds').then((r) => r.worlds),
+  trail: () => apiRequest<{ trail: WorldDetail[] }>('/trail').then((r) => r.trail),
   world: (worldId: string) => apiRequest<{ world: WorldDetail }>(`/worlds/${worldId}`).then((r) => r.world),
   stage: (stageId: string) => apiRequest<StagePlay>(`/stages/${stageId}`),
   answer: (input: AnswerInput) => apiRequest<AnswerResult>('/answers', { method: 'POST', body: input }),
   completeLesson: (stageId: string) => apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST' }),
   stats: () => apiRequest<StatsResult>('/stats'),
+  review: () => apiRequest<{ review: ReviewItem[] }>('/review').then((r) => r.review),
   range: (f: RangeFilters) =>
     apiRequest<{ range: RangeGrid | null }>(
       `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}`,

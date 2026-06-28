@@ -35,7 +35,7 @@ export function RegisterPage() {
       <Link to="/welcome?replay=1" className="mb-6 self-start text-sm font-medium text-subtle">← Voltar</Link>
 
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-accent text-4xl font-black text-white shadow-pop">♠</div>
+        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary text-4xl font-black text-white shadow-pop">♠</div>
         <h1 className="mt-5 text-3xl font-bold text-title">Crie sua conta</h1>
         <p className="mt-1 text-subtle">Grátis para começar. Leva 10 segundos.</p>
       </div>

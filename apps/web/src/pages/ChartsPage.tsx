@@ -17,7 +17,7 @@ const CELL_COLOR: Record<CellAction, string> = {
 const GAME_LABEL: Record<string, string> = { CASH: 'Cash', TOURNAMENT: 'Torneio' };
 const SIZE_LABEL: Record<string, string> = { SIX_MAX: '6-max', NINE_MAX: '9-max' };
 
-export function ChartsPage() {
+export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
   const [gameType, setGameType] = useState<string>('CASH');
   const [tableSize, setTableSize] = useState<string>('SIX_MAX');
   const [stack, setStack] = useState<number>(100);
@@ -27,11 +27,13 @@ export function ChartsPage() {
   const { data: range, isLoading } = useRange({ gameType, tableSize, stack, position });
 
   return (
-    <div className="px-5 py-8">
-      <header className="mb-4">
-        <p className="text-sm text-subtle">Estudo</p>
-        <h1 className="text-3xl font-bold text-title">Charts</h1>
-      </header>
+    <div className={embedded ? '' : 'px-5 py-8'}>
+      {!embedded && (
+        <header className="mb-4">
+          <p className="text-sm text-subtle">Estudo</p>
+          <h1 className="text-3xl font-bold text-title">Charts</h1>
+        </header>
+      )}
 
       <button
         onClick={() => setHelp((h) => !h)}
