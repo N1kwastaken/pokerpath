@@ -211,3 +211,11 @@ export interface ReviewItem {
   frequencies: Frequencies;
   category: Category;
 }
+
+/** Energia diária: quantos exercícios ainda dá para fazer hoje (Premium = infinito). */
+export interface EnergyState {
+  max: number;
+  used: number;
+  remaining: number;
+  infinite: boolean;
+}

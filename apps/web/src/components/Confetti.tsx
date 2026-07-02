@@ -4,7 +4,7 @@ import { useMemo } from 'react';
  * Confete leve, sem dependências. Renderize com uma `key` única para disparar
  * (ex.: a cada acerto). Some sozinho ao fim da animação.
  */
-const COLORS = ['#27D17C', '#F5C451', '#7C5CFF', '#3FA7D6', '#FF5468', '#FFFFFF'];
+const COLORS = ['#1FA463', '#27D17C', '#16A34A', '#3FD08A', '#0E7A45', '#A7F3C4'];
 
 export function Confetti({ count = 36 }: { count?: number }) {
   const pieces = useMemo(

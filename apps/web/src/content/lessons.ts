@@ -134,6 +134,30 @@ export const LESSONS: Record<string, LessonStep[]> = {
     h('UTG', 'A♠J♦', 'FOLD', `De UTG, AJo é fold.`),
     h('BTN', 'A♠J♦', 'RAISE', `A MESMA AJo, no BTN, abre fácil.`),
   ],
+  // ── Defesa do BB ───────────────────────────────────────────
+  'BB explicado': [
+    t(`O big blind já colocou 1 ficha e age por ÚLTIMO no pré-flop — fecha a ação e paga "com desconto". Por isso defende muitas mãos.`),
+    v('positions'),
+    quiz(`Por que o BB defende tantas mãos contra um open?`, ['Está em posição no flop', 'Já pagou o blind e fecha a ação (bom preço)'], 1,
+      `O desconto do blind dá um ótimo preço para pagar.`),
+  ],
+  'Defesa do BB': [
+    t(`Contra um open há 3 opções: Fold (lixo), Call (a maioria das mãos jogáveis) ou 3-bet (relançar) com as premium por valor.`),
+    quiz(`Você tem A♠ A♥ no BB e o BTN abriu. Melhor jogada?`, ['Call', '3-bet (Raise)'], 1,
+      `AA é 3-bet por valor — construa o pote.`),
+    quiz(`72o no BB contra um open. Jogada?`, ['Call', 'Fold'], 1,
+      `72o não defende nem com preço. Fold.`),
+  ],
+  // ── Ruas pós-flop (em breve) ───────────────────────────────
+  'Flop — intro': [
+    t(`O flop traz 3 cartas na mesa. Aqui você aprende a continuation bet (c-bet) e a ler texturas de board. Em breve!`),
+  ],
+  'Turn — intro': [
+    t(`A 4ª carta (turn) aumenta o pote e as decisões. Em breve: quando apostar, dar check ou fold.`),
+  ],
+  'River — intro': [
+    t(`No river não vêm mais cartas: é value ou blefe. Em breve: extrair valor e blefar na hora certa.`),
+  ],
 };
 
 export const DEFAULT_LESSON: LessonStep[] = [

@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
 import { USER_LEVELS } from '@pokerpath/shared';
-import { useStage, useRange } from '../hooks/useGame.js';
+import { useStage, useRange, useEnergy } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
@@ -12,13 +12,14 @@ import { ProgressBar } from '../components/ProgressBar.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
 import { GtoBars } from '../components/GtoBars.js';
-import { IconX, IconCheck } from '../components/Icons.js';
+import { IconX, IconCheck, IconBolt } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
 import { LessonHandTable } from '../components/LessonHandTable.js';
 import { PositionRangeCard } from '../components/PositionRangeCard.js';
 import { LessonVisual } from '../components/LessonVisual.js';
 import { lessonFor } from '../content/lessons.js';
+import { Glossarized } from '../components/Glossarized.js';
 import { sound } from '../lib/sound.js';
 
 // Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
@@ -49,6 +50,7 @@ export function StagePlayPage() {
   const queryClient = useQueryClient();
   const { setUser, user } = useAuth();
   const { data, isLoading, error } = useStage(stageId);
+  const { data: energy } = useEnergy();
   const lessonPosition = data?.stage ? LESSON_POSITION[data.stage.concept] : undefined;
   const rangeQ = useRange(
     { gameType: 'CASH', tableSize: 'SIX_MAX', stack: 100, position: lessonPosition ?? 'BTN' },
@@ -93,7 +95,13 @@ export function StagePlayPage() {
   });
 
   const exercises = data?.exercises ?? [];
-  const current: PublicExercise | undefined = exercises[idx];
+  // Cada sessão usa só o mínimo de exercícios, sorteados do pool (variedade).
+  const ordered = useMemo(() => {
+    const a = [...exercises];
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }, [exercises]);
+  const current: PublicExercise | undefined = ordered[idx];
 
   const mutation = useMutation({
     mutationFn: (action: Action) => gameApi.answer({ exerciseId: current!.id, selectedAction: action }),
@@ -106,6 +114,7 @@ export function StagePlayPage() {
       res.correct ? sound.correct() : sound.wrong();
       if (res.leveledUp) setTimeout(() => sound.levelUp(), 250);
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak });
+      queryClient.invalidateQueries({ queryKey: ['energy'] });
       setPhase('feedback');
     },
     onError: (err) => { if (err instanceof ApiError && err.code === 'DAILY_LIMIT_REACHED') navigate('/premium'); },
@@ -157,7 +166,7 @@ export function StagePlayPage() {
                     <p className={`font-bold ${handPick === step.answer ? 'text-primary' : 'text-error'}`}>
                       {handPick === step.answer ? 'Correto!' : `Era ${step.answer === 'RAISE' ? 'Raise' : 'Fold'}`}
                     </p>
-                    <p className="mt-0.5 text-sm text-text">{step.explain}</p>
+                    <p className="mt-0.5 text-sm text-text"><Glossarized text={step.explain} /></p>
                   </div>
                   <PositionRangeCard position={step.position} hand={step.hand} action={step.answer} />
                 </>
@@ -170,7 +179,7 @@ export function StagePlayPage() {
             </div>
           ) : step.kind === 'text' ? (
             <>
-              <div className="whitespace-pre-line px-1 text-xl font-medium leading-relaxed text-title">{step.text}</div>
+              <div className="whitespace-pre-line px-1 text-xl font-medium leading-relaxed text-title"><Glossarized text={step.text} /></div>
               {lessonPosition && rangeQ.data && rangeQ.data.cells.length > 0 && (
                 <div className="card mt-4 p-4">
                   <p className="mb-3 text-xs font-bold uppercase tracking-widest text-subtle">Range de abertura · {lessonPosition}</p>
@@ -198,7 +207,7 @@ export function StagePlayPage() {
               {answered && (
                 <div className={`mt-4 rounded-xl p-3 text-sm ${quizPick === step.answer ? 'bg-primary/10' : 'bg-error/10'}`}>
                   <span className={`font-bold ${quizPick === step.answer ? 'text-primary' : 'text-error'}`}>{quizPick === step.answer ? 'Correto! ' : 'Quase! '}</span>
-                  <span className="text-text">{step.explain}</span>
+                  <span className="text-text"><Glossarized text={step.explain} /></span>
                 </div>
               )}
             </div>
@@ -217,9 +226,10 @@ export function StagePlayPage() {
   }
 
   if (!current) return null;
+  const sessionLen = data.stage.minExercises > 0 ? Math.min(data.stage.minExercises, ordered.length) : ordered.length;
 
   function advance() {
-    const isLast = idx + 1 >= exercises.length;
+    const isLast = idx + 1 >= sessionLen;
     if (completed || isLast) { scrollTop(); return setPhase('summary'); }
     setIdx((i) => i + 1); setResult(null); setLastChoice(null); setPhase('playing');
   }
@@ -236,14 +246,15 @@ export function StagePlayPage() {
   if (phase === 'summary') {
     const correct = answers.filter(Boolean).length;
     const accuracy = answers.length ? Math.round((correct / answers.length) * 100) : 0;
+    const passed = answers.length > 0 && correct / answers.length >= data.stage.passRate;
     return (
       <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
-        {completed && <Confetti count={50} />}
-        <Mascot mood={completed ? 'excited' : 'sad'} size={132} />
-        <h1 className="mt-5 text-3xl font-bold text-title">{completed ? 'Fase concluída!' : 'Quase lá!'}</h1>
+        {passed && <Confetti count={50} />}
+        <Mascot mood={worldDone ? 'cheer' : passed ? 'win' : 'sad'} size={132} />
+        <h1 className="mt-5 text-3xl font-bold text-title">{passed ? 'Fase concluída!' : 'Quase lá!'}</h1>
         {worldDone && <p className="mt-1 font-bold text-primary">Mundo completo! 🏆</p>}
-        {!completed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
-        {completed && <div className="mt-4 animate-deal-in text-5xl">🎁</div>}
+        {!passed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
+        {passed && <div className="mt-4 animate-deal-in text-5xl">🎁</div>}
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
           <Stat label="Acerto" value={`${accuracy}%`} />
           <Stat label="Acertos" value={`${correct}/${answers.length}`} />
@@ -252,7 +263,7 @@ export function StagePlayPage() {
         <div className="mt-8 w-full space-y-3">
           {worldDone ? (
             <button className="btn-primary w-full" onClick={goHome}>🏠 Voltar ao início</button>
-          ) : completed ? (
+          ) : passed ? (
             <>
               <button className="btn-primary w-full" onClick={backToWorld}>Continuar</button>
               <button className="btn-soft w-full" onClick={goHome}>Voltar ao início</button>
@@ -279,8 +290,9 @@ export function StagePlayPage() {
 
       <div className="flex items-center gap-3">
         <button onClick={backToWorld} className="text-subtle" aria-label="Sair"><IconX size={20} /></button>
-        <div className="flex-1"><ProgressBar value={answers.length} max={exercises.length} /></div>
-        <span className="text-xs font-bold tabular-nums text-subtle">{answers.length}/{exercises.length}</span>
+        <div className="flex-1"><ProgressBar value={answers.length} max={sessionLen} /></div>
+        <span className="text-xs font-bold tabular-nums text-subtle">{answers.length}/{sessionLen}</span>
+        {energy && <span className="flex items-center gap-0.5 rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-call"><IconBolt size={13} />{energy.infinite ? '∞' : energy.remaining}</span>}
         {user && <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-title">{user.currentStreak}🔥</span>}
       </div>
 
@@ -298,7 +310,7 @@ export function StagePlayPage() {
               <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
                 {result.correct ? 'Correto' : `Incorreto — era ${LABEL[result.correctAction]}`}
               </p>
-              {result.explanation && <p className="text-xs leading-snug text-text">{result.explanation}</p>}
+              {result.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={result.explanation} /></p>}
             </div>
             {result.correct && <span className="shrink-0 text-sm font-black text-primary">+{result.xpGained} XP</span>}
           </div>

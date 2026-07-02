@@ -10,8 +10,10 @@ import {
   completeLesson,
   getStats,
   getRange,
+  getEnergy,
   getTrail,
   getReview,
+  skipBasics,
   resetProgress,
   debugSetPlan,
   debugAddXp,
@@ -111,8 +113,16 @@ export async function gameRoutes(app: FastifyInstance) {
     return getStats(request.user.sub);
   });
 
+  app.get('/energy', async (request) => {
+    return getEnergy(request.user.sub);
+  });
+
   app.get('/review', async (request) => {
     return { review: await getReview(request.user.sub) };
+  });
+
+  app.post('/skip-basics', async (request) => {
+    return skipBasics(request.user.sub);
   });
 
   app.post('/progress/reset', async (request) => {

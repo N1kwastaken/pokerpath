@@ -1,21 +1,25 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
-import { useWorlds, useStats } from '../hooks/useGame.js';
+import { useStats, useEnergy, useTrail } from '../hooks/useGame.js';
+import { stageGroup } from '../lib/stageGroup.js';
 import { MissionsCard } from '../components/MissionsCard.js';
 import { ThemeToggle } from '../components/ThemeToggle.js';
-import { IconChevron } from '../components/Icons.js';
+import { IconChevron, IconBolt } from '../components/Icons.js';
 
 /** Home — enxuta e game-like: um CTA grande para voltar à mão, sem cards corporativos. */
 export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: worlds } = useWorlds();
+  const { data: trail } = useTrail();
   const { data: stats } = useStats();
+  const { data: energy } = useEnergy();
 
   if (!user) return null;
-  const current = worlds?.find((w) => !w.locked && !w.premiumLocked && w.completedStages < w.totalStages) ?? null;
   const accuracy = stats && stats.totalAnswered > 0 ? Math.round(stats.overallAccuracy * 100) : null;
-  const pct = current && current.totalStages > 0 ? Math.round((current.completedStages / current.totalStages) * 100) : 0;
+  const curWorld = trail?.find((w) => w.stages.some((s) => s.status === 'IN_PROGRESS')) ?? null;
+  const curStage = curWorld?.stages.find((s) => s.status === 'IN_PROGRESS') ?? null;
+  const category = curStage ? stageGroup(curStage.concept) : null;
+  const pct = curWorld && curWorld.stages.length > 0 ? Math.round((curWorld.stages.filter((s) => s.status === 'COMPLETED').length / curWorld.stages.length) * 100) : 0;
 
   return (
     <div className="px-5 py-7">
@@ -24,7 +28,10 @@ export function DashboardPage() {
           <p className="text-xs text-subtle">Bom jogo,</p>
           <h1 className="text-2xl font-bold text-title">{user.name}</h1>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          {energy && <span className="flex items-center gap-0.5 rounded-full bg-card2 px-2.5 py-1 text-xs font-bold text-call"><IconBolt size={14} />{energy.infinite ? '∞' : energy.remaining}</span>}
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Faixa de status compacta */}
@@ -35,18 +42,20 @@ export function DashboardPage() {
       </div>
 
       {/* CTA principal — voltar à mão */}
-      {current ? (
+      {curWorld ? (
         <button
           onClick={() => navigate('/worlds')}
-          className="btn3d w-full rounded-2xl bg-primary p-5 text-left text-white"
+          className="btn3d w-full rounded-2xl p-5 text-left text-white"
+          style={{ backgroundColor: curWorld.color }}
         >
           <p className="text-[11px] font-bold uppercase tracking-widest text-white/80">Continuar treino</p>
-          <h2 className="mt-1 text-2xl font-extrabold">{current.icon} {current.name}</h2>
+          <h2 className="mt-1 text-2xl font-extrabold">{curWorld.icon} {category ?? curWorld.name}</h2>
+          {curStage && <p className="mt-0.5 truncate text-sm text-white/85">{curStage.title}</p>}
           <div className="mt-4 flex items-center gap-3">
             <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/25">
               <div className="h-full rounded-full bg-white/90" style={{ width: `${pct}%` }} />
             </div>
-            <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-extrabold text-primary">
+            <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-extrabold" style={{ color: curWorld.color }}>
               Jogar <IconChevron size={15} />
             </span>
           </div>

@@ -16,6 +16,9 @@ export function useStage(stageId: string | undefined) {
 export function useStats() {
   return useQuery({ queryKey: ['stats'], queryFn: gameApi.stats });
 }
+export function useEnergy() {
+  return useQuery({ queryKey: ['energy'], queryFn: gameApi.energy });
+}
 export function useReview() {
   return useQuery({ queryKey: ['review'], queryFn: gameApi.review });
 }

@@ -1,7 +1,7 @@
 import type {
   AnswerInput, AnswerResult, OnboardingInput, PublicUser,
   StagePlay, WorldDetail, WorldSummary, StatsResult, RangeGrid, LessonResult,
-  AchievementView, MissionView, MissionClaimResult, ReviewItem,
+  AchievementView, MissionView, MissionClaimResult, ReviewItem, EnergyState,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
 
@@ -18,7 +18,9 @@ export const gameApi = {
   answer: (input: AnswerInput) => apiRequest<AnswerResult>('/answers', { method: 'POST', body: input }),
   completeLesson: (stageId: string) => apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST' }),
   stats: () => apiRequest<StatsResult>('/stats'),
+  energy: () => apiRequest<EnergyState>('/energy'),
   review: () => apiRequest<{ review: ReviewItem[] }>('/review').then((r) => r.review),
+  skipBasics: () => apiRequest<{ ok: true; count: number }>('/skip-basics', { method: 'POST' }),
   range: (f: RangeFilters) =>
     apiRequest<{ range: RangeGrid | null }>(
       `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}`,

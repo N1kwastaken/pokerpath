@@ -1,118 +1,192 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Pip — o mascote (naipe de espadas com carinha).
+ * Ace — o mascote: a carta Ás de Espadas com carinha e bracinhos (estilo
+ * cartoon rubber-hose). Cada mood reaproveita olhos/sobrancelhas/boca/braços.
  *
- * Estratégia de arte: usa ILUSTRAÇÕES (PNG) quando existirem em
- * `public/mascot/<mood>.png` — basta soltar os arquivos lá que o app passa a
- * usá-los automaticamente. Enquanto não houver imagem, mostra um fallback SVG
- * (sem flash de imagem quebrada). Veja public/mascot/README.md.
+ * Quando usar:
+ *  happy   — acerto / aula tranquila      sad   — erro
+ *  excited — animação / novidade          win   — fase/mundo concluído (troféu)
+ *  cheer   — comemoração                  teaching — explicando (aula)
+ *  wave    — boas-vindas                  think — pergunta/quiz
+ *  angry   — desafio difícil              sleep — inatividade/streak perdido
+ *
+ * Arte por imagem (PNG) tem prioridade: solte `public/mascot/<mood>.png`.
  */
-export type MascotMood = 'happy' | 'excited' | 'teaching' | 'sad' | 'wave' | 'cheer';
+export type MascotMood = 'happy' | 'excited' | 'cheer' | 'win' | 'teaching' | 'wave' | 'sad' | 'angry' | 'think' | 'sleep';
+
+/**
+ * Posição de cada mood no SEU sheet (grade 4 colunas × 5 linhas): [coluna, linha].
+ * Solte a arte em `public/mascot-sheet.png` (idealmente fundo transparente) e o
+ * app passa a usar SEUS desenhos automaticamente; sem o arquivo, usa o SVG.
+ */
+const SPRITE: Record<MascotMood, [number, number]> = {
+  happy: [1, 0], wave: [2, 0], excited: [3, 0], cheer: [0, 4], win: [3, 4],
+  teaching: [1, 1], think: [2, 2], sad: [0, 2], angry: [2, 3], sleep: [1, 4],
+};
 
 export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: MascotMood; size?: number; float?: boolean }) {
-  const [imgOk, setImgOk] = useState(false);
-  useEffect(() => { setImgOk(false); }, [mood]);
-
+  const [sheetOk, setSheetOk] = useState(false);
+  useEffect(() => {
+    const im = new Image();
+    im.onload = () => setSheetOk(true);
+    im.onerror = () => setSheetOk(false);
+    im.src = '/mascot-sheet.png';
+  }, []);
+  const [col, row] = SPRITE[mood];
   return (
-    <div className={float ? 'animate-float' : ''} style={{ width: size, height: size }} role="img" aria-label={`Pip, o mascote (${mood})`}>
-      <img
-        src={`/mascot/${mood}.png`}
-        alt=""
-        width={size}
-        height={size}
-        onLoad={() => setImgOk(true)}
-        onError={() => setImgOk(false)}
-        style={{ display: imgOk ? 'block' : 'none', width: size, height: size, objectFit: 'contain' }}
-      />
-      {!imgOk && <SpadeSvg mood={mood} size={size} />}
+    <div className={float ? 'animate-float' : ''} style={{ width: size, height: size }} role="img" aria-label={`Ace, o mascote (${mood})`}>
+      {sheetOk ? (
+        <div style={{
+          width: size, height: size,
+          backgroundImage: 'url(/mascot-sheet.png)',
+          backgroundSize: '400% 500%',
+          backgroundPosition: `${(col * 100) / 3}% ${(row * 100) / 4}%`,
+          backgroundRepeat: 'no-repeat',
+        }} />
+      ) : (
+        <AceSvg mood={mood} size={size} />
+      )}
     </div>
   );
 }
 
-/** Fallback vetorial (usado até as ilustrações PNG serem adicionadas). */
-function SpadeSvg({ mood, size }: { mood: MascotMood; size: number }) {
-  const lookUp = mood === 'excited' || mood === 'cheer' ? -2 : mood === 'sad' ? 2 : -0.5;
-  const openMouth = mood === 'excited' || mood === 'cheer' || mood === 'wave' || mood === 'happy';
-  const thumb = mood === 'happy' || mood === 'wave' || mood === 'cheer';
+type Cfg = {
+  brows: 'none' | 'up' | 'down' | 'sad';
+  eyes: 'open' | 'happy' | 'closed' | 'big';
+  mouth: 'smile' | 'grin' | 'open' | 'frown' | 'flat';
+  arms: 'rest' | 'up' | 'wave' | 'point' | 'fists' | 'chin' | 'droop' | 'trophy';
+  tears?: boolean;
+  extra?: 'sparkle' | 'zzz' | 'question';
+};
+const MOODS: Record<MascotMood, Cfg> = {
+  happy:    { brows: 'none', eyes: 'open',   mouth: 'smile', arms: 'rest' },
+  excited:  { brows: 'up',   eyes: 'big',    mouth: 'open',  arms: 'up',     extra: 'sparkle' },
+  cheer:    { brows: 'up',   eyes: 'happy',  mouth: 'grin',  arms: 'up' },
+  win:      { brows: 'none', eyes: 'happy',  mouth: 'grin',  arms: 'trophy', extra: 'sparkle' },
+  teaching: { brows: 'up',   eyes: 'open',   mouth: 'smile', arms: 'point' },
+  wave:     { brows: 'none', eyes: 'open',   mouth: 'smile', arms: 'wave' },
+  sad:      { brows: 'sad',  eyes: 'open',   mouth: 'frown', arms: 'droop',  tears: true },
+  angry:    { brows: 'down', eyes: 'open',   mouth: 'grin',  arms: 'fists' },
+  think:    { brows: 'up',   eyes: 'open',   mouth: 'flat',  arms: 'chin',   extra: 'question' },
+  sleep:    { brows: 'none', eyes: 'closed', mouth: 'flat',  arms: 'rest',   extra: 'zzz' },
+};
 
-  const arms: Record<MascotMood, { ld: string; lh: [number, number]; rd: string; rh: [number, number] }> = {
-    happy:    { ld: 'M32 84 Q24 92 22 99',  lh: [22, 99],  rd: 'M88 82 Q98 76 104 66',  rh: [104, 64] },
-    wave:     { ld: 'M32 84 Q24 92 22 99',  lh: [22, 99],  rd: 'M88 80 Q102 62 108 50', rh: [108, 48] },
-    cheer:    { ld: 'M32 80 Q18 64 16 50',  lh: [16, 50],  rd: 'M88 80 Q102 64 104 50', rh: [104, 50] },
-    excited:  { ld: 'M32 82 Q20 68 18 56',  lh: [18, 56],  rd: 'M88 82 Q100 68 102 56', rh: [102, 56] },
-    teaching: { ld: 'M32 86 Q27 90 33 92',  lh: [34, 92],  rd: 'M88 80 Q102 66 110 56', rh: [110, 56] },
-    sad:      { ld: 'M33 85 Q29 95 29 103', lh: [29, 103], rd: 'M87 85 Q91 95 91 103',  rh: [91, 103] },
-  };
-  const a = arms[mood];
+const ARMS: Record<Cfg['arms'], { l: string; lg: [number, number]; r: string; rg: [number, number] }> = {
+  rest:   { l: 'M34 86 Q24 98 22 106',  lg: [22, 106], r: 'M106 86 Q116 98 118 106', rg: [118, 106] },
+  up:     { l: 'M34 82 Q20 62 18 48',   lg: [18, 48],  r: 'M106 82 Q120 62 122 48',  rg: [122, 48] },
+  wave:   { l: 'M34 88 Q24 98 22 106',  lg: [22, 106], r: 'M106 80 Q124 58 120 44',  rg: [120, 42] },
+  point:  { l: 'M34 90 Q26 98 30 102',  lg: [30, 102], r: 'M106 80 Q124 60 130 46',  rg: [132, 44] },
+  fists:  { l: 'M34 86 Q22 90 20 98',   lg: [20, 100], r: 'M106 86 Q118 90 120 98',  rg: [120, 100] },
+  chin:   { l: 'M34 88 Q26 100 24 108', lg: [24, 108], r: 'M106 88 Q92 98 82 92',    rg: [80, 90] },
+  droop:  { l: 'M34 94 Q30 106 30 116', lg: [30, 116], r: 'M106 94 Q110 106 110 116', rg: [110, 116] },
+  trophy: { l: 'M34 88 Q26 100 24 108', lg: [24, 108], r: 'M106 86 Q116 92 116 86',  rg: [116, 84] },
+};
 
+function Spade({ x, y, s, fill = '#16181D' }: { x: number; y: number; s: number; fill?: string }) {
   return (
-    <svg viewBox="0 0 130 150" width={size} height={size}>
-      <defs>
-        <radialGradient id="sg" cx="42%" cy="30%" r="80%">
-          <stop offset="0%" stopColor="#4A5161" />
-          <stop offset="55%" stopColor="#2A3140" />
-          <stop offset="100%" stopColor="#12161F" />
-        </radialGradient>
-      </defs>
+    <g transform={`translate(${x} ${y}) scale(${s})`}>
+      <path d="M0 -9 C6 -3 12 1 12 6 C12 11 7 12 3 9 C4 13 6 15 8 17 L-8 17 C-6 15 -4 13 -3 9 C-7 12 -12 11 -12 6 C-12 1 -6 -3 0 -9 Z" fill={fill} />
+    </g>
+  );
+}
+function Glove({ x, y }: { x: number; y: number }) {
+  return <circle cx={x} cy={y} r="8.5" fill="#fff" stroke="#16181D" strokeWidth="3" />;
+}
 
-      {/* Braços */}
-      <g stroke="#1A1F29" strokeWidth="7" strokeLinecap="round" fill="none">
-        <path d={a.ld} /><path d={a.rd} />
-      </g>
-      {/* Mãos (luvas) */}
-      <Glove x={a.lh[0]} y={a.lh[1]} />
-      <Glove x={a.rh[0]} y={a.rh[1]} thumb={thumb} />
-
-      {/* Corpo espada */}
-      <path d="M65 14 C46 34 24 50 24 71 C24 88 44 92 56 79 C53 94 46 101 39 106 L91 106 C84 101 77 94 74 79 C86 92 106 88 106 71 C106 50 84 34 65 14 Z"
-        fill="url(#sg)" stroke="rgba(255,255,255,0.18)" strokeWidth="2" />
-      <ellipse cx="48" cy="40" rx="13" ry="18" fill="#fff" opacity="0.10" transform="rotate(-18 48 40)" />
-
-      {/* Olhos grandes */}
-      <g>
-        <ellipse cx="50" cy="56" rx="11" ry="13" fill="#fff" />
-        <ellipse cx="74" cy="56" rx="11" ry="13" fill="#fff" />
-        <circle cx="51" cy={59 + lookUp} r="5.4" fill="#12161F" />
-        <circle cx="75" cy={59 + lookUp} r="5.4" fill="#12161F" />
-        <circle cx="53" cy={56.5 + lookUp} r="1.8" fill="#fff" />
-        <circle cx="77" cy={56.5 + lookUp} r="1.8" fill="#fff" />
+function AceSvg({ mood, size }: { mood: MascotMood; size: number }) {
+  const c = MOODS[mood];
+  const a = ARMS[c.arms];
+  return (
+    <svg viewBox="0 0 140 180" width={size} height={size}>
+      {/* Braços (atrás da carta) */}
+      <g stroke="#16181D" strokeWidth="7" strokeLinecap="round" fill="none">
+        <path d={a.l} /><path d={a.r} />
       </g>
 
-      {/* Sobrancelhas */}
-      {mood === 'teaching' && <path d="M67 44 L82 41" stroke="#0B0E13" strokeWidth="2.6" strokeLinecap="round" />}
-      {mood === 'sad' && (
-        <g stroke="#0B0E13" strokeWidth="2.6" strokeLinecap="round">
-          <path d="M42 46 L56 50" /><path d="M82 46 L68 50" />
+      {/* Carta */}
+      <rect x="34" y="22" width="72" height="112" rx="11" fill="#fff" stroke="#16181D" strokeWidth="3.5" />
+      {/* Cantos A♠ */}
+      <text x="41" y="40" fontFamily="Inter, Arial" fontWeight="900" fontSize="13" fill="#16181D">A</text>
+      <Spade x={41.5} y={48} s={0.42} />
+      <g transform="rotate(180 99 116)">
+        <text x="93" y="120" fontFamily="Inter, Arial" fontWeight="900" fontSize="13" fill="#16181D">A</text>
+        <Spade x={97.5} y={108} s={0.42} />
+      </g>
+      {/* Espada-emblema (baixo-centro) */}
+      <Spade x={70} y={112} s={1.0} fill="#16181D" />
+
+      {/* Olhos */}
+      {c.eyes === 'closed' ? (
+        <g stroke="#16181D" strokeWidth="3" strokeLinecap="round" fill="none">
+          <path d="M50 64 Q58 70 66 64" /><path d="M74 64 Q82 70 90 64" />
+        </g>
+      ) : c.eyes === 'happy' ? (
+        <g stroke="#16181D" strokeWidth="3.4" strokeLinecap="round" fill="none">
+          <path d="M50 66 Q58 58 66 66" /><path d="M74 66 Q82 58 90 66" />
+        </g>
+      ) : (
+        <g>
+          <ellipse cx="58" cy="64" rx={c.eyes === 'big' ? 11 : 9} ry={c.eyes === 'big' ? 13 : 11} fill="#fff" stroke="#16181D" strokeWidth="2.5" />
+          <ellipse cx="82" cy="64" rx={c.eyes === 'big' ? 11 : 9} ry={c.eyes === 'big' ? 13 : 11} fill="#fff" stroke="#16181D" strokeWidth="2.5" />
+          <circle cx="59" cy="66" r="4.2" fill="#16181D" />
+          <circle cx="83" cy="66" r="4.2" fill="#16181D" />
+          <circle cx="60.5" cy="64" r="1.4" fill="#fff" /><circle cx="84.5" cy="64" r="1.4" fill="#fff" />
         </g>
       )}
 
+      {/* Sobrancelhas */}
+      {c.brows === 'up' && <g stroke="#16181D" strokeWidth="3" strokeLinecap="round"><path d="M50 50 Q58 46 66 49" /><path d="M74 49 Q82 46 90 50" /></g>}
+      {c.brows === 'down' && <g stroke="#16181D" strokeWidth="3.4" strokeLinecap="round"><path d="M50 48 L66 54" /><path d="M90 48 L74 54" /></g>}
+      {c.brows === 'sad' && <g stroke="#16181D" strokeWidth="3" strokeLinecap="round"><path d="M50 54 L66 49" /><path d="M90 54 L74 49" /></g>}
+
       {/* Boca */}
-      {mood === 'sad' ? (
-        <path d="M54 86 Q64 78 74 86" fill="none" stroke="#0B0E13" strokeWidth="3" strokeLinecap="round" />
-      ) : openMouth ? (
+      {c.mouth === 'frown' && <path d="M58 90 Q70 82 82 90" fill="none" stroke="#16181D" strokeWidth="3.2" strokeLinecap="round" />}
+      {c.mouth === 'flat' && <path d="M60 88 L80 88" stroke="#16181D" strokeWidth="3.2" strokeLinecap="round" />}
+      {c.mouth === 'smile' && <path d="M58 86 Q70 96 82 86" fill="none" stroke="#16181D" strokeWidth="3.2" strokeLinecap="round" />}
+      {(c.mouth === 'open' || c.mouth === 'grin') && (
         <g>
-          <path d="M50 74 Q64 94 78 74 Q64 82 50 74 Z" fill="#23121A" stroke="#0B0E13" strokeWidth="2" strokeLinejoin="round" />
-          <ellipse cx="64" cy="85" rx="7" ry="4.5" fill="#FF5E78" />
+          <path d="M56 84 Q70 102 84 84 Q70 92 56 84 Z" fill="#3a1a22" stroke="#16181D" strokeWidth="2.5" strokeLinejoin="round" />
+          {c.mouth === 'open' && <ellipse cx="70" cy="94" rx="6" ry="3.5" fill="#FF5E78" />}
+          {c.mouth === 'grin' && <path d="M58 86 L82 86" stroke="#fff" strokeWidth="3" />}
         </g>
-      ) : (
-        <path d="M55 80 Q64 88 73 80" fill="none" stroke="#0B0E13" strokeWidth="3" strokeLinecap="round" />
       )}
 
       {/* Bochechas */}
-      {mood !== 'sad' && mood !== 'teaching' && (
-        <g fill="#FF6B81" opacity="0.5"><circle cx="40" cy="72" r="3.6" /><circle cx="88" cy="72" r="3.6" /></g>
+      {(mood === 'happy' || mood === 'excited' || mood === 'cheer' || mood === 'win' || mood === 'wave') && (
+        <g fill="#FF6B81" opacity="0.45"><circle cx="48" cy="80" r="4" /><circle cx="92" cy="80" r="4" /></g>
+      )}
+
+      {/* Lágrimas */}
+      {c.tears && <g fill="#5BC7F2"><path d="M55 72 q-3 7 0 9 q3 -2 0 -9z" /><path d="M85 72 q-3 7 0 9 q3 -2 0 -9z" /></g>}
+
+      {/* Mãos (luvas) por cima */}
+      <Glove x={a.lg[0]} y={a.lg[1]} /><Glove x={a.rg[0]} y={a.rg[1]} />
+
+      {/* Troféu */}
+      {c.arms === 'trophy' && (
+        <g transform="translate(118 70)" stroke="#16181D" strokeWidth="2.5" fill="#F5C451">
+          <path d="M-7 -8 H7 V-2 Q7 8 0 8 Q-7 8 -7 -2 Z" />
+          <path d="M-7 -6 Q-13 -6 -13 -1 Q-13 3 -8 3" fill="none" />
+          <path d="M7 -6 Q13 -6 13 -1 Q13 3 8 3" fill="none" />
+          <rect x="-2" y="8" width="4" height="6" /><rect x="-6" y="14" width="12" height="3" rx="1" />
+        </g>
+      )}
+
+      {/* Extras */}
+      {c.extra === 'sparkle' && (
+        <g fill="#F5C451">
+          <path d="M24 36 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" />
+          <path d="M116 30 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" />
+        </g>
+      )}
+      {c.extra === 'question' && <text x="98" y="44" fontFamily="Inter, Arial" fontWeight="900" fontSize="22" fill="#16181D">?</text>}
+      {c.extra === 'zzz' && (
+        <g fill="#16181D" fontFamily="Inter, Arial" fontWeight="900">
+          <text x="100" y="46" fontSize="11">z</text><text x="108" y="38" fontSize="14">z</text><text x="118" y="28" fontSize="18">z</text>
+        </g>
       )}
     </svg>
-  );
-}
-
-function Glove({ x, y, thumb = false }: { x: number; y: number; thumb?: boolean }) {
-  return (
-    <g>
-      <circle cx={x} cy={y} r="8" fill="#fff" stroke="#0000001f" />
-      {thumb && <rect x={x - 2.4} y={y - 16} width="5" height="10" rx="2.5" fill="#fff" stroke="#0000001f" />}
-    </g>
   );
 }
 

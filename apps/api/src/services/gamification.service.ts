@@ -41,20 +41,25 @@ export async function getAchievements(userId: string): Promise<AchievementView[]
 
 // ─── Missões (PRD 9.4) — progresso computado ao vivo ───────────
 async function missionProgress(userId: string, code: string): Promise<number> {
+  const today = startOfToday();
+  const week = startOfWeek();
   switch (code) {
+    case 'DAILY_PLAY':
+      return prisma.userAnswer.count({ where: { userId, createdAt: { gte: today } } });
+    case 'DAILY_5_CORRECT':
     case 'DAILY_10_CORRECT':
-      return prisma.userAnswer.count({
-        where: { userId, isCorrect: true, createdAt: { gte: startOfToday() } },
-      });
+    case 'DAILY_20_CORRECT':
+      return prisma.userAnswer.count({ where: { userId, isCorrect: true, createdAt: { gte: today } } });
     case 'DAILY_FINISH_STAGE':
-      return prisma.userProgress.count({
-        where: { userId, status: 'COMPLETED', completedAt: { gte: startOfToday() } },
-      });
-    case 'WEEKLY_3_DAYS': {
-      const rows = await prisma.userAnswer.findMany({
-        where: { userId, createdAt: { gte: startOfWeek() } },
-        select: { createdAt: true },
-      });
+    case 'DAILY_2_STAGES':
+      return prisma.userProgress.count({ where: { userId, status: 'COMPLETED', completedAt: { gte: today } } });
+    case 'WEEKLY_50_CORRECT':
+      return prisma.userAnswer.count({ where: { userId, isCorrect: true, createdAt: { gte: week } } });
+    case 'WEEKLY_5_STAGES':
+      return prisma.userProgress.count({ where: { userId, status: 'COMPLETED', completedAt: { gte: week } } });
+    case 'WEEKLY_3_DAYS':
+    case 'WEEKLY_5_DAYS': {
+      const rows = await prisma.userAnswer.findMany({ where: { userId, createdAt: { gte: week } }, select: { createdAt: true } });
       const days = new Set(rows.map((r) => r.createdAt.toISOString().slice(0, 10)));
       return days.size;
     }
@@ -63,17 +68,40 @@ async function missionProgress(userId: string, code: string): Promise<number> {
   }
 }
 
-export async function getMissions(userId: string): Promise<MissionView[]> {
-  const missions = await prisma.mission.findMany();
-  const userMissions = await prisma.userMission.findMany({ where: { userId } });
-  const claimedByMission = new Map(userMissions.map((um) => [um.missionId, um.completedAt]));
+/** Quantas missões ativas por vez (sorteadas da "tabela" e rotacionadas). */
+const DAILY_COUNT = 3;
+const WEEKLY_COUNT = 2;
+function rotate<T>(arr: T[], n: number): T[] {
+  if (arr.length === 0) return arr;
+  const k = ((n % arr.length) + arr.length) % arr.length;
+  return arr.slice(k).concat(arr.slice(0, k));
+}
 
-  // Ordena: diárias antes de semanais.
-  missions.sort((a, b) => (a.type === b.type ? a.code.localeCompare(b.code) : a.type === 'DAILY' ? -1 : 1));
+export async function getMissions(userId: string): Promise<MissionView[]> {
+  const all = await prisma.mission.findMany();
+  const cmp = (a: { code: string }, b: { code: string }) => a.code.localeCompare(b.code);
+  const daily = all.filter((m) => m.type === 'DAILY').sort(cmp);
+  const weekly = all.filter((m) => m.type === 'WEEKLY').sort(cmp);
+
+  const today = startOfToday();
+  const week = startOfWeek();
+  const dayIdx = Math.floor(today.getTime() / 86_400_000);   // muda a cada 24h
+  const weekIdx = Math.floor(week.getTime() / (7 * 86_400_000)); // muda a cada 7 dias
+
+  // Subconjunto ativo do período (rotaciona a tabela pelo índice do dia/semana).
+  const active = [
+    ...rotate(daily, dayIdx).slice(0, DAILY_COUNT),
+    ...rotate(weekly, weekIdx).slice(0, WEEKLY_COUNT),
+  ];
+
+  const um = await prisma.userMission.findMany({ where: { userId, missionId: { in: active.map((m) => m.id) } } });
+  const claimedAtBy = new Map(um.map((u) => [u.missionId, u.completedAt]));
 
   const out: MissionView[] = [];
-  for (const m of missions) {
+  for (const m of active) {
     const progress = await missionProgress(userId, m.code);
+    const claimedAt = claimedAtBy.get(m.id) ?? null;
+    const periodStart = m.type === 'WEEKLY' ? week : today;
     out.push({
       code: m.code,
       title: m.title,
@@ -83,7 +111,8 @@ export async function getMissions(userId: string): Promise<MissionView[]> {
       target: m.target,
       progress: Math.min(progress, m.target),
       completed: progress >= m.target,
-      claimed: claimedByMission.get(m.id) != null,
+      // resgate vale só DENTRO do período (reset diário/semanal).
+      claimed: claimedAt != null && claimedAt >= periodStart,
     });
   }
   return out;
@@ -94,9 +123,10 @@ export async function claimMission(userId: string, code: string): Promise<Missio
   const mission = await prisma.mission.findUnique({ where: { code } });
   if (!mission) throw new NotFoundError('Missão não encontrada', 'MISSION_NOT_FOUND');
 
+  const periodStart = mission.type === 'WEEKLY' ? startOfWeek() : startOfToday();
   const existing = await prisma.userMission.findFirst({ where: { userId, missionId: mission.id } });
-  if (existing?.completedAt) {
-    throw new BadRequestError('Recompensa já resgatada.', 'MISSION_ALREADY_CLAIMED');
+  if (existing?.completedAt && existing.completedAt >= periodStart) {
+    throw new BadRequestError('Recompensa já resgatada neste período.', 'MISSION_ALREADY_CLAIMED');
   }
 
   const progress = await missionProgress(userId, code);

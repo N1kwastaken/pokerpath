@@ -5,6 +5,7 @@ import {
   resolveLevel,
   XP_PER_WORLD_COMPLETE,
   FREE_DAILY_EXERCISE_LIMIT,
+  type EnergyState,
   DAILY_LIMIT_CODE,
   type Action,
   type Frequencies,
@@ -35,11 +36,11 @@ import { computeStreak } from './streak.service.js';
 import { evaluateAchievements } from './achievement.service.js';
 import { isGodmodeEmail } from '../lib/godmode.js';
 
-/** Mundos 1–3 são gratuitos; 4+ exigem Premium (PRD 13.2). */
-const FREE_MAX_WORLD_ORDER = 3;
+/** Todo o PRÉ-FLOP é grátis; o PÓS-FLOP (C-Bet em diante, Mundo 11+) é Premium. */
+const POSTFLOP_MIN_ORDER = 2;
 
 function isPremiumLocked(plan: string, worldOrder: number): boolean {
-  return plan === 'FREE' && worldOrder > FREE_MAX_WORLD_ORDER;
+  return plan === 'FREE' && worldOrder >= POSTFLOP_MIN_ORDER;
 }
 
 function startOfToday(): Date {
@@ -304,12 +305,20 @@ export async function getStagePlay(
 
   await assertStageAccessible(userId, plan, stage, godmode);
 
-  // Garante uma linha de progresso IN_PROGRESS ao iniciar a fase.
-  const progress = await prisma.userProgress.upsert({
-    where: { userId_stageId: { userId, stageId } },
-    update: {},
-    create: { userId, stageId, status: 'IN_PROGRESS' },
-  });
+  // Cada ENTRADA na fase começa uma sessão limpa: zera contadores se ainda não
+  // foi concluída (a precisão passa a medir só esta tentativa).
+  const existingProg = await prisma.userProgress.findUnique({ where: { userId_stageId: { userId, stageId } } });
+  let progress;
+  if (!existingProg) {
+    progress = await prisma.userProgress.create({ data: { userId, stageId, status: 'IN_PROGRESS' } });
+  } else if (existingProg.status !== 'COMPLETED') {
+    progress = await prisma.userProgress.update({
+      where: { userId_stageId: { userId, stageId } },
+      data: { exercisesDone: 0, correctAnswers: 0, accuracy: 0, xpEarned: 0 },
+    });
+  } else {
+    progress = existingProg;
+  }
 
   const exercises: PublicExercise[] = stage.exercises.map((ex) => ({
     id: ex.id,
@@ -396,8 +405,8 @@ export async function submitAnswer(
   // Reinício de tentativa: se a tentativa anterior percorreu todos os exercícios
   // sem concluir, zera os contadores para medir só a tentativa atual (evita que
   // a precisão vire "vitalícia" e trave a conclusão da fase).
-  const exerciseCount = await prisma.exercise.count({ where: { stageId: stage.id } });
-  const freshAttempt = !wasCompleted && (existing?.exercisesDone ?? 0) >= exerciseCount;
+  const sessionTarget = stage.minExercises > 0 ? stage.minExercises : await prisma.exercise.count({ where: { stageId: stage.id } });
+  const freshAttempt = !wasCompleted && (existing?.exercisesDone ?? 0) >= sessionTarget;
   const baseDone = freshAttempt ? 0 : existing?.exercisesDone ?? 0;
   const baseCorrect = freshAttempt ? 0 : existing?.correctAnswers ?? 0;
   const baseXpEarned = freshAttempt ? 0 : existing?.xpEarned ?? 0;
@@ -592,6 +601,20 @@ export async function completeLesson(userId: string, stageId: string): Promise<L
   };
 }
 
+// ─── Pular "Primeiros Passos" (Mundo 0) ────────────────────────
+export async function skipBasics(userId: string): Promise<{ ok: true; count: number }> {
+  const w0 = await prisma.world.findUnique({ where: { order: 0 }, include: { stages: { select: { id: true } } } });
+  if (!w0) return { ok: true, count: 0 };
+  for (const st of w0.stages) {
+    await prisma.userProgress.upsert({
+      where: { userId_stageId: { userId, stageId: st.id } },
+      update: { status: 'COMPLETED', completedAt: new Date() },
+      create: { userId, stageId: st.id, status: 'COMPLETED', completedAt: new Date() },
+    });
+  }
+  return { ok: true, count: w0.stages.length };
+}
+
 // ─── Reset de progresso (debug) ────────────────────────────────
 /** Apaga TODO o progresso do usuário (respostas, fases, conquistas, missões,
  *  streak) e zera o XP. Usado pelo botão temporário de reiniciar. */
@@ -635,6 +658,18 @@ export async function debugCompleteAll(userId: string): Promise<{ ok: true; coun
     });
   }
   return { ok: true, count: stages.length };
+}
+
+// ─── Energia diária (Premium = infinita) ───────────────────────
+export async function getEnergy(userId: string): Promise<EnergyState> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true, email: true } });
+  if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
+  const max = FREE_DAILY_EXERCISE_LIMIT;
+  if (user.plan === 'PREMIUM' || isGodmodeEmail(user.email)) {
+    return { max, used: 0, remaining: max, infinite: true };
+  }
+  const used = await prisma.userAnswer.count({ where: { userId, createdAt: { gte: startOfToday() } } });
+  return { max, used, remaining: Math.max(0, max - used), infinite: false };
 }
 
 // ─── Estatísticas por categoria (PRD 9) ────────────────────────

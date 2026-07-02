@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { ReviewList } from '../components/ReviewList.js';
 import { ChartsPage } from './ChartsPage.js';
 import { GlossaryPage } from './GlossaryPage.js';
+import { HandsReference } from '../components/HandsReference.js';
 
 const TABS = [
   { k: 'erros', label: 'Erros' },
+  { k: 'maos', label: 'Mãos' },
   { k: 'charts', label: 'Charts' },
   { k: 'glossario', label: 'Glossário' },
 ] as const;
@@ -29,7 +31,7 @@ export function ReviewHubPage() {
         ))}
       </div>
 
-      {tab === 'erros' ? <ReviewList /> : tab === 'charts' ? <ChartsPage embedded /> : <GlossaryPage embedded />}
+      {tab === 'erros' ? <ReviewList /> : tab === 'maos' ? <HandsReference /> : tab === 'charts' ? <ChartsPage embedded /> : <GlossaryPage embedded />}
     </div>
   );
 }

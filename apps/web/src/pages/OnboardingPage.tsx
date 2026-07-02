@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ExperienceLevel, Goal, PlayFrequency } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
-import { userApi } from '../api/game.js';
+import { userApi, gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
 
 const EXPERIENCE: { value: ExperienceLevel; label: string }[] = [
@@ -23,6 +23,7 @@ export function OnboardingPage() {
   const [experienceLevel, setExperience] = useState<ExperienceLevel | null>(null);
   const [playFrequency, setFrequency] = useState<PlayFrequency | null>(null);
   const [goal, setGoal] = useState<Goal | null>(null);
+  const [language, setLanguage] = useState<'pt' | 'en'>('pt');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const ready = experienceLevel && playFrequency && goal;
@@ -31,7 +32,10 @@ export function OnboardingPage() {
     if (!ready) return;
     setSubmitting(true); setError(null);
     try {
+      localStorage.setItem('pp.lang', language);
       const u = await userApi.onboarding({ experienceLevel, playFrequency, goal });
+      // Já jogou antes? Pula os "Primeiros Passos" (Mundo 0).
+      if (experienceLevel !== 'beginner') { try { await gameApi.skipBasics(); } catch { /* opcional */ } }
       setUser(u); navigate('/worlds', { replace: true });
     } catch (err) { setError(err instanceof ApiError ? err.message : 'Algo deu errado.'); }
     finally { setSubmitting(false); }
@@ -53,6 +57,10 @@ export function OnboardingPage() {
       <Group title="Seu objetivo?">
         {GOALS.map((o) => <Choice key={o.value} on={goal === o.value} onClick={() => setGoal(o.value)}>{o.label}</Choice>)}
       </Group>
+      <Group title="Idioma">
+        <Choice on={language === 'pt'} onClick={() => setLanguage('pt')}>🇧🇷 Português</Choice>
+        <Choice on={false} disabled onClick={() => {}}>🇺🇸 English (em breve)</Choice>
+      </Group>
       {error && <p className="mt-4 text-sm text-error">{error}</p>}
       <button className="btn-primary mt-8 w-full" disabled={!ready || submitting} onClick={handleFinish}>
         {submitting ? 'Salvando...' : 'Começar a jogar'}
@@ -69,6 +77,11 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
     </section>
   );
 }
-function Choice({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className={`chip ${on ? 'chip-on' : 'chip-off'} py-4 text-left`}>{children}</button>;
+function Choice({ on, onClick, children, disabled }: { on: boolean; onClick: () => void; children: React.ReactNode; disabled?: boolean }) {
+  return (
+    <button type="button" disabled={disabled} onClick={disabled ? undefined : onClick}
+      className={`chip py-4 text-left ${disabled ? 'cursor-not-allowed border-line bg-card2 text-subtle opacity-40' : on ? 'chip-on' : 'chip-off'}`}>
+      {children}
+    </button>
+  );
 }

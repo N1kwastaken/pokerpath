@@ -65,16 +65,16 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
       )}
 
       <FilterCard title="Tipo de jogo">
-        {GAME_TYPES.map((g) => <Chip key={g} on={gameType === g} onClick={() => setGameType(g)}>{GAME_LABEL[g]}</Chip>)}
+        {GAME_TYPES.map((g) => <Chip key={g} on={gameType === g} disabled={g !== 'CASH'} onClick={() => setGameType(g)}>{GAME_LABEL[g]}</Chip>)}
       </FilterCard>
       <FilterCard title="Mesa">
-        {TABLE_SIZES.map((t) => <Chip key={t} on={tableSize === t} onClick={() => setTableSize(t)}>{SIZE_LABEL[t]}</Chip>)}
+        {TABLE_SIZES.map((t) => <Chip key={t} on={tableSize === t} disabled={t !== 'SIX_MAX'} onClick={() => setTableSize(t)}>{SIZE_LABEL[t]}</Chip>)}
       </FilterCard>
       <FilterCard title="Stack (BB)">
-        {STACK_OPTIONS.map((s) => <Chip key={s} on={stack === s} onClick={() => setStack(s)}>{s}</Chip>)}
+        {STACK_OPTIONS.map((sv) => <Chip key={sv} on={stack === sv} disabled={sv !== 100} onClick={() => setStack(sv)}>{sv}</Chip>)}
       </FilterCard>
       <FilterCard title="Posição">
-        {POSITIONS.map((p) => <Chip key={p} on={position === p} onClick={() => setPosition(p)}>{p}</Chip>)}
+        {POSITIONS.map((p) => <Chip key={p} on={position === p} disabled={!['UTG', 'MP', 'CO', 'BTN', 'SB'].includes(p)} onClick={() => setPosition(p)}>{p}</Chip>)}
       </FilterCard>
 
       <div className="mt-6">
@@ -125,9 +125,12 @@ function FilterCard({ title, children }: { title: string; children: React.ReactN
     </section>
   );
 }
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+function Chip({ on, onClick, children, disabled }: { on: boolean; onClick: () => void; children: React.ReactNode; disabled?: boolean }) {
   return (
-    <button onClick={onClick} className={`chip ${on ? 'chip-on' : 'chip-off'} px-3.5 py-2 text-sm`}>{children}</button>
+    <button onClick={disabled ? undefined : onClick} disabled={disabled}
+      className={`chip px-3.5 py-2 text-sm ${disabled ? 'cursor-not-allowed border-line bg-card2 text-subtle opacity-40' : on ? 'chip-on' : 'chip-off'}`}>
+      {children}
+    </button>
   );
 }
 function Legend({ color, label }: { color: string; label: string }) {

@@ -77,6 +77,17 @@
   .btn3d { box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.5); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; }
   .btn3d:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.5); }
 
+  /* Botões NÃO-clicáveis ficam cinzas (sem cor de ação) */
+  .btn:disabled, .btn3d:disabled {
+    background-color: rgb(var(--card2)) !important;
+    background-image: none !important;
+    color: rgb(var(--subtle)) !important;
+    box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.3) !important;
+    opacity: 1 !important;
+    filter: none !important;
+    cursor: not-allowed;
+  }
+
   /* Inputs */
   .field {
     @apply w-full rounded-xl border border-line bg-card px-4 py-3.5 text-base

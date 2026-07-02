@@ -73,12 +73,12 @@ const WORLDS: WorldSeed[] = [
   },
   {
     order: 1,
-    name: 'Fundamentos',
-    description: 'Tutorial completo: do zero ao primeiro open raise.',
-    icon: '🌱',
+    name: 'Preflop',
+    description: 'Do open raise à defesa: domine a primeira rua.',
+    icon: '🃏',
     color: '#1B8A4C',
     stages: [
-      // 3 — PRÁTICA
+// 3 — PRÁTICA
       {
         title: 'Reconhecendo mãos fortes', concept: 'Mãos fortes', description: 'Mão forte abre (raise); lixo descarta (fold).',
         minExercises: 5, passRate: 0.7, xpReward: 50,
@@ -183,16 +183,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'Q♠J♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'QJs é fold de UTG.' },
         ],
       },
-    ],
-  },
-  {
-    order: 2,
-    name: 'UTG',
-    description: 'A posição mais difícil: disciplina e range apertado.',
-    icon: '🛡️',
-    color: '#6D5AE6',
-    stages: [
-      { title: 'UTG: a primeira a falar', concept: 'UTG explicado', description: 'Por que abrir de UTG é o mais difícil.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+{ title: 'UTG: a primeira a falar', concept: 'UTG explicado', description: 'Por que abrir de UTG é o mais difícil.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       { title: 'O range premium do UTG', concept: 'Range de UTG', description: 'TT+, AQ+ e poucas suited. Só isso.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'UTG: o que abre', concept: 'UTG abre', description: 'Só as mãos mais fortes valem o open.',
@@ -247,16 +238,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'A♠9♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A9s fica de fora de UTG.' },
         ],
       },
-    ],
-  },
-  {
-    order: 3,
-    name: 'MP',
-    description: 'O range começa a abrir: algumas mãos novas entram.',
-    icon: '🎯',
-    color: '#3FA7D6',
-    stages: [
-      { title: 'MP: um passo à frente', concept: 'MP explicado', description: 'Com menos gente para agir, dá pra abrir mais.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+{ title: 'MP: um passo à frente', concept: 'MP explicado', description: 'Com menos gente para agir, dá pra abrir mais.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       { title: 'O que entra no MP', concept: 'Range de MP', description: 'AJs, QJs e 99 passam a abrir.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'MP: novas aberturas', concept: 'MP abre', description: 'Mãos que eram fold em UTG e agora abrem.',
@@ -312,16 +294,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'MP', heroHand: 'A♠8♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A8s fica de fora de MP.' },
         ],
       },
-    ],
-  },
-  {
-    order: 4,
-    name: 'CO',
-    description: 'Perto do botão: o range se abre de verdade.',
-    icon: '🔥',
-    color: '#F0883E',
-    stages: [
-      { title: 'CO: quase no botão', concept: 'CO explicado', description: 'Boa posição = muito mais mãos para abrir.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+{ title: 'CO: quase no botão', concept: 'CO explicado', description: 'Boa posição = muito mais mãos para abrir.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       { title: 'O range largo do CO', concept: 'Range de CO', description: 'ATs, KJs, JTs, AJo e KQo entram.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'CO: o range se abre', concept: 'CO abre', description: 'Mãos novas que o CO já pode abrir.',
@@ -377,16 +350,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', heroHand: 'A♠6♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A6s fica de fora de CO.' },
         ],
       },
-    ],
-  },
-  {
-    order: 5,
-    name: 'BTN',
-    description: 'O botão: a melhor cadeira e o range mais largo.',
-    icon: '👑',
-    color: '#27D17C',
-    stages: [
-      { title: 'BTN: a melhor cadeira', concept: 'BTN explicado', description: 'Você age por último o resto da mão.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+{ title: 'BTN: a melhor cadeira', concept: 'BTN explicado', description: 'Você age por último o resto da mão.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       { title: 'Jogando largo no botão', concept: 'Range de BTN', description: 'Pares pequenos, suited connectors e Ax suited.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'BTN: mãos pequenas abrem', concept: 'BTN abre', description: 'No botão, até mãozinhas valem o open.',
@@ -442,16 +406,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', heroHand: 'A♠5♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A5o fica de fora de BTN.' },
         ],
       },
-    ],
-  },
-  {
-    order: 6,
-    name: 'Small Blind',
-    description: 'Você já pagou meio blind. Abrir da SB é largo — mas fora de posição.',
-    icon: '🪙',
-    color: '#E0529C',
-    stages: [
-      { title: 'SB: você já está no pote', concept: 'SB explicado', description: 'Por que a SB abre largo, mas com cuidado.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+{ title: 'SB: você já está no pote', concept: 'SB explicado', description: 'Por que a SB abre largo, mas com cuidado.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       { title: 'O range largo da SB', concept: 'Range de SB', description: 'Quase metade das mãos abrem da SB.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'SB: o que abre', concept: 'SB abre', description: 'Com só o BB para agir, o range explode.',
@@ -507,15 +462,58 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'SB', heroHand: 'A♠4♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A4o fica de fora de SB.' },
         ],
       },
-    ],
-  },
-  {
-    order: 7,
-    name: 'Revisão Geral',
-    description: 'Maratona final: cada mão vem de uma posição diferente.',
-    icon: '🏆',
-    color: '#F2B807',
-    stages: [
+      // ── Defesa do BB (enfrentar um open) ──
+      { title: 'BB: o desconto do big blind', concept: 'BB explicado', description: 'Por que o BB defende muitas mãos.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+      { title: 'Como reagir a um open', concept: 'Defesa do BB', description: 'Fold, Call ou 3-bet contra quem abriu.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+      {
+        title: 'BB: quando dar fold', concept: 'BB fold', description: 'Lixo offsuit não defende, nem com preço.',
+        minExercises: 5, passRate: 0.7, xpReward: 60,
+        exercises: [
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♦2♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: '72o e a pior mao. Fold mesmo com preco.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♠3♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: 'J3o nao conecta o bastante. Fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♣4♥', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: 'Q4o e fraca demais. Fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '9♠4♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: '94o nao defende. Fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♦2♣', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'K2o e fraca; fold contra o open.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '8♥5♣', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'DEFEND', explanation: '85o offsuit e fold.' },
+        ],
+      },
+      {
+        title: 'BB: quando pagar (call)', concept: 'BB call', description: 'Com bom preco, o BB defende largo pagando.',
+        minExercises: 5, passRate: 0.7, xpReward: 60,
+        exercises: [
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♠6♠', correctAction: 'CALL', difficulty: 'EASY', category: 'DEFEND', explanation: '76s paga: joga bem e tem preco.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♥Q♦', correctAction: 'CALL', difficulty: 'EASY', category: 'DEFEND', explanation: 'KQo defende pagando contra o BTN.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣9♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'A9s paga: forte pra foldar, fraca pra 3bet.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♦T♦', correctAction: 'CALL', difficulty: 'EASY', category: 'DEFEND', explanation: 'JTs paga facil.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '2♠2♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'Pares pequenos pagam pra tentar a trinca.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♥9♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'Q9s paga com bom preco.' },
+        ],
+      },
+      {
+        title: 'BB: quando dar 3-bet', concept: 'BB 3bet', description: 'Maos premium relancam por valor.',
+        minExercises: 5, passRate: 0.7, xpReward: 60,
+        exercises: [
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'DEFEND', explanation: 'AA: 3-bet por valor, sempre.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♣K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'DEFEND', explanation: 'KK: 3-bet por valor.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠K♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'DEFEND', explanation: 'AKs: 3-bet forte.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♦Q♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'QQ: 3-bet por valor.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♥K♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'AKo: 3-bet por valor.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣Q♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'AQs: 3-bet por valor.' },
+        ],
+      },
+      {
+        title: 'BB: teste de defesa', concept: 'Revisão BB', description: 'Misture fold, call e 3-bet contra o open.',
+        minExercises: 6, passRate: 0.75, xpReward: 80,
+        exercises: [
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♦2♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: '72o e fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'DEFEND', explanation: 'AA 3-bet por valor.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♠Q♥', correctAction: 'CALL', difficulty: 'EASY', category: 'DEFEND', explanation: 'KQo paga.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '6♠5♠', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: '65s paga com preco.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♣3♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: 'Q3o e fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♥K♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'AKo 3-bet por valor.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♥T♥', correctAction: 'CALL', difficulty: 'EASY', category: 'DEFEND', explanation: 'JTs paga.' },
+        ],
+      },
       { title: 'Tudo junto agora', concept: 'Revisão geral', description: 'A posição muda tudo — vamos misturar.', minExercises: 0, passRate: 0, xpReward: 30, exercises: [] },
       {
         title: 'Mix de posições I', concept: 'Mix 1', description: 'Aberturas e folds em posições variadas.',
@@ -554,7 +552,37 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', heroHand: '5♣5♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '55 é fold de CO (77+).' },
           { heroPosition: 'BTN', heroHand: 'T♦9♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'T9s abre no BTN.' },
         ],
-      },
+      }
+    ],
+  },
+  {
+    order: 2,
+    name: 'Flop',
+    description: 'Continuation bet e leitura de board. (em breve)',
+    icon: '🌊',
+    color: '#3FA7D6',
+    stages: [
+      { title: 'Flop — visão geral', concept: 'Flop — intro', description: 'O que você vai aprender aqui (em breve).', minExercises: 0, passRate: 0, xpReward: 15, exercises: [] },
+    ],
+  },
+  {
+    order: 3,
+    name: 'Turn',
+    description: 'Jogo no turno: bet/check/fold. (em breve)',
+    icon: '🌀',
+    color: '#F0883E',
+    stages: [
+      { title: 'Turn — visão geral', concept: 'Turn — intro', description: 'O que você vai aprender aqui (em breve).', minExercises: 0, passRate: 0, xpReward: 15, exercises: [] },
+    ],
+  },
+  {
+    order: 4,
+    name: 'River',
+    description: 'Jogo no river: value/blefe/call. (em breve)',
+    icon: '🏁',
+    color: '#27D17C',
+    stages: [
+      { title: 'River — visão geral', concept: 'River — intro', description: 'O que você vai aprender aqui (em breve).', minExercises: 0, passRate: 0, xpReward: 15, exercises: [] },
     ],
   },
 ];
@@ -570,9 +598,16 @@ const ACHIEVEMENTS = [
 ];
 
 const MISSIONS = [
-  { code: 'DAILY_10_CORRECT', title: '10 acertos hoje', description: 'Acerte 10 exercícios hoje.', type: 'DAILY', xpReward: 20, target: 10 },
+  { code: 'DAILY_PLAY', title: 'Sente à mesa', description: 'Jogue ao menos 1 exercício hoje.', type: 'DAILY', xpReward: 10, target: 1 },
+  { code: 'DAILY_5_CORRECT', title: '5 acertos hoje', description: 'Acerte 5 exercícios hoje.', type: 'DAILY', xpReward: 15, target: 5 },
+  { code: 'DAILY_10_CORRECT', title: '10 acertos hoje', description: 'Acerte 10 exercícios hoje.', type: 'DAILY', xpReward: 25, target: 10 },
+  { code: 'DAILY_20_CORRECT', title: '20 acertos hoje', description: 'Acerte 20 exercícios hoje.', type: 'DAILY', xpReward: 45, target: 20 },
   { code: 'DAILY_FINISH_STAGE', title: 'Conclua uma fase', description: 'Complete 1 fase hoje.', type: 'DAILY', xpReward: 30, target: 1 },
-  { code: 'WEEKLY_3_DAYS', title: '3 dias seguidos', description: 'Jogue em 3 dias diferentes esta semana.', type: 'WEEKLY', xpReward: 100, target: 3 },
+  { code: 'DAILY_2_STAGES', title: 'Duas fases hoje', description: 'Complete 2 fases hoje.', type: 'DAILY', xpReward: 60, target: 2 },
+  { code: 'WEEKLY_3_DAYS', title: '3 dias na semana', description: 'Jogue em 3 dias diferentes esta semana.', type: 'WEEKLY', xpReward: 100, target: 3 },
+  { code: 'WEEKLY_5_DAYS', title: '5 dias na semana', description: 'Jogue em 5 dias diferentes esta semana.', type: 'WEEKLY', xpReward: 200, target: 5 },
+  { code: 'WEEKLY_50_CORRECT', title: '50 acertos na semana', description: 'Acerte 50 exercícios esta semana.', type: 'WEEKLY', xpReward: 120, target: 50 },
+  { code: 'WEEKLY_5_STAGES', title: '5 fases na semana', description: 'Complete 5 fases esta semana.', type: 'WEEKLY', xpReward: 150, target: 5 },
 ];
 
 
