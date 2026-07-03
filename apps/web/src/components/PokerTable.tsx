@@ -57,6 +57,7 @@ export function PokerTable({ ex }: { ex: PublicExercise }) {
         const slot = (RING.indexOf(pos) - heroIdx + 6) % 6;
         const { x, y } = SLOTS[slot];
         const isVillain = ex.villainPosition === pos;
+        const isCaller = ex.callerPosition === pos;
         return (
           <div key={pos} className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-500 ease-out" style={{ left: `${x}%`, top: `${y}%` }}>
             <div className="flex flex-col items-center gap-0.5">
@@ -66,6 +67,9 @@ export function PokerTable({ ex }: { ex: PublicExercise }) {
               <span className="text-[10px] font-semibold tabular-nums text-white/50">{ex.stackBb} BB</span>
               {isVillain && ex.villainAction && (
                 <span className="rounded bg-call/25 px-1.5 py-0.5 text-[9px] font-bold text-call">{ex.villainAction}</span>
+              )}
+              {isCaller && (
+                <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-bold text-white/75">Call</span>
               )}
             </div>
           </div>

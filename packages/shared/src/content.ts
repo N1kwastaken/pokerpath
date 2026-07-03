@@ -110,6 +110,8 @@ export interface PublicExercise {
   order: number;
   heroPosition: Position;
   villainPosition: Position | null;
+  /** 2º oponente que pagou o open (spots de squeeze). */
+  callerPosition: Position | null;
   stackBb: number;
   potSize: number;
   heroHand: string;
@@ -200,6 +202,7 @@ export interface ReviewItem {
   id: string;
   heroPosition: Position;
   villainPosition: Position | null;
+  callerPosition: Position | null;
   stackBb: number;
   potSize: number;
   heroHand: string;

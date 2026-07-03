@@ -120,6 +120,7 @@ model Exercise {
   order           Int
   heroPosition    String
   villainPosition String?
+  callerPosition  String?  // 2º oponente que pagou o open (spots de squeeze)
   stackBb         Int      @default(100)
   potSize         Float    @default(1.5)
   heroHand        String

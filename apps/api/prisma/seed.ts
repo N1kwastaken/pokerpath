@@ -20,6 +20,7 @@ const prisma = new PrismaClient();
 type ExerciseSeed = {
   heroPosition: string;
   villainPosition?: string;
+  callerPosition?: string;
   stackBb?: number;
   potSize?: number;
   heroHand: string;
@@ -1159,6 +1160,7 @@ async function main() {
           order: exOrder,
           heroPosition: ex.heroPosition,
           villainPosition: ex.villainPosition ?? null,
+          callerPosition: ex.callerPosition ?? null,
           stackBb: ex.stackBb ?? 100,
           potSize: ex.potSize ?? 1.5,
           heroHand: ex.heroHand,
