@@ -4,6 +4,7 @@ export function stageGroup(concept: string): string {
   if (/^4-?bet/i.test(concept) || concept === 'Revisão 4bet') return '4-Bet';
   if (/vsutg/i.test(concept)) return 'vs UTG';
   if (/vsmp|vsco/i.test(concept)) return 'vs MP/CO';
+  if (/squeeze/i.test(concept)) return 'Squeeze';
   if (/board/i.test(concept)) return 'Leitura';
   if (/projeto/i.test(concept)) return 'Projetos';
   if (/forte/i.test(concept)) return 'Mãos fortes';
@@ -28,6 +29,7 @@ const CAT: Record<string, { color: string; desc: string }> = {
   '4-Bet': { color: '#C2185B', desc: 'Reagir a um 3-bet' },
   'vs UTG': { color: '#7E57C2', desc: 'Defender vs open apertado' },
   'vs MP/CO': { color: '#5C6BC0', desc: 'Defesa vs opens mais largos' },
+  'Squeeze': { color: '#7CB342', desc: 'Aperte open + caller' },
   'Leitura': { color: '#20A39E', desc: 'Ler a textura do board' },
   'Mãos fortes': { color: '#E4572E', desc: 'Mãos feitas de valor' },
   'Projetos': { color: '#17A2B8', desc: 'Projetos e semi-blefe' },

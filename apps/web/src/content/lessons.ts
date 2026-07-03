@@ -186,6 +186,13 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Contra qual open você defende mais mãos?`, ['MP', 'CO'], 1,
       `CO abre mais largo, então sua defesa também alarga.`),
   ],
+  'Squeeze intro': [
+    t(`Squeeze = 3-bet contra um open que JÁ tem caller: você aperta os dois de uma vez.`),
+    t(`O caller deixou dinheiro morto no pote — e quem só paga raramente tem mão premium.`),
+    quiz(`CO abre, BTN paga e você relança da SB. Isso é um…`, ['Call', 'Squeeze'], 1,
+      `Open + caller + seu re-raise = squeeze.`),
+    t(`Da SB, evite só pagar fora de posição: aperte forte (ou com blockers tipo A5s) ou desista. Exceção: pares médios pagam pra buscar trinca.`),
+  ],
   // ── Aulas extras ───────────────────────────────────────────
   '3bet blockers': [
     t(`Blocker = uma carta sua que reduz as combinações fortes do vilão.`),
