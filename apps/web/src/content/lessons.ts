@@ -148,6 +148,86 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`72o no BB contra um open. Jogada?`, ['Call', 'Fold'], 1,
       `72o não defende nem com preço. Fold.`),
   ],
+  // ── 3-Bet ──────────────────────────────────────────────────
+  '3bet explicado': [
+    t(`3-bet = relançar quem abriu. É a 3ª aposta: o blind (1ª), o open (2ª) e o seu re-raise (3ª).`),
+    quiz(`Alguém abriu 2,5x e você relança. Isso é um…`, ['Call', '3-bet'], 1,
+      `Isso mesmo — re-raise sobre um open é um 3-bet.`),
+    t(`Serve para duas coisas: ganhar valor com mãos fortes e roubar o pote na hora com blefes.`),
+  ],
+  '3bet value blefe': [
+    t(`Por valor: AA, KK, QQ, AK. Você quer o pote grande porque costuma estar na frente.`),
+    h('BTN', 'A♠A♣', 'RAISE', `AA relança por valor — construa o pote.`),
+    t(`Como blefe: ases suited baixos (A5s, A4s). Eles bloqueiam AA/AK do vilão e ainda fazem nut flush.`),
+    h('BTN', 'A♠5♠', 'RAISE', `A5s: blocker + potencial de flush = ótimo 3-bet blefe.`),
+  ],
+  // ── 4-Bet e defesa vs UTG ──────────────────────────────────
+  '4bet explicado': [
+    t(`4-bet = o relanço do relanço: você abriu, o vilão deu 3-bet, e você re-relança.`),
+    t(`Como o pote fica enorme, o range de 4-bet por valor é pequeno: basicamente AA, KK, AKs.`),
+    quiz(`Você abriu com QQ e levou um 3-bet. Geralmente é melhor…`, ['4-bet', 'Pagar o 3-bet'], 1,
+      `QQ costuma pagar: 4-betar deixa você exposto contra AA/KK/AK.`),
+  ],
+  '4bet value blefe': [
+    t(`Por valor: AA, KK, AKs. Você quer todo o dinheiro no meio.`),
+    t(`Como blefe: A5s/A4s — bloqueiam AA e AK, então o vilão tem menos continues.`),
+    quiz(`Por que A5s é um bom 4-bet blefe?`, ['Faz flush fácil', 'O ás bloqueia AA e AK do vilão'], 1,
+      `O blocker reduz as mãos com que o vilão paga ou 5-beta.`),
+  ],
+  'vsUTG intro': [
+    t(`UTG abre o range mais apertado da mesa (só mãos fortes).`),
+    t(`Por isso você defende contra UTG bem mais tight do que contra CO ou BTN: menos 3-bets, menos calls.`),
+    quiz(`Contra um open de UTG, seu range de defesa deve ser…`, ['Mais largo', 'Mais apertado'], 1,
+      `Range apertado do vilão pede defesa apertada sua.`),
+  ],
+  // ── Aulas extras ───────────────────────────────────────────
+  '3bet blockers': [
+    t(`Blocker = uma carta sua que reduz as combinações fortes do vilão.`),
+    t(`Com A♠5♠ você segura um dos ases: fica mais difícil o vilão ter AA ou AK. Por isso é um bom 3-bet blefe.`),
+    quiz(`Por que A5s blefa melhor que 87s como 3-bet?`, ['Faz mais sequência', 'O ás bloqueia AA/AK do vilão'], 1,
+      `O blocker de ás reduz as mãos com que o vilão continua.`),
+  ],
+  'Flop board': [
+    t(`Board seco (ex.: K♠7♦2♣): poucas sequências/flushes possíveis — favorece quem abriu.`),
+    t(`Board molhado (ex.: 9♥8♥7♣): muitos projetos — perigoso, exige mãos mais fortes para continuar.`),
+    quiz(`Em qual board vale continuar com mais cuidado?`, ['Seco K♠7♦2♣', 'Molhado 9♥8♥7♣'], 1,
+      `Boards molhados dão mais projetos ao vilão: cuidado.`),
+  ],
+  // ── Flop / Turn / River (enfrentando apostas) ──────────────
+  'Flop fortes intro': [
+    t(`No flop você já tem 5 cartas para ler: as 2 suas + as 3 da mesa.`),
+    t(`Com mão feita forte (par alto, trinca), o plano é ganhar fichas: pague ou aumente.`),
+    quiz(`Você tem A♠A♦ no flop K♣7♦2♠ e o vilão aposta. Ideia?`, ['Fold', 'Pagar ou aumentar por valor'], 1,
+      `Overpair é forte: nunca desista, extraia valor.`),
+  ],
+  'Flop projetos intro': [
+    t(`Projeto = mão que ainda não é nada, mas pode virar sequência ou flush.`),
+    t(`Com projeto forte vale continuar; com muitos outs, às vezes aumenta (semi-blefe).`),
+    quiz(`8♥7♥ no flop 9♥6♥2♣: flush draw + sequência, e o vilão aposta.`, ['Fold', 'Continuar (call ou semi-blefe)'], 1,
+      `Monster draw: muitos outs, continue.`),
+  ],
+  'Turn fortes intro': [
+    t(`No turn (4ª carta) o pote cresce. Mãos fortes seguem apostando e pagando por valor.`),
+    quiz(`Sua trinca continua sendo a melhor mão e o vilão aposta de novo. Ideia?`, ['Fold', 'Pagar ou aumentar'], 1,
+      `Valor não desiste: mantenha a pressão.`),
+  ],
+  'Turn projetos intro': [
+    t(`No turn resta só 1 carta (o river). Seu projeto tem menos chance de completar que no flop.`),
+    quiz(`Flush draw não completou no turn e o preço ficou ruim. Tendência?`, ['Pagar sempre', 'Às vezes desistir'], 1,
+      `Sem preço nem outs suficientes, projeto vira fold.`),
+  ],
+  'River fortes intro': [
+    t(`No river não vêm mais cartas: ou você tem valor, ou blefa, ou desiste.`),
+    t(`Com mão muito forte (full house, sequência), aumente por valor.`),
+    quiz(`Você fez full house no river e o vilão aposta. Ideia?`, ['Só pagar', 'Aumentar por valor'], 1,
+      `Mão monstro: aumente para extrair o máximo.`),
+  ],
+  'River catch intro': [
+    t(`Bluff-catch = pagar com uma mão média porque o vilão pode estar blefando.`),
+    t(`Top pair costuma ser bom bluff-catcher; ar (projeto que não veio) vira fold.`),
+    quiz(`Top pair no river, o vilão aposta e muitos projetos falharam. Ideia?`, ['Fold', 'Pagar (bluff-catch)'], 1,
+      `Contra projetos que erraram, top pair paga.`),
+  ],
   // ── Ruas pós-flop (em breve) ───────────────────────────────
   'Flop — intro': [
     t(`O flop traz 3 cartas na mesa. Aqui você aprende a continuation bet (c-bet) e a ler texturas de board. Em breve!`),

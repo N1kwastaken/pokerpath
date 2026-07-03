@@ -64,14 +64,17 @@ export async function evaluateAchievements(args: {
   // PERFECT_WEEK — streak de 7 dias.
   if (want('PERFECT_WEEK') && currentStreak >= 7) unlock.add('PERFECT_WEEK');
 
-  // SHARP_SHOOTER — 50 acertos seguidos.
-  if (want('SHARP_SHOOTER')) {
-    if ((await consecutiveCorrect(userId)) >= 50) unlock.add('SHARP_SHOOTER');
+  // HOT_STREAK / SHARP_SHOOTER — acertos seguidos (5 / 50).
+  if (want('HOT_STREAK') || want('SHARP_SHOOTER')) {
+    const streak = await consecutiveCorrect(userId);
+    if (want('HOT_STREAK') && streak >= 5) unlock.add('HOT_STREAK');
+    if (want('SHARP_SHOOTER') && streak >= 50) unlock.add('SHARP_SHOOTER');
   }
 
-  // EXPLORER — alcançar 5 mundos.
+  // EXPLORER — chegar a TODOS os mundos existentes.
   if (want('EXPLORER')) {
-    if ((await reachedWorlds(userId)) >= 5) unlock.add('EXPLORER');
+    const total = await prisma.world.count();
+    if (total > 0 && (await reachedWorlds(userId)) >= total) unlock.add('EXPLORER');
   }
 
   // THREEBET_MACHINE — 100 acertos de 3-bet.
@@ -82,23 +85,24 @@ export async function evaluateAchievements(args: {
     if (n >= 100) unlock.add('THREEBET_MACHINE');
   }
 
-  // BTN_MASTER — Mundo 5 completo com 90%+ de acerto médio.
+  // BTN_MASTER — Mundo Preflop (order 1) completo com 90%+ de acerto médio.
+  // A média ignora aulas (accuracy 0); só conta fases de prática.
   if (want('BTN_MASTER')) {
-    const btn = await prisma.world.findUnique({
-      where: { order: 5 },
+    const pre = await prisma.world.findUnique({
+      where: { order: 1 },
       include: { stages: { select: { id: true } } },
     });
-    if (btn && btn.stages.length > 0) {
+    if (pre && pre.stages.length > 0) {
       const prog = await prisma.userProgress.findMany({
-        where: { userId, stageId: { in: btn.stages.map((s) => s.id) } },
+        where: { userId, stageId: { in: pre.stages.map((s) => s.id) } },
       });
       const allDone =
-        prog.length === btn.stages.length &&
+        prog.length === pre.stages.length &&
         prog.every((p) => p.status === 'COMPLETED');
-      const avg =
-        prog.length > 0
-          ? prog.reduce((s, p) => s + p.accuracy, 0) / prog.length
-          : 0;
+      const graded = prog.filter((p) => p.accuracy > 0);
+      const avg = graded.length > 0
+        ? graded.reduce((s, p) => s + p.accuracy, 0) / graded.length
+        : 0;
       if (allDone && avg >= 0.9) unlock.add('BTN_MASTER');
     }
   }
@@ -108,10 +112,10 @@ export async function evaluateAchievements(args: {
     const worlds = await prisma.world.findMany({
       include: { stages: { select: { id: true } } },
     });
-    if (worlds.length >= 15) {
+    const real = worlds.filter((w) => w.stages.length > 0);
+    if (real.length > 0) {
       const completedWorlds = await Promise.all(
-        worlds.map(async (w) => {
-          if (w.stages.length === 0) return false;
+        real.map(async (w) => {
           const done = await prisma.userProgress.count({
             where: {
               userId,
