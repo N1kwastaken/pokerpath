@@ -180,6 +180,12 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Contra um open de UTG, seu range de defesa deve ser…`, ['Mais largo', 'Mais apertado'], 1,
       `Range apertado do vilão pede defesa apertada sua.`),
   ],
+  'vsMP-CO intro': [
+    t(`MP e CO abrem mais largo que UTG — e quanto mais largo o open, mais mãos você defende.`),
+    t(`Vs MP: um pouco mais que vs UTG. Vs CO: bem mais — até 3-bets blefe com A5s e calls com pares médios.`),
+    quiz(`Contra qual open você defende mais mãos?`, ['MP', 'CO'], 1,
+      `CO abre mais largo, então sua defesa também alarga.`),
+  ],
   // ── Aulas extras ───────────────────────────────────────────
   '3bet blockers': [
     t(`Blocker = uma carta sua que reduz as combinações fortes do vilão.`),
