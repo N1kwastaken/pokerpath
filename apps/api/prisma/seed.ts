@@ -82,7 +82,7 @@ const WORLDS: WorldSeed[] = [
 // 3 — PRÁTICA
       {
         title: 'Reconhecendo mãos fortes', concept: 'Mãos fortes', description: 'Mão forte abre (raise); lixo descarta (fold).',
-        minExercises: 5, passRate: 0.6, xpReward: 50,
+        minExercises: 4, passRate: 0.6, xpReward: 50,
         exercises: [
           { heroPosition: 'BTN', heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AA é a melhor mão. Sempre raise.' },
           { heroPosition: 'BTN', heroHand: '7♦2♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: '72o é a pior mão do poker. Fold.' },
@@ -103,7 +103,7 @@ const WORLDS: WorldSeed[] = [
       // 6 — PRÁTICA
       {
         title: 'O que é posição', concept: 'Posição na mesa', description: 'Pratique abrir conforme a posição.',
-        minExercises: 5, passRate: 0.7, xpReward: 50,
+        minExercises: 4, passRate: 0.7, xpReward: 50,
         exercises: [
           { heroPosition: 'BTN', heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AA é sempre raise.' },
           { heroPosition: 'UTG', heroHand: '7♦2♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: '72o é a pior mão. Fold.' },
@@ -138,6 +138,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'A♠K♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AKs é premium.' },
           { heroPosition: 'MP', heroHand: 'A♠K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AKo é premium.' },
           { heroPosition: 'CO', heroHand: 'J♠J♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'JJ abre de qualquer posição.' },
+          { heroPosition: 'UTG', heroHand: 'A♠J♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJo não abre de UTG — quase, mas não.' },
+          { heroPosition: 'UTG', heroHand: 'K♥Q♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'KQo é fold de UTG (só a versão suited abre).' },
+          { heroPosition: 'MP', heroHand: '7♦2♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: '72o nunca abre. Fold.' },
         ],
       },
       // 9 — AULA
@@ -200,6 +203,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'Q♠Q♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'QQ abre de UTG.' },
           { heroPosition: 'UTG', heroHand: 'K♠Q♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'KQs abre de UTG.' },
           { heroPosition: 'UTG', heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AA abre de UTG.' },
+          { heroPosition: 'UTG', heroHand: 'A♥J♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'AJs fica fora de UTG: só AQs+.' },
+          { heroPosition: 'UTG', heroHand: '9♠9♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '99 não abre de UTG (TT+).' },
+          { heroPosition: 'UTG', heroHand: 'K♦Q♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'KQo é fold — de UTG só KQs.' },
         ],
       },
       {
@@ -218,6 +224,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'A♠6♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A6s fica de fora de UTG.' },
           { heroPosition: 'UTG', heroHand: 'A♠J♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'AJo fica de fora de UTG.' },
           { heroPosition: 'UTG', heroHand: 'A♠4♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A4s fica de fora de UTG.' },
+          { heroPosition: 'UTG', heroHand: 'A♣A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AA abre de qualquer lugar.' },
+          { heroPosition: 'UTG', heroHand: 'A♠Q♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AQs abre de UTG.' },
+          { heroPosition: 'UTG', heroHand: 'T♥T♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'TT é o limite: abre de UTG.' },
         ],
       },
       {
@@ -257,6 +266,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'MP', heroHand: 'Q♠Q♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'QQ abre de MP.' },
           { heroPosition: 'MP', heroHand: 'A♠K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AKo abre de MP.' },
           { heroPosition: 'MP', heroHand: 'K♠K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'KK abre de MP.' },
+          { heroPosition: 'MP', heroHand: '8♣8♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '88 ainda não abre de MP (99+).' },
+          { heroPosition: 'MP', heroHand: 'A♦T♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'ATs fica fora de MP (AJs+).' },
+          { heroPosition: 'MP', heroHand: 'K♠J♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'KJo não abre de MP.' },
         ],
       },
       {
@@ -275,6 +287,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'MP', heroHand: 'A♠6♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A6s fica de fora de MP.' },
           { heroPosition: 'MP', heroHand: 'A♠5♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A5s fica de fora de MP.' },
           { heroPosition: 'MP', heroHand: 'A♠4♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A4s fica de fora de MP.' },
+          { heroPosition: 'MP', heroHand: '9♦9♣', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '99 abre de MP — é o novo limite.' },
+          { heroPosition: 'MP', heroHand: 'Q♠J♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'QJs entra no range de MP.' },
+          { heroPosition: 'MP', heroHand: 'A♣Q♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AQo abre de MP.' },
         ],
       },
       {
@@ -313,6 +328,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', heroHand: '9♠9♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '99 abre de CO.' },
           { heroPosition: 'CO', heroHand: 'A♠J♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJs abre de CO.' },
           { heroPosition: 'CO', heroHand: 'T♠T♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'TT abre de CO.' },
+          { heroPosition: 'CO', heroHand: 'A♦8♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'A8s fica fora de CO (ATs+).' },
+          { heroPosition: 'CO', heroHand: 'K♥T♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'KTs não abre de CO (KJs+).' },
+          { heroPosition: 'CO', heroHand: 'A♠T♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'ATo é fold de CO (AJo+).' },
         ],
       },
       {
@@ -331,6 +349,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', heroHand: 'A♠5♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A5s fica de fora de CO.' },
           { heroPosition: 'CO', heroHand: 'A♠4♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A4s fica de fora de CO.' },
           { heroPosition: 'CO', heroHand: 'A♠3♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A3s fica de fora de CO.' },
+          { heroPosition: 'CO', heroHand: '7♥7♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '77 abre de CO — o novo limite dos pares.' },
+          { heroPosition: 'CO', heroHand: 'A♣J♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJo abre de CO.' },
+          { heroPosition: 'CO', heroHand: 'J♠T♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'JTs abre de CO.' },
         ],
       },
       {
@@ -369,6 +390,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', heroHand: '7♠6♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '76s abre de BTN.' },
           { heroPosition: 'BTN', heroHand: 'A♠J♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJs abre de BTN.' },
           { heroPosition: 'BTN', heroHand: '8♠7♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '87s abre de BTN.' },
+          { heroPosition: 'BTN', heroHand: 'J♦8♦', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'J8s fica fora até do BTN (J9s+).' },
+          { heroPosition: 'BTN', heroHand: 'A♥7♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'A7o não abre nem no BTN (A8o+).' },
+          { heroPosition: 'BTN', heroHand: 'K♣9♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'K9o é fold no BTN (KTo+).' },
         ],
       },
       {
@@ -387,6 +411,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', heroHand: '2♠2♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '22 abre de BTN.' },
           { heroPosition: 'BTN', heroHand: 'A♠J♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJs abre de BTN.' },
           { heroPosition: 'BTN', heroHand: '3♠3♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '33 abre de BTN.' },
+          { heroPosition: 'BTN', heroHand: '5♠4♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '54s já não abre do BTN — 65s é o limite.' },
+          { heroPosition: 'BTN', heroHand: '9♦7♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '97s (com buraco) fica de fora do BTN.' },
         ],
       },
       {
@@ -425,6 +451,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'SB', heroHand: '8♠7♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '87s abre de SB.' },
           { heroPosition: 'SB', heroHand: 'A♠J♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJs abre de SB.' },
           { heroPosition: 'SB', heroHand: '2♠2♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '22 abre de SB.' },
+          { heroPosition: 'SB', heroHand: 'J♥8♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'J8s fica fora da SB (J9s+).' },
+          { heroPosition: 'SB', heroHand: 'A♦6♠', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'A6o não abre da SB (A7o+).' },
+          { heroPosition: 'SB', heroHand: 'K♠9♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'K9o é fold da SB (KTo+).' },
         ],
       },
       {
@@ -443,6 +472,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'SB', heroHand: 'K♠6♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'K6s fica de fora de SB.' },
           { heroPosition: 'SB', heroHand: 'A♠2♥', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A2o fica de fora de SB.' },
           { heroPosition: 'SB', heroHand: 'K♠5♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'K5s fica de fora de SB.' },
+          { heroPosition: 'SB', heroHand: '5♥4♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '54s abre da SB.' },
+          { heroPosition: 'SB', heroHand: 'T♦8♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'T8s abre da SB.' },
+          { heroPosition: 'SB', heroHand: 'A♠7♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'A7o é o limite dos ases offsuit na SB.' },
         ],
       },
       {
@@ -480,6 +512,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♦2♠', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: 'Q2o e lixo. Fold.' },
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♣4♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'J4o nao conecta. Fold.' },
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '9♠6♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: '96o e fraca. Fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♦A♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'DEFEND', explanation: 'AA não folda nunca: 3-bet.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♥6♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: '76s defende pagando.' },
         ],
       },
       {
@@ -496,6 +530,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'T♣9♣', correctAction: 'CALL', difficulty: 'EASY', category: 'DEFEND', explanation: 'T9s defende facil.' },
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠8♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'A8o paga pelo blocker e preco.' },
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '3♣3♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'Par pequeno paga pra buscar trinca.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♠2♥', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: '72o folda mesmo com preço.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♥K♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'KK: relance por valor.' },
         ],
       },
       {
@@ -512,6 +548,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♥K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'DEFEND', explanation: 'KK: 3-bet por valor.' },
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣K♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'AKo: 3-bet por valor.' },
           { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♥Q♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'QQ: 3-bet por valor.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♠3♥', correctAction: 'FOLD', difficulty: 'EASY', category: 'DEFEND', explanation: 'J3o não defende. Fold.' },
+          { heroPosition: 'BB', villainPosition: 'BTN', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♣T♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'DEFEND', explanation: 'JTs paga — forte demais pra fold, fraca pro 3-bet.' },
         ],
       },
       {
@@ -535,7 +573,7 @@ const WORLDS: WorldSeed[] = [
       { title: '3-Bet: valor e blefe', concept: '3bet value blefe', description: 'Premium por valor; blockers suited como blefe.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: '3-Bet por valor', concept: '3bet valor', description: 'Maos premium relancam o open por valor.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AA: 3-bet por valor, sempre.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♣K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'KK: 3-bet por valor.' },
@@ -547,12 +585,14 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♥K♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'KK: 3-bet por valor.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣K♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AKs: 3-bet por valor.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♥Q♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'QQ: 3-bet por valor.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'Q♥7♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'THREE_BET', explanation: 'Q7o não entra na mão: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '8♦8♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: '88 prefere pagar em posição.' },
         ],
       },
       { title: '3-Bet: blockers', concept: '3bet blockers', description: 'Por que ases suited baixos servem de blefe.', minExercises: 0, passRate: 0, xpReward: 20, exercises: [] },
       {
         title: '3-Bet como blefe', concept: '3bet blefe', description: 'Ases suited baixos: bons blockers para blefar.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠5♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'A5s: blocker de ases, otimo 3-bet blefe.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣4♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'A4s: blefe com blocker e nut flush.' },
@@ -568,7 +608,7 @@ const WORLDS: WorldSeed[] = [
       },
       {
         title: 'Pagar em posicao', concept: '3bet call', description: 'Maos boas que preferem flatar em posicao.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '8♠8♦', correctAction: 'CALL', difficulty: 'EASY', category: 'THREE_BET', explanation: '88: paga em posicao pra jogar o flop.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠J♠', correctAction: 'CALL', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AJs: forte pra pagar, marginal pra 3-bet valor.' },
@@ -580,11 +620,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♦J♦', correctAction: 'CALL', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AJs: paga em posicao.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♣Q♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'KQs: paga em posicao.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♦T♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'JTs: paga em posicao.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♠K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'KK: 3-bet por valor, não só call.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'T♣7♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'THREE_BET', explanation: 'T7o: fold.' },
         ],
       },
       {
         title: '3-Bet: teste', concept: 'Revisão 3bet', description: 'Misture valor, blefe, call e fold contra um open.',
-        minExercises: 6, passRate: 0.75, xpReward: 80,
+        minExercises: 7, passRate: 0.75, xpReward: 80,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AA: 3-bet por valor.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣5♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'A5s: 3-bet blefe (blocker).' },
@@ -602,7 +644,7 @@ const WORLDS: WorldSeed[] = [
       { title: '4-Bet: valor, call e blefe', concept: '4bet value blefe', description: 'Premium 4-beta; QQ/AK paga; blockers blefam.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: '4-Bet por valor', concept: '4bet valor', description: 'So os monstros 4-betam por valor.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'AA: 4-bet por valor.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'K♣K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'KK: 4-bet por valor.' },
@@ -610,11 +652,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♥A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'AA: sempre 4-bet.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'K♥K♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'KK: 4-bet por valor.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♣K♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'AKs: 4-bet forte.' },
+          { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'Q♦8♠', correctAction: 'FOLD', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'Q8o desiste contra o 3-bet.' },
+          { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'Q♣Q♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'QQ paga o 3-bet.' },
         ],
       },
       {
         title: '4-Bet: pagar o 3-bet', concept: '4bet call', description: 'QQ, JJ e AKo preferem pagar.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'Q♠Q♦', correctAction: 'CALL', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'QQ: paga o 3-bet (4-bet fica muito exposto).' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'J♣J♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'JJ: paga o 3-bet.' },
@@ -622,11 +666,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'Q♥Q♣', correctAction: 'CALL', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'QQ: call.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'J♦J♠', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'JJ: call.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♣K♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'AKo: call.' },
+          { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♦A♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'AA: 4-bet, não só call.' },
+          { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'T♥8♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'T8o: fold fácil.' },
         ],
       },
       {
         title: '4-Bet: blefe e fold', concept: '4bet blefe', description: 'Blockers blefam; o resto foldam.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♠5♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'A5s: 4-bet blefe (blocker de ases).' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♥4♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'FOUR_BET', explanation: 'A4s: 4-bet blefe.' },
@@ -634,11 +680,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: '7♦2♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'FOUR_BET', explanation: '72o: fold ao 3-bet.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'K♠J♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'KJo: fold ao 3-bet.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: '9♥9♦', correctAction: 'FOLD', difficulty: 'HARD', category: 'FOUR_BET', explanation: '99: fold ao 3-bet (fraco pra 4-bet/call).' },
+          { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'J♦J♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'JJ: paga o 3-bet.' },
+          { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'K♦Q♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'KQs: bonita, mas fold contra 3-bet.' },
         ],
       },
       {
         title: '4-Bet: teste', concept: 'Revisão 4bet', description: 'Misture valor, call, blefe e fold.',
-        minExercises: 6, passRate: 0.75, xpReward: 80,
+        minExercises: 7, passRate: 0.75, xpReward: 80,
         exercises: [
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'FOUR_BET', explanation: 'AA: 4-bet valor.' },
           { heroPosition: 'CO', villainPosition: 'BTN', villainAction: '3-Bet 9bb', potSize: 13, heroHand: 'A♦5♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'FOUR_BET', explanation: 'A5s: 4-bet blefe.' },
@@ -652,7 +700,7 @@ const WORLDS: WorldSeed[] = [
       { title: 'Defesa vs UTG: respeite o range', concept: 'vsUTG intro', description: 'UTG abre apertado; defenda tight.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'vs UTG: quando 3-betar', concept: 'vsUTG 3bet', description: 'So premiums relancam contra UTG.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'AA: 3-bet mesmo vs UTG.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♣K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'KK: 3-bet por valor.' },
@@ -660,11 +708,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠K♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: 'AKs: 3-bet vs UTG.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♥K♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'FACING_RAISE', explanation: 'AKo: 3-bet fino vs UTG.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♠J♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'FACING_RAISE', explanation: 'JJ: 3-bet vs UTG (ou call).' },
+          { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♠T♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'KTo: fold vs UTG.' },
+          { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'T♠T♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: 'TT: paga — forte, mas não relança vs UTG.' },
         ],
       },
       {
         title: 'vs UTG: pagar', concept: 'vsUTG call', description: 'Pares e suited fortes pagam em posicao.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♦Q♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: 'AQs: paga vs UTG (fraco pra 3-bet valor).' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♥Q♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: 'KQs: paga vs UTG.' },
@@ -672,6 +722,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '9♠9♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: '99: paga vs UTG.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♣J♣', correctAction: 'CALL', difficulty: 'HARD', category: 'FACING_RAISE', explanation: 'AJs: paga vs UTG.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '8♦8♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: '88: paga barato pra buscar trinca.' },
+          { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♠2♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'Lixo é fold, mesmo em posição.' },
+          { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♦K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'KK: 3-bet até vs UTG.' },
         ],
       },
       {
@@ -684,12 +736,14 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '5♦4♦', correctAction: 'FOLD', difficulty: 'HARD', category: 'FACING_RAISE', explanation: '54s: sem preco IP vs UTG. Fold.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'J♠9♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'FACING_RAISE', explanation: 'J9s: fold vs range apertado de UTG.' },
           { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '7♣7♦', correctAction: 'FOLD', difficulty: 'HARD', category: 'FACING_RAISE', explanation: '77: fold vs UTG (sem preco).' },
+          { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♥A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'AA relança sempre.' },
+          { heroPosition: 'BTN', villainPosition: 'UTG', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '9♦9♠', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: '99 paga vs UTG.' },
         ],
       },
       { title: 'Defesa vs MP e CO: abra o leque', concept: 'vsMP-CO intro', description: 'Open mais largo pede defesa mais larga.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'vs MP: um passo além', concept: 'vsMP defesa', description: 'Defenda um pouco mais que contra UTG.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'MP', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'AA: 3-bet sempre.' },
           { heroPosition: 'BTN', villainPosition: 'MP', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'K♦K♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'KK: 3-bet por valor.' },
@@ -707,7 +761,7 @@ const WORLDS: WorldSeed[] = [
       },
       {
         title: 'vs CO: solte a mão', concept: 'vsCO defesa', description: 'CO abre largo: 3-bete e pague mais.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♠A♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'AA: 3-bet sempre.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♦Q♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: 'AQs: vs CO vira 3-bet por valor.' },
@@ -725,7 +779,7 @@ const WORLDS: WorldSeed[] = [
       },
       {
         title: 'vs MP/CO: teste', concept: 'vsMP-CO teste', description: 'MP ou CO abriu — defenda na medida.',
-        minExercises: 6, passRate: 0.75, xpReward: 80,
+        minExercises: 7, passRate: 0.75, xpReward: 80,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'MP', villainAction: 'Raise 2.5x', potSize: 4, heroHand: 'A♦K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'FACING_RAISE', explanation: 'AKs: 3-bet vs MP.' },
           { heroPosition: 'BTN', villainPosition: 'MP', villainAction: 'Raise 2.5x', potSize: 4, heroHand: '9♣9♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'FACING_RAISE', explanation: '99: paga vs MP.' },
@@ -740,7 +794,7 @@ const WORLDS: WorldSeed[] = [
       { title: 'Squeeze: o aperto', concept: 'Squeeze intro', description: 'Open + caller: hora de apertar os dois.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
         title: 'Squeeze por valor', concept: 'Squeeze valor', description: 'Mão forte aperta; lixo desiste.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'A♠A♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AA: squeeze — pote gordo com a melhor mão.' },
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'K♠K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'KK: squeeze por valor.' },
@@ -756,7 +810,7 @@ const WORLDS: WorldSeed[] = [
       },
       {
         title: 'Squeeze: blefe e fold', concept: 'Squeeze blefe', description: 'Blockers apertam; o resto desiste.',
-        minExercises: 5, passRate: 0.7, xpReward: 60,
+        minExercises: 6, passRate: 0.7, xpReward: 60,
         exercises: [
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'A♠5♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'A5s: squeeze blefe — blocker de AA/AK e nut flush.' },
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'A♦4♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'THREE_BET', explanation: 'A4s: squeeze blefe com blocker.' },
@@ -772,7 +826,7 @@ const WORLDS: WorldSeed[] = [
       },
       {
         title: 'Squeeze: teste', concept: 'Squeeze teste', description: 'Aperte, pague ou desista — na medida.',
-        minExercises: 6, passRate: 0.75, xpReward: 80,
+        minExercises: 7, passRate: 0.75, xpReward: 80,
         exercises: [
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'A♦A♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'THREE_BET', explanation: 'AA: squeeze máximo.' },
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'A♥5♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'THREE_BET', explanation: 'A5s: squeeze blefe com blocker.' },
@@ -787,7 +841,7 @@ const WORLDS: WorldSeed[] = [
       { title: 'Tudo junto agora', concept: 'Revisão geral', description: 'A posição muda tudo — vamos misturar.', minExercises: 0, passRate: 0, xpReward: 30, exercises: [] },
       {
         title: 'Mix de posições I', concept: 'Mix 1', description: 'Aberturas e folds em posições variadas.',
-        minExercises: 5, passRate: 0.75, xpReward: 80,
+        minExercises: 6, passRate: 0.75, xpReward: 80,
         exercises: [
           { heroPosition: 'UTG', heroHand: 'A♦K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AKo abre de qualquer posição.' },
           { heroPosition: 'BTN', heroHand: '2♣2♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '22 abre no BTN.' },
@@ -803,7 +857,7 @@ const WORLDS: WorldSeed[] = [
       },
       {
         title: 'Mix de posições II', concept: 'Mix 2', description: 'Mais decisões dependentes da posição.',
-        minExercises: 5, passRate: 0.75, xpReward: 80,
+        minExercises: 6, passRate: 0.75, xpReward: 80,
         exercises: [
           { heroPosition: 'BTN', heroHand: '7♠6♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '76s abre no BTN.' },
           { heroPosition: 'UTG', heroHand: '9♣9♦', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: '99 é fold de UTG.' },
@@ -820,7 +874,7 @@ const WORLDS: WorldSeed[] = [
       { title: 'Flop: ler o board', concept: 'Flop board', description: 'Boards secos x molhados e o que isso muda.', minExercises: 0, passRate: 0, xpReward: 20, exercises: [] },
       {
         title: 'Desafio final', concept: 'Desafio final', description: 'O teste definitivo do pré-flop.',
-        minExercises: 7, passRate: 0.8, xpReward: 120,
+        minExercises: 8, passRate: 0.8, xpReward: 120,
         exercises: [
           { heroPosition: 'UTG', heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'AA sempre raise.' },
           { heroPosition: 'SB', heroHand: 'K♠7♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'K7s fica de fora até da SB.' },
@@ -830,6 +884,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'K♣J♣', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'KJs é fold de UTG (só KQs).' },
           { heroPosition: 'CO', heroHand: '5♣5♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '55 é fold de CO (77+).' },
           { heroPosition: 'BTN', heroHand: 'T♦9♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'T9s abre no BTN.' },
+          { heroPosition: 'UTG', heroHand: 'A♥J♣', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: 'AJo é fold de UTG.' },
+          { heroPosition: 'MP', heroHand: '9♥9♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'OPEN_RAISE', explanation: '99 abre de MP.' },
         ],
       }
     ],
@@ -873,6 +929,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'K♦Q♣5♥', heroHand: 'J♠T♠', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Sequencia aberta JT: call.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: '9♣8♠3♦', heroHand: '7♥6♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Sequencia aberta: call.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'A♥7♦2♥', heroHand: 'K♥Q♥', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Nut flush draw: call.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'A♦K♣3♥', heroHand: 'T♠9♠', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Sem par e sem projeto real: fold.' },
         ],
       },
       {
@@ -889,11 +946,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'K♣T♥5♦', heroHand: '7♠2♠', correctAction: 'FOLD', difficulty: 'EASY', category: 'C_BET', explanation: 'Lixo: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'J♦8♣3♥', heroHand: '5♣5♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Underpair: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'Q♠9♦6♣', heroHand: 'A♣3♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Ace-high: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'K♠7♦2♣', heroHand: 'A♥K♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Top pair top kicker: não desista — pague.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'J♦8♣3♠', heroHand: 'Q♠Q♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overpair: pague a aposta.' },
         ],
       },
       {
         title: 'Flop: teste', concept: 'Flop teste', description: 'Misture valor, projeto e fold.',
-        minExercises: 6, passRate: 0.75, xpReward: 90,
+        minExercises: 7, passRate: 0.75, xpReward: 90,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: 'K♠7♦2♣', heroHand: 'A♥A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Overpair: raise valor.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: '9♥6♥2♣', heroHand: '8♥7♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Monster draw: semi-blefe.' },
@@ -948,6 +1007,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'K♦Q♣5♥7♦', heroHand: 'J♠T♠', correctAction: 'CALL', difficulty: 'HARD', category: 'TURN', explanation: 'Sequencia aberta: call.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: '9♣8♠3♦K♥', heroHand: '7♥6♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Sequencia aberta: call.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'A♥7♦2♥9♠', heroHand: 'K♥Q♥', correctAction: 'CALL', difficulty: 'HARD', category: 'TURN', explanation: 'Nut flush draw: call.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'A♠Q♦3♣K♥', heroHand: '8♥7♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Sem par e sem projeto no turn: fold.' },
         ],
       },
       {
@@ -964,11 +1024,13 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'K♣T♥5♦2♠', heroHand: '7♠6♠', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Sem projeto real: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'J♦8♣3♥T♠', heroHand: '5♣5♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Underpair: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'Q♠9♦6♣4♥', heroHand: 'A♣3♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Ace-high: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'Q♠8♦3♣2♥', heroHand: 'A♦A♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Overpair segue forte no turn: pague.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'Q♦9♣4♠2♦', heroHand: 'K♥Q♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Top pair com bom kicker: pague.' },
         ],
       },
       {
         title: 'Turn: teste', concept: 'Turn teste', description: 'Misture valor, projeto e fold.',
-        minExercises: 6, passRate: 0.75, xpReward: 95,
+        minExercises: 7, passRate: 0.75, xpReward: 95,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'K♠7♦2♣5♥', heroHand: 'A♥A♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Overpair: raise.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: '9♥6♥2♣K♦', heroHand: '8♥7♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'TURN', explanation: 'Monster draw: semi-blefe.' },
@@ -1006,6 +1068,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: '9♦9♠4♣4♥J♦', heroHand: 'J♣J♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'RIVER', explanation: 'Full house: raise.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'Q♣Q♦8♠8♥3♣', heroHand: 'A♠8♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Full house: raise.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'T♥T♦5♣5♠K♦', heroHand: 'K♣K♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Dois pares altos: raise.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'A♦K♣Q♥9♦2♣', heroHand: '6♠5♠', correctAction: 'FOLD', difficulty: 'EASY', category: 'RIVER', explanation: 'Seis-alto: sem valor no call — fold.' },
         ],
       },
       { title: 'River: bluff-catch (aula)', concept: 'River catch intro', description: 'Pagar mao media contra blefe.', minExercises: 0, passRate: 0, xpReward: 20, exercises: [] },
@@ -1023,6 +1086,8 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♠J♦7♣4♥2♠', heroHand: 'K♦T♦', correctAction: 'CALL', difficulty: 'HARD', category: 'RIVER', explanation: 'Top pair: pague.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'Q♥9♠6♦3♣2♥', heroHand: 'A♣Q♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Top pair top kicker: pague.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'J♣8♦5♠4♦2♣', heroHand: 'A♠J♠', correctAction: 'CALL', difficulty: 'HARD', category: 'RIVER', explanation: 'Top pair: pague fino.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♦Q♣9♥4♦2♣', heroHand: '7♠6♠', correctAction: 'FOLD', difficulty: 'EASY', category: 'RIVER', explanation: 'Sete-alto não ganha de nada: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'A♠K♦8♣4♥2♦', heroHand: 'J♥T♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'O projeto não veio e JT não paga nada: fold.' },
         ],
       },
       {
@@ -1039,11 +1104,12 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♦J♣7♠4♦2♥', heroHand: 'T♠9♠', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Projeto morto: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♣9♠4♦2♥7♠', heroHand: 'Q♦J♣', correctAction: 'FOLD', difficulty: 'EASY', category: 'RIVER', explanation: 'Dama-alta: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'A♠T♦6♣3♥K♦', heroHand: '8♣7♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Ar: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'J♦7♣4♠3♥2♦', heroHand: 'A♠A♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Overpair vira bluff-catcher: pague.' },
         ],
       },
       {
         title: 'River: teste', concept: 'River teste', description: 'Misture valor, catch e fold.',
-        minExercises: 6, passRate: 0.75, xpReward: 100,
+        minExercises: 7, passRate: 0.75, xpReward: 100,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'A♥7♦7♠3♣7♣', heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'RIVER', explanation: 'Sevens full: raise.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♠Q♦7♣2♥5♦', heroHand: 'A♣A♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Overpair bluff-catch: call.' },
