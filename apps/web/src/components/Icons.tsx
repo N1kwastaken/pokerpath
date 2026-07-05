@@ -36,6 +36,11 @@ export const IconBolt = ({ size = 24, className }: P) => (
 export const IconCheck = ({ size = 24, className }: P) => (
   <svg {...base(size, className)}><path d="M20 6 9 17l-5-5" /></svg>
 );
+export const IconStar = ({ size = 24, className }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.3L12 16.9 6.3 20l1.2-6.3L2.8 9.3l6.4-.8L12 2.6Z" />
+  </svg>
+);
 export const IconX = ({ size = 24, className }: P) => (
   <svg {...base(size, className)}><path d="M18 6 6 18M6 6l12 12" /></svg>
 );

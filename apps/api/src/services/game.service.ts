@@ -67,6 +67,7 @@ function toStageSummary(
     xpReward: stage.xpReward,
     status,
     isLesson,
+    perfect: !!progress?.perfectAt,
     exercisesDone: progress?.exercisesDone ?? 0,
     correctAnswers: progress?.correctAnswers ?? 0,
     accuracy: progress?.accuracy ?? 0,
@@ -293,6 +294,7 @@ export async function getStagePlay(
   plan: string,
   stageId: string,
   godmode = false,
+  resume = false,
 ): Promise<StagePlay> {
   const stage = await prisma.stage.findUnique({
     where: { id: stageId },
@@ -306,11 +308,14 @@ export async function getStagePlay(
   await assertStageAccessible(userId, plan, stage, godmode);
 
   // Cada ENTRADA na fase começa uma sessão limpa: zera contadores se ainda não
-  // foi concluída (a precisão passa a medir só esta tentativa).
+  // foi concluída (a precisão passa a medir só esta tentativa). Com resume=true
+  // a sessão parcial é preservada — o cliente retoma de onde parou.
   const existingProg = await prisma.userProgress.findUnique({ where: { userId_stageId: { userId, stageId } } });
   let progress;
   if (!existingProg) {
     progress = await prisma.userProgress.create({ data: { userId, stageId, status: 'IN_PROGRESS' } });
+  } else if (resume) {
+    progress = existingProg;
   } else if (existingProg.status !== 'COMPLETED') {
     progress = await prisma.userProgress.update({
       where: { userId_stageId: { userId, stageId } },
@@ -403,11 +408,12 @@ export async function submitAnswer(
   });
   const wasCompleted = existing?.status === 'COMPLETED';
 
-  // Reinício de tentativa: se a tentativa anterior percorreu todos os exercícios
-  // sem concluir, zera os contadores para medir só a tentativa atual (evita que
-  // a precisão vire "vitalícia" e trave a conclusão da fase).
+  // Reinício de tentativa: se a tentativa anterior percorreu todos os exercícios,
+  // zera os contadores para medir só a tentativa atual (evita que a precisão
+  // vire "vitalícia"). Vale também para REPLAYS de fase concluída — assim cada
+  // rejogo é uma sessão própria e pode conquistar a estrela de sessão perfeita.
   const sessionTarget = stage.minExercises > 0 ? stage.minExercises : await prisma.exercise.count({ where: { stageId: stage.id } });
-  const freshAttempt = !wasCompleted && (existing?.exercisesDone ?? 0) >= sessionTarget;
+  const freshAttempt = (existing?.exercisesDone ?? 0) >= sessionTarget;
   const baseDone = freshAttempt ? 0 : existing?.exercisesDone ?? 0;
   const baseCorrect = freshAttempt ? 0 : existing?.correctAnswers ?? 0;
   const baseXpEarned = freshAttempt ? 0 : existing?.xpEarned ?? 0;
@@ -430,6 +436,12 @@ export async function submitAnswer(
     totalXpDelta += stage.xpReward;
   }
 
+  // Sessão perfeita: percorreu a sessão inteira sem errar nenhuma (estrela).
+  // Uma vez conquistada, a estrela é permanente — vale em qualquer replay.
+  const perfectRun =
+    sessionTarget > 0 && exercisesDone >= sessionTarget && correctAnswers === exercisesDone;
+  const perfectAt = existing?.perfectAt ?? (perfectRun ? new Date() : null);
+
   await prisma.userProgress.upsert({
     where: { userId_stageId: { userId, stageId: stage.id } },
     update: {
@@ -439,6 +451,7 @@ export async function submitAnswer(
       accuracy,
       xpEarned,
       completedAt: stageCompleted ? new Date() : existing?.completedAt ?? null,
+      perfectAt,
     },
     create: {
       userId,
@@ -449,6 +462,7 @@ export async function submitAnswer(
       accuracy,
       xpEarned,
       completedAt: stageCompleted ? new Date() : null,
+      perfectAt,
     },
   });
 

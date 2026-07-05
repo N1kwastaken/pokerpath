@@ -81,6 +81,8 @@ export interface StageSummary {
   status: ProgressStatus;
   /** Aula (sem exercícios) em vez de prática. */
   isLesson: boolean;
+  /** Já fechou uma sessão inteira sem errar (estrela na trilha). */
+  perfect: boolean;
   exercisesDone: number;
   correctAnswers: number;
   accuracy: number;

@@ -14,7 +14,7 @@ export const gameApi = {
   worlds: () => apiRequest<{ worlds: WorldSummary[] }>('/worlds').then((r) => r.worlds),
   trail: () => apiRequest<{ trail: WorldDetail[] }>('/trail').then((r) => r.trail),
   world: (worldId: string) => apiRequest<{ world: WorldDetail }>(`/worlds/${worldId}`).then((r) => r.world),
-  stage: (stageId: string) => apiRequest<StagePlay>(`/stages/${stageId}`),
+  stage: (stageId: string, resume = false) => apiRequest<StagePlay>(`/stages/${stageId}${resume ? '?resume=1' : ''}`),
   answer: (input: AnswerInput) => apiRequest<AnswerResult>('/answers', { method: 'POST', body: input }),
   completeLesson: (stageId: string) => apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST' }),
   stats: () => apiRequest<StatsResult>('/stats'),

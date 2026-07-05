@@ -157,6 +157,7 @@ model UserProgress {
   accuracy       Float     @default(0)
   xpEarned       Int       @default(0)
   completedAt    DateTime?
+  perfectAt      DateTime? // primeira sessão completa 100% de acerto (estrela)
   updatedAt      DateTime  @updatedAt
 
   @@unique([userId, stageId])

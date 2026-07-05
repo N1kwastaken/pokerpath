@@ -78,7 +78,7 @@ export async function gameRoutes(app: FastifyInstance) {
     },
   );
 
-  app.get<{ Params: { stageId: string } }>(
+  app.get<{ Params: { stageId: string }; Querystring: { resume?: string } }>(
     '/stages/:stageId',
     async (request) => {
       const { plan, godmode } = await accountOf(request.user.sub);
@@ -87,6 +87,7 @@ export async function gameRoutes(app: FastifyInstance) {
         plan,
         request.params.stageId,
         godmode,
+        request.query.resume === '1',
       );
       return stage;
     },

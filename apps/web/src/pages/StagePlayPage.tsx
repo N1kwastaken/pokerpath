@@ -44,12 +44,30 @@ function xpProgress(totalXp: number, level: number): { pct: number; hasNext: boo
 }
 type Phase = 'playing' | 'feedback' | 'summary';
 
+/** Sessão salva por fase: sair no meio e voltar retoma de onde parou. */
+type SavedSession = { ids: string[]; answers: boolean[]; xp: number };
+const sessionKey = (stageId: string) => `pp.session.${stageId}`;
+function loadSession(stageId: string | undefined): SavedSession | null {
+  if (!stageId) return null;
+  try {
+    const raw = localStorage.getItem(sessionKey(stageId));
+    if (!raw) return null;
+    const s = JSON.parse(raw) as SavedSession;
+    if (!Array.isArray(s.ids) || !Array.isArray(s.answers) || typeof s.xp !== 'number') return null;
+    return s;
+  } catch {
+    return null;
+  }
+}
+
 export function StagePlayPage() {
   const { stageId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { setUser, user } = useAuth();
-  const { data, isLoading, error } = useStage(stageId);
+  const [saved] = useState(() => loadSession(stageId));
+  const [resume, setResume] = useState(!!saved && saved.answers.length > 0);
+  const { data, isLoading, error } = useStage(stageId, resume);
   const { data: energy } = useEnergy();
   const lessonPosition = data?.stage ? LESSON_POSITION[data.stage.concept] : undefined;
   const rangeQ = useRange(
@@ -96,12 +114,51 @@ export function StagePlayPage() {
 
   const exercises = data?.exercises ?? [];
   // Cada sessão usa só o mínimo de exercícios, sorteados do pool (variedade).
+  // Ao retomar uma sessão salva, a ordem original dela é preservada.
   const ordered = useMemo(() => {
+    if (resume && saved && saved.ids.length === exercises.length) {
+      const byId = new Map(exercises.map((e) => [e.id, e]));
+      const arr = saved.ids.map((id) => byId.get(id)).filter(Boolean) as PublicExercise[];
+      if (arr.length === exercises.length) return arr;
+    }
     const a = [...exercises];
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
     return a;
-  }, [exercises]);
+  }, [exercises, resume, saved]);
   const current: PublicExercise | undefined = ordered[idx];
+  const sessionLen = data
+    ? (data.stage.minExercises > 0 ? Math.min(data.stage.minExercises, exercises.length) : exercises.length)
+    : 0;
+
+  // Restaura a sessão salva quando os dados chegam — só se o servidor estiver
+  // em sincronia (mesma contagem de respostas); senão descarta e começa limpa.
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    if (!data || !resume || !saved || restored) return;
+    const ids = new Set(exercises.map((e) => e.id));
+    const okOrder = saved.ids.length === exercises.length && saved.ids.every((id) => ids.has(id));
+    const okServer = data.stage.exercisesDone === saved.answers.length;
+    const partial = saved.answers.length > 0 && saved.answers.length < sessionLen;
+    if (okOrder && okServer && partial) {
+      setAnswers(saved.answers);
+      setIdx(saved.answers.length);
+      setSessionXp(saved.xp);
+    } else {
+      if (stageId) localStorage.removeItem(sessionKey(stageId));
+      setResume(false); // refetch sem resume → servidor zera a run
+    }
+    setRestored(true);
+  }, [data, resume, saved, restored, exercises, sessionLen, stageId]);
+
+  // Persiste a sessão a cada resposta; limpa ao terminar (ou concluir a fase).
+  useEffect(() => {
+    if (!stageId || !data || data.stage.isLesson) return;
+    if (answers.length === 0) return;
+    if (completed || answers.length >= sessionLen) return localStorage.removeItem(sessionKey(stageId));
+    localStorage.setItem(sessionKey(stageId), JSON.stringify({
+      ids: ordered.map((e) => e.id), answers, xp: sessionXp,
+    } satisfies SavedSession));
+  }, [answers, sessionXp, completed, stageId, sessionLen, ordered, data]);
 
   const mutation = useMutation({
     mutationFn: (action: Action) => gameApi.answer({ exerciseId: current!.id, selectedAction: action }),
@@ -226,7 +283,6 @@ export function StagePlayPage() {
   }
 
   if (!current) return null;
-  const sessionLen = data.stage.minExercises > 0 ? Math.min(data.stage.minExercises, ordered.length) : ordered.length;
 
   function advance() {
     const isLast = idx + 1 >= sessionLen;
@@ -234,6 +290,7 @@ export function StagePlayPage() {
     setIdx((i) => i + 1); setResult(null); setLastChoice(null); setPhase('playing');
   }
   function retry() {
+    if (stageId) localStorage.removeItem(sessionKey(stageId));
     setIdx(0); setAnswers([]); setSessionXp(0); setResult(null); setLastChoice(null);
     setCompleted(false); setWorldDone(false); setPhase('playing'); scrollTop();
   }
@@ -361,7 +418,7 @@ export function StagePlayPage() {
             {answers.length === 0 && <span className="text-xs text-subtle">Sem respostas ainda.</span>}
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-center">
-            <div className="card-2 p-2"><p className="text-lg font-bold text-title">{answers.length}/{exercises.length}</p><p className="text-[10px] text-subtle">Fase</p></div>
+            <div className="card-2 p-2"><p className="text-lg font-bold text-title">{answers.length}/{sessionLen}</p><p className="text-[10px] text-subtle">Sessão</p></div>
             <div className="card-2 p-2"><p className="text-lg font-bold text-title">{answers.length ? Math.round((correctCount / answers.length) * 100) : 0}%</p><p className="text-[10px] text-subtle">Acerto</p></div>
           </div>
         </div>

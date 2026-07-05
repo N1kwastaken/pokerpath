@@ -10,8 +10,8 @@ export function useTrail() {
 export function useWorld(worldId: string | undefined) {
   return useQuery({ queryKey: ['world', worldId], queryFn: () => gameApi.world(worldId!), enabled: !!worldId });
 }
-export function useStage(stageId: string | undefined) {
-  return useQuery({ queryKey: ['stage', stageId], queryFn: () => gameApi.stage(stageId!), enabled: !!stageId, staleTime: 0 });
+export function useStage(stageId: string | undefined, resume = false) {
+  return useQuery({ queryKey: ['stage', stageId, resume], queryFn: () => gameApi.stage(stageId!, resume), enabled: !!stageId, staleTime: 0 });
 }
 export function useStats() {
   return useQuery({ queryKey: ['stats'], queryFn: gameApi.stats });

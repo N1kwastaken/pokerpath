@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Position, PublicExercise } from '@pokerpath/shared';
 import { Card } from './Card.js';
 
@@ -21,6 +22,24 @@ function tokens(hand: string): string[] {
 
 function Dealer() {
   return <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-black text-black">D</span>;
+}
+
+/** Estado do assento: na mão (verde), foldou (escuro dessaturado) ou ainda não agiu (escuro). */
+type SeatState = 'in' | 'folded' | 'pending';
+
+function SeatCards({ state }: { state: SeatState }) {
+  const style: CSSProperties =
+    state === 'in'
+      ? { background: 'linear-gradient(145deg, #33cc7a, #177a43)', border: '1px solid rgba(255,255,255,0.55)' }
+      : state === 'folded'
+        ? { background: '#232628', border: '1px solid rgba(255,255,255,0.06)', filter: 'saturate(0)', opacity: 0.35 }
+        : { background: '#33383d', border: '1px solid rgba(255,255,255,0.16)', opacity: 0.9 };
+  return (
+    <div className="flex -space-x-1">
+      <span className="h-3.5 w-2.5 -rotate-6 rounded-[3px]" style={style} />
+      <span className="h-3.5 w-2.5 rotate-6 rounded-[3px]" style={style} />
+    </div>
+  );
 }
 
 export function PokerTable({ ex }: { ex: PublicExercise }) {
@@ -58,13 +77,20 @@ export function PokerTable({ ex }: { ex: PublicExercise }) {
         const { x, y } = SLOTS[slot];
         const isVillain = ex.villainPosition === pos;
         const isCaller = ex.callerPosition === pos;
+        // RING é também a ordem de ação preflop: quem vem antes do hero já agiu
+        // (foldou, se não é vilão/caller); quem vem depois ainda não jogou.
+        // Com board (postflop), só hero e vilão seguem na mão.
+        const seat: SeatState = isVillain || isCaller
+          ? 'in'
+          : ex.board || RING.indexOf(pos) < heroIdx ? 'folded' : 'pending';
         return (
           <div key={pos} className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-500 ease-out" style={{ left: `${x}%`, top: `${y}%` }}>
             <div className="flex flex-col items-center gap-0.5">
-              <span className="flex items-center gap-1 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-extrabold tracking-wide text-white/80">
+              <SeatCards state={seat} />
+              <span className={`flex items-center gap-1 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-extrabold tracking-wide ${seat === 'folded' ? 'text-white/35' : 'text-white/80'}`}>
                 {pos}{pos === 'BTN' && <Dealer />}
               </span>
-              <span className="text-[10px] font-semibold tabular-nums text-white/50">{ex.stackBb} BB</span>
+              <span className={`text-[10px] font-semibold tabular-nums ${seat === 'folded' ? 'text-white/25' : 'text-white/50'}`}>{ex.stackBb} BB</span>
               {isVillain && ex.villainAction && (
                 <span className="rounded bg-call/25 px-1.5 py-0.5 text-[9px] font-bold text-call">{ex.villainAction}</span>
               )}

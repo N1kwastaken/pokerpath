@@ -5,7 +5,7 @@ import type { WorldDetail, StageSummary } from '@pokerpath/shared';
 import { useTrail } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { LogoLoader } from '../components/LogoLoader.js';
-import { IconCheck, IconLock, IconBook, IconTarget } from '../components/Icons.js';
+import { IconCheck, IconLock, IconBook, IconTarget, IconStar } from '../components/Icons.js';
 import { stageGroup, categoryColor, categoryDesc } from '../lib/stageGroup.js';
 
 /**
@@ -201,9 +201,15 @@ function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef }: {
         >
           {isCurrent && revealed && <span className="absolute inset-0 animate-ping rounded-full" style={{ backgroundColor: color, opacity: 0.3 }} />}
           {completed && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-white">
-              {justChecked ? <DrawCheck /> : <IconCheck size={12} />}
-            </span>
+            stage.perfect ? (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-white/70" title="Sessão perfeita">
+                <IconStar size={12} />
+              </span>
+            ) : (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-white">
+                {justChecked ? <DrawCheck /> : <IconCheck size={12} />}
+              </span>
+            )
           )}
           <span className="relative flex items-center">
             {locked ? <IconLock size={22} /> : completed ? <IconCheck size={26} /> : lesson ? <IconBook size={24} /> : <IconTarget size={24} />}
