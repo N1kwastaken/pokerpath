@@ -80,6 +80,8 @@ export function StagePlayPage() {
   const [handPick, setHandPick] = useState<'FOLD' | 'RAISE' | null>(null);
   const [phase, setPhase] = useState<Phase>('playing');
   const [idx, setIdx] = useState(0);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetPrev, setSheetPrev] = useState(false);
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [lastChoice, setLastChoice] = useState<Action | null>(null);
   const [answers, setAnswers] = useState<boolean[]>([]);
@@ -159,6 +161,27 @@ export function StagePlayPage() {
       ids: ordered.map((e) => e.id), answers, xp: sessionXp,
     } satisfies SavedSession));
   }, [answers, sessionXp, completed, stageId, sessionLen, ordered, data]);
+
+  // Cheat-sheet: range de abertura da posição do exercício atual. Só em fases
+  // de prática RFI — nas de teste/revisão o gráfico fica escondido de propósito.
+  const RFI_ORDER: Position[] = ['UTG', 'MP', 'CO', 'BTN', 'SB'];
+  const isTestStage = !data || /teste|revis|desafio|mix/i.test(data.stage.concept);
+  const cheatPos: Position | undefined =
+    current && current.category === 'OPEN_RAISE' && !current.villainAction && RFI_ORDER.includes(current.heroPosition)
+      ? current.heroPosition
+      : undefined;
+  const showCheat = !!cheatPos && !isTestStage;
+  const prevPos: Position | undefined = cheatPos && RFI_ORDER.indexOf(cheatPos) > 0
+    ? RFI_ORDER[RFI_ORDER.indexOf(cheatPos) - 1]
+    : undefined;
+  const cheatQ = useRange(
+    { gameType: 'CASH', tableSize: 'SIX_MAX', stack: 100, position: cheatPos ?? 'BTN' },
+    { enabled: showCheat && sheetOpen },
+  );
+  const prevQ = useRange(
+    { gameType: 'CASH', tableSize: 'SIX_MAX', stack: 100, position: prevPos ?? 'BTN' },
+    { enabled: showCheat && sheetOpen && !!prevPos },
+  );
 
   const mutation = useMutation({
     mutationFn: (action: Action) => gameApi.answer({ exerciseId: current!.id, selectedAction: action }),
@@ -349,6 +372,12 @@ export function StagePlayPage() {
         <button onClick={backToWorld} className="text-subtle" aria-label="Sair"><IconX size={20} /></button>
         <div className="flex-1"><ProgressBar value={answers.length} max={sessionLen} /></div>
         <span className="text-xs font-bold tabular-nums text-subtle">{answers.length}/{sessionLen}</span>
+        {showCheat && (
+          <button onClick={() => { setSheetOpen(true); setSheetPrev(false); }}
+            className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-subtle" aria-label="Ver range">
+            📊
+          </button>
+        )}
         {energy && <span className="flex items-center gap-0.5 rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-call"><IconBolt size={13} />{energy.infinite ? '∞' : energy.remaining}</span>}
         {user && <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-title">{user.currentStreak}🔥</span>}
       </div>
@@ -433,6 +462,35 @@ export function StagePlayPage() {
       </aside>
 
       </div>
+
+      {/* Cheat-sheet: balão com o range da posição (e comparação com a anterior) */}
+      {sheetOpen && cheatPos && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5" onClick={() => setSheetOpen(false)}>
+          <div className="card w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-widest text-subtle">
+                Range de abertura · {sheetPrev && prevPos ? prevPos : cheatPos}
+              </p>
+              <button onClick={() => setSheetOpen(false)} className="text-subtle" aria-label="Fechar"><IconX size={18} /></button>
+            </div>
+            {sheetPrev && prevPos && (
+              <p className="mt-1 text-[11px] text-subtle">Contorno dourado = mãos que mudam em relação a {cheatPos}.</p>
+            )}
+            <div className="mt-3">
+              {sheetPrev && prevPos ? (
+                prevQ.data ? <RangeGridView grid={prevQ.data} diffWith={cheatQ.data ?? undefined} /> : <p className="text-sm text-subtle">Carregando…</p>
+              ) : (
+                cheatQ.data ? <RangeGridView grid={cheatQ.data} /> : <p className="text-sm text-subtle">Carregando…</p>
+              )}
+            </div>
+            {prevPos && (
+              <button onClick={() => setSheetPrev((v) => !v)} className="btn-soft mt-3 w-full text-sm">
+                {sheetPrev ? `Voltar para ${cheatPos} ▶` : `◀ Comparar com ${prevPos}`}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
