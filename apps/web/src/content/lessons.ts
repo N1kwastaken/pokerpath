@@ -214,6 +214,20 @@ export const LESSONS: Record<string, LessonStep[]> = {
       `Board seco raramente acertou o BB: um c-bet pequeno leva o pote com frequência.`),
     t(`Sem aposta do vilão, o check é grátis — aqui não existe fold: os botões viram Bet e Check.`),
   ],
+  'Barrel intro': [
+    t(`Você apostou o flop, o vilão pagou — e deu check de novo no turn. Segunda bala (barrel) ou freio?`),
+    t(`Mão forte segue apostando. Projetos (flush/sequência) apostam como SEMI-blefe: ganham agora ou completam depois.`),
+    t(`A carta do turn importa: A ou K ajudam o SEU range — bons pra blefar. Turn blank com ar? Desista: check.`),
+    quiz(`Você balou o flop com J♦T♦ e o turn veio 3♥ num board 9♠8♦2♣. Check dele. E aí?`, ['Check — desisto', 'Bet — semi-blefe'], 1,
+      `Sequência aberta: apostar pressiona agora e ainda pode virar a melhor mão.`),
+  ],
+  'Valuebet intro': [
+    t(`River, o vilão deu check. Última decisão: apostar por valor, blefar ou mostrar de graça?`),
+    t(`A régua do river: se uma mão PIOR paga sua aposta, aposte por valor. Se só mãos melhores pagam, check.`),
+    t(`Sem NENHUM showdown value (nem ás-alto)? Blefar é a única forma de ganhar. Com showdown (par, ás-alto): check e mostre.`),
+    quiz(`Seu flush draw não veio: você tem 9♥8♥ e só nove-alto no river. Check dele. E aí?`, ['Check — mostro', 'Bet — blefe'], 1,
+      `Nove-alto não ganha showdown de nada: blefar é a única chance de levar o pote.`),
+  ],
   // ── Flop / Turn / River (enfrentando apostas) ──────────────
   'Flop fortes intro': [
     t(`No flop você já tem 5 cartas para ler: as 2 suas + as 3 da mesa.`),
