@@ -19,6 +19,7 @@ import { LessonHandTable } from '../components/LessonHandTable.js';
 import { PositionRangeCard } from '../components/PositionRangeCard.js';
 import { LessonVisual } from '../components/LessonVisual.js';
 import { lessonFor } from '../content/lessons.js';
+import { stageGroup } from '../lib/stageGroup.js';
 import { Glossarized } from '../components/Glossarized.js';
 import { sound } from '../lib/sound.js';
 
@@ -162,10 +163,11 @@ export function StagePlayPage() {
     } satisfies SavedSession));
   }, [answers, sessionXp, completed, stageId, sessionLen, ordered, data]);
 
-  // Cheat-sheet: range de abertura da posição do exercício atual. Só em fases
-  // de prática RFI — nas de teste/revisão o gráfico fica escondido de propósito.
+  // Cheat-sheet: range de abertura da posição do exercício atual. Disponível
+  // nas práticas e testes de seção; escondido só na revisão final do mundo
+  // (Mix / Desafio final), que é a prova de verdade.
   const RFI_ORDER: Position[] = ['UTG', 'MP', 'CO', 'BTN', 'SB'];
-  const isTestStage = !data || /teste|revis|desafio|mix/i.test(data.stage.concept);
+  const isTestStage = !data || stageGroup(data.stage.concept) === 'Revisão';
   const cheatPos: Position | undefined =
     current && current.category === 'OPEN_RAISE' && !current.villainAction && RFI_ORDER.includes(current.heroPosition)
       ? current.heroPosition
