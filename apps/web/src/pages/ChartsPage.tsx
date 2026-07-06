@@ -17,27 +17,37 @@ const CELL_COLOR: Record<CellAction, string> = {
 const GAME_LABEL: Record<string, string> = { CASH: 'Cash', TOURNAMENT: 'Torneio' };
 const SIZE_LABEL: Record<string, string> = { SIX_MAX: '6-max', NINE_MAX: '9-max' };
 
-/** Cenários de defesa vs open (3-bet/call/fold) disponíveis. */
-const VS_SCENARIOS = [
-  { key: 'VS_UTG', position: 'BTN', label: 'BTN vs UTG' },
-  { key: 'VS_MP', position: 'BTN', label: 'BTN vs MP' },
-  { key: 'VS_CO', position: 'BTN', label: 'BTN vs CO' },
-  { key: 'VS_BTN', position: 'BB', label: 'BB vs BTN' },
-];
+/** Posições com chart em cada tipo de jogada; no 3-bet, contra quais opens. */
+const RFI_POSITIONS = ['UTG', 'MP', 'CO', 'BTN', 'SB'];
+const VS_MATRIX: Record<string, string[]> = { BTN: ['UTG', 'MP', 'CO'], BB: ['BTN'] };
 
 export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
   const [gameType, setGameType] = useState<string>('CASH');
   const [tableSize, setTableSize] = useState<string>('SIX_MAX');
   const [stack, setStack] = useState<number>(100);
+  const [mode, setMode] = useState<'RFI' | 'VS'>('RFI');
   const [position, setPosition] = useState<string>('BTN');
-  const [scenario, setScenario] = useState<string>('RFI');
+  const [villain, setVillain] = useState<string>('CO');
   const [help, setHelp] = useState<boolean>(false);
 
-  const vs = VS_SCENARIOS.find((s) => s.key === scenario);
+  function pickMode(m: 'RFI' | 'VS') {
+    setMode(m);
+    if (m === 'VS') {
+      const pos = VS_MATRIX[position] ? position : 'BTN';
+      setPosition(pos);
+      if (!VS_MATRIX[pos].includes(villain)) setVillain(VS_MATRIX[pos][VS_MATRIX[pos].length - 1]);
+    } else if (!RFI_POSITIONS.includes(position)) {
+      setPosition('BTN');
+    }
+  }
+  function pickPosition(p: string) {
+    setPosition(p);
+    if (mode === 'VS' && !VS_MATRIX[p]?.includes(villain)) setVillain(VS_MATRIX[p]?.[VS_MATRIX[p].length - 1] ?? 'CO');
+  }
+
   const { data: range, isLoading } = useRange({
-    gameType, tableSize, stack,
-    position: vs ? vs.position : position,
-    scenario,
+    gameType, tableSize, stack, position,
+    scenario: mode === 'VS' ? `VS_${villain}` : 'RFI',
   });
 
   return (
@@ -63,7 +73,10 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
             A <b>diagonal</b> são os pares (AA, KK, …). <b>Acima</b> dela ficam as mãos do mesmo naipe
             (<i>suited</i>, ex.: AKs). <b>Abaixo</b>, as de naipes diferentes (<i>offsuit</i>, ex.: AKo).
           </p>
-          <p>A cor diz a ação recomendada quando você é o primeiro a entrar no pote (RFI):</p>
+          <p>
+            A cor diz a ação recomendada. Em <b>Abertura</b> (RFI): você é o primeiro a entrar no pote.
+            Em <b>3-Bet / Defesa</b>: alguém abriu antes — relançar (raise), pagar (call) ou desistir (fold).
+          </p>
           <div className="flex flex-wrap gap-3">
             <Legend color="bg-success" label="Raise (abrir)" />
             <Legend color="bg-call" label="Call" />
@@ -87,13 +100,22 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
       <FilterCard title="Stack (BB)">
         {STACK_OPTIONS.map((sv) => <Chip key={sv} on={stack === sv} disabled={sv !== 100} onClick={() => setStack(sv)}>{sv}</Chip>)}
       </FilterCard>
-      <FilterCard title="Cenário">
-        <Chip on={scenario === 'RFI'} onClick={() => setScenario('RFI')}>Abertura (RFI)</Chip>
-        {VS_SCENARIOS.map((s) => <Chip key={s.key} on={scenario === s.key} onClick={() => setScenario(s.key)}>{s.label}</Chip>)}
+      <FilterCard title="Jogada">
+        <Chip on={mode === 'RFI'} onClick={() => pickMode('RFI')}>Abertura</Chip>
+        <Chip on={mode === 'VS'} onClick={() => pickMode('VS')}>3-Bet / Defesa</Chip>
       </FilterCard>
-      {scenario === 'RFI' && (
-        <FilterCard title="Posição">
-          {POSITIONS.map((p) => <Chip key={p} on={position === p} disabled={!['UTG', 'MP', 'CO', 'BTN', 'SB'].includes(p)} onClick={() => setPosition(p)}>{p}</Chip>)}
+      <FilterCard title="Sua posição">
+        {POSITIONS.map((p) => {
+          const ok = mode === 'RFI' ? RFI_POSITIONS.includes(p) : !!VS_MATRIX[p];
+          return <Chip key={p} on={position === p} disabled={!ok} onClick={() => pickPosition(p)}>{p}</Chip>;
+        })}
+      </FilterCard>
+      {mode === 'VS' && (
+        <FilterCard title="Contra o open de">
+          {POSITIONS.map((p) => {
+            const ok = VS_MATRIX[position]?.includes(p) ?? false;
+            return <Chip key={p} on={villain === p} disabled={!ok} onClick={() => setVillain(p)}>{p}</Chip>;
+          })}
         </FilterCard>
       )}
 
@@ -128,7 +150,7 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
             <p className="text-3xl">🗂️</p>
             <p className="mt-2 font-semibold text-title">Sem dados para esse filtro</p>
             <p className="mt-1 text-sm text-subtle">
-              Por enquanto temos Cash · 6-max · 100BB para UTG, MP, CO, BTN e SB.
+              Por enquanto temos Cash · 6-max · 100BB: abertura de UTG/MP/CO/BTN/SB e defesa do BTN (vs UTG/MP/CO) e do BB (vs BTN).
             </p>
           </div>
         )}
