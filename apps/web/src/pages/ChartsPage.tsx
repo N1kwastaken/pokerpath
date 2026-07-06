@@ -1,19 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  GAME_TYPES, TABLE_SIZES, STACK_OPTIONS, POSITIONS,
-  type CellAction,
-} from '@pokerpath/shared';
+import { GAME_TYPES, TABLE_SIZES, STACK_OPTIONS, POSITIONS } from '@pokerpath/shared';
 import { useRange } from '../hooks/useGame.js';
 import { LogoLoader } from '../components/LogoLoader.js';
+import { CELL_BG, cellBackground, cellTitle } from '../components/RangeGridView.js';
 
 /** Charts — grid 13x13 de ranges (estilo Preflop Wizard) com filtros. */
-const CELL_COLOR: Record<CellAction, string> = {
-  RAISE: 'bg-success text-white',
-  CALL: 'bg-call text-white',
-  FOLD: 'bg-card2 text-subtle',
-  MIXED: 'bg-gradient-to-br from-success to-call text-white',
-};
 const GAME_LABEL: Record<string, string> = { CASH: 'Cash', TOURNAMENT: 'Torneio' };
 const SIZE_LABEL: Record<string, string> = { SIX_MAX: '6-max', NINE_MAX: '9-max' };
 
@@ -78,11 +70,14 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
             Em <b>3-Bet / Defesa</b>: alguém abriu antes — relançar (raise), pagar (call) ou desistir (fold).
           </p>
           <div className="flex flex-wrap gap-3">
-            <Legend color="bg-success" label="Raise (abrir)" />
-            <Legend color="bg-call" label="Call" />
-            <Legend color="bg-gradient-to-br from-success to-call" label="Mista" />
-            <Legend color="bg-card2 border border-line" label="Fold" />
+            <Legend bg={CELL_BG.RAISE} label="Raise" />
+            <Legend bg={CELL_BG.CALL} label="Call" />
+            <Legend bg={CELL_BG.FOLD} border label="Fold" />
+            <Legend bg={`linear-gradient(135deg, ${CELL_BG.RAISE} 0%, ${CELL_BG.RAISE} 65%, ${CELL_BG.FOLD} 65%, ${CELL_BG.FOLD} 100%)`} border label="Mista (na proporção)" />
           </div>
+          <p className="text-subtle">
+            Célula <b>dividida</b> = mão de fronteira: jogada mista — a área de cada cor é a frequência de cada ação.
+          </p>
           <p className="text-subtle">
             Os <b>filtros</b> mudam o cenário: tipo de jogo, tamanho da mesa, seu <i>stack</i> (fichas, em BB) e sua{' '}
             <b>posição</b>. Quanto mais tarde a posição (BTN), maior o range.
@@ -130,8 +125,9 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
                 row.map((cell, c) => (
                   <div
                     key={`${r}-${c}`}
-                    className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none sm:text-[9px] ${CELL_COLOR[cell.action]}`}
-                    title={`${cell.hand} · ${cell.action}`}
+                    style={{ background: cellBackground(cell) }}
+                    className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none sm:text-[9px] ${cell.action === 'FOLD' && !cell.mix ? 'text-subtle' : 'text-white'}`}
+                    title={cellTitle(cell)}
                   >
                     {cell.hand}
                   </div>
@@ -139,10 +135,10 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
               )}
             </div>
             <div className="mt-4 flex flex-wrap gap-4 px-1">
-              <Legend color="bg-success" label="Raise" />
-              <Legend color="bg-call" label="Call" />
-              <Legend color="bg-gradient-to-br from-success to-call" label="Mista" />
-              <Legend color="bg-card2 border border-line" label="Fold" />
+              <Legend bg={CELL_BG.RAISE} label="Raise" />
+              <Legend bg={CELL_BG.CALL} label="Call" />
+              <Legend bg={CELL_BG.FOLD} border label="Fold" />
+              <Legend bg={`linear-gradient(135deg, ${CELL_BG.RAISE} 0%, ${CELL_BG.RAISE} 65%, ${CELL_BG.FOLD} 65%, ${CELL_BG.FOLD} 100%)`} border label="Mista (proporção)" />
             </div>
           </div>
         ) : (
@@ -175,10 +171,10 @@ function Chip({ on, onClick, children, disabled }: { on: boolean; onClick: () =>
     </button>
   );
 }
-function Legend({ color, label }: { color: string; label: string }) {
+function Legend({ bg, label, border }: { bg: string; label: string; border?: boolean }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`h-3 w-3 rounded ${color}`} />
+      <span className={`h-3 w-3 rounded ${border ? 'border border-line' : ''}`} style={{ background: bg }} />
       <span className="text-xs font-medium text-text">{label}</span>
     </div>
   );

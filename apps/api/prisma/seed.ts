@@ -1348,14 +1348,48 @@ function handLabel(row: number, col: number): string {
   return RANKS[col] + RANKS[row] + 'o';
 }
 
-function buildCells(tokens: string[]): { hand: string; action: string }[][] {
+type Cell = { hand: string; action: string; mix?: { alt: string; pct: number } };
+
+/** Rótulo 13x13 de uma mão concreta ("A♠Q♥" → "AQo"). */
+function labelOfHand(hand: string): string {
+  const r1 = hand[0], r2 = hand[2];
+  if (r1 === r2) return r1 + r2;
+  const hi = RI[r1] < RI[r2] ? r1 : r2;
+  const lo = RI[r1] < RI[r2] ? r2 : r1;
+  return hi + lo + (hand[1] === hand[3] ? 's' : 'o');
+}
+
+/**
+ * Mão→% da ação principal, tirado dos exercícios do cenário. Só as mãos HARD
+ * (65/35) viram células mistas — são as fronteiras reais do range. MEDIUM fica
+ * sólido no chart (a dificuldade média existe por ritmo, não por fronteira:
+ * KK "MEDIUM" não pode virar um KK que folda 15%).
+ */
+function freqMapFor(filter: (ex: ExerciseSeed) => boolean): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const w of WORLDS) for (const s of w.stages) for (const ex of s.exercises) {
+    if (!filter(ex) || ex.difficulty !== 'HARD') continue;
+    map.set(labelOfHand(ex.heroHand), FREQ_MAIN.HARD);
+  }
+  return map;
+}
+
+function toCell(hand: string, action: string, freq?: Map<string, number>): Cell {
+  const pct = freq?.get(hand) ?? 100;
+  if (pct >= 100) return { hand, action };
+  // Alternativa da mão mista: mesma regra do mixedFreq (RAISE↔FOLD; CALL→RAISE).
+  const alt = action === 'RAISE' ? 'FOLD' : 'RAISE';
+  return { hand, action, mix: { alt, pct } };
+}
+
+function buildCells(tokens: string[], freq?: Map<string, number>): Cell[][] {
   const set = raiseSet(tokens);
-  const grid: { hand: string; action: string }[][] = [];
+  const grid: Cell[][] = [];
   for (let r = 0; r < 13; r++) {
-    const rowCells: { hand: string; action: string }[] = [];
+    const rowCells: Cell[] = [];
     for (let c = 0; c < 13; c++) {
       const hand = handLabel(r, c);
-      rowCells.push({ hand, action: set.has(hand) ? 'RAISE' : 'FOLD' });
+      rowCells.push(toCell(hand, set.has(hand) ? 'RAISE' : 'FOLD', freq));
     }
     grid.push(rowCells);
   }
@@ -1363,15 +1397,15 @@ function buildCells(tokens: string[]): { hand: string; action: string }[][] {
 }
 
 /** Chart de 3 ações (defesa vs open): raise set + call set; o resto é fold. */
-function buildCells3(raiseTokens: string[], callTokens: string[]): { hand: string; action: string }[][] {
+function buildCells3(raiseTokens: string[], callTokens: string[], freq?: Map<string, number>): Cell[][] {
   const r = raiseSet(raiseTokens);
   const c = raiseSet(callTokens);
-  const grid: { hand: string; action: string }[][] = [];
+  const grid: Cell[][] = [];
   for (let row = 0; row < 13; row++) {
-    const rowCells: { hand: string; action: string }[] = [];
+    const rowCells: Cell[] = [];
     for (let col = 0; col < 13; col++) {
       const hand = handLabel(row, col);
-      rowCells.push({ hand, action: r.has(hand) ? 'RAISE' : c.has(hand) ? 'CALL' : 'FOLD' });
+      rowCells.push(toCell(hand, r.has(hand) ? 'RAISE' : c.has(hand) ? 'CALL' : 'FOLD', freq));
     }
     grid.push(rowCells);
   }
@@ -1516,7 +1550,8 @@ async function main() {
 
   let rangeCount = 0;
   for (const rd of RANGE_DEFS) {
-    const cells = JSON.stringify(buildCells(rd.tokens));
+    const freq = freqMapFor((ex) => ex.category === 'OPEN_RAISE' && !ex.villainAction && ex.heroPosition === rd.position);
+    const cells = JSON.stringify(buildCells(rd.tokens, freq));
     await prisma.range.upsert({
       where: { gameType_tableSize_stackBb_position_scenario: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position, scenario: 'RFI' } },
       update: { label: rd.label, cells },
@@ -1525,7 +1560,11 @@ async function main() {
     rangeCount++;
   }
   for (const vd of VS_DEFS) {
-    const cells = JSON.stringify(buildCells3(vd.raise, vd.call));
+    const villain = vd.scenario.slice(3); // 'VS_CO' → 'CO'
+    const freq = freqMapFor((ex) =>
+      !ex.board && !ex.callerPosition && ex.villainAction === 'Raise 2.5x'
+      && ex.heroPosition === vd.position && ex.villainPosition === villain);
+    const cells = JSON.stringify(buildCells3(vd.raise, vd.call, freq));
     await prisma.range.upsert({
       where: { gameType_tableSize_stackBb_position_scenario: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: vd.position, scenario: vd.scenario } },
       update: { label: vd.label, cells },

@@ -1,12 +1,26 @@
-import type { RangeGrid, CellAction } from '@pokerpath/shared';
+import type { RangeGrid, RangeCell, CellAction } from '@pokerpath/shared';
 
 /** Grid 13x13 de um range, reutilizável (Charts e aulas). */
-const CELL_COLOR: Record<CellAction, string> = {
-  RAISE: 'bg-success text-white',
-  CALL: 'bg-call text-white',
-  FOLD: 'bg-card2 text-subtle',
-  MIXED: 'bg-gradient-to-br from-success to-call text-white',
+export const CELL_BG: Record<CellAction, string> = {
+  RAISE: '#1B8A4C',
+  CALL: '#4878A8', // azul suavizado (o token 'call' é forte demais em área grande)
+  FOLD: 'rgb(var(--card2))',
+  MIXED: '#1B8A4C',
 };
+
+/** Fundo da célula: cor sólida, ou gradiente de corte duro na proporção da mistura. */
+export function cellBackground(cell: RangeCell): string {
+  if (!cell.mix) return CELL_BG[cell.action];
+  const a = CELL_BG[cell.action];
+  const b = CELL_BG[cell.mix.alt];
+  return `linear-gradient(135deg, ${a} 0%, ${a} ${cell.mix.pct}%, ${b} ${cell.mix.pct}%, ${b} 100%)`;
+}
+
+export function cellTitle(cell: RangeCell): string {
+  return cell.mix
+    ? `${cell.hand} · ${cell.action} ${cell.mix.pct}% / ${cell.mix.alt} ${100 - cell.mix.pct}%`
+    : `${cell.hand} · ${cell.action}`;
+}
 
 export function RangeGridView({ grid, legend = true, highlight, diffWith }: {
   grid: RangeGrid; legend?: boolean; highlight?: string;
@@ -23,8 +37,9 @@ export function RangeGridView({ grid, legend = true, highlight, diffWith }: {
             return (
               <div
                 key={`${r}-${c}`}
-                className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none sm:text-[9px] ${CELL_COLOR[cell.action]} ${on ? 'z-10 scale-110 outline outline-2 outline-gold ring-2 ring-gold/40' : ''} ${changed ? 'outline outline-2 outline-gold' : ''}`}
-                title={`${cell.hand} · ${cell.action}${changed ? ' · muda aqui' : ''}`}
+                style={{ background: cellBackground(cell) }}
+                className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none sm:text-[9px] ${cell.action === 'FOLD' && !cell.mix ? 'text-subtle' : 'text-white'} ${on ? 'z-10 scale-110 outline outline-2 outline-gold ring-2 ring-gold/40' : ''} ${changed ? 'outline outline-2 outline-gold' : ''}`}
+                title={`${cellTitle(cell)}${changed ? ' · muda aqui' : ''}`}
               >
                 {cell.hand}
               </div>
@@ -34,19 +49,20 @@ export function RangeGridView({ grid, legend = true, highlight, diffWith }: {
       </div>
       {legend && (
         <div className="mt-3 flex flex-wrap gap-4 px-1">
-          <Legend color="bg-success" label="Raise" />
-          <Legend color="bg-call" label="Call" />
-          <Legend color="bg-card2 border border-line" label="Fold" />
+          <Legend bg={CELL_BG.RAISE} label="Raise" />
+          <Legend bg={CELL_BG.CALL} label="Call" />
+          <Legend bg={CELL_BG.FOLD} border label="Fold" />
+          <Legend bg={`linear-gradient(135deg, ${CELL_BG.RAISE} 0%, ${CELL_BG.RAISE} 65%, ${CELL_BG.FOLD} 65%, ${CELL_BG.FOLD} 100%)`} border label="Mista (proporção)" />
         </div>
       )}
     </div>
   );
 }
 
-function Legend({ color, label }: { color: string; label: string }) {
+function Legend({ bg, label, border }: { bg: string; label: string; border?: boolean }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`h-3 w-3 rounded ${color}`} />
+      <span className={`h-3 w-3 rounded ${border ? 'border border-line' : ''}`} style={{ background: bg }} />
       <span className="text-xs font-medium text-text">{label}</span>
     </div>
   );

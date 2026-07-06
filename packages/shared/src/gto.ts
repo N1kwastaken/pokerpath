@@ -32,6 +32,8 @@ export interface RangeCell {
   /** Rótulo da mão, ex.: "AKs", "QQ", "T9o". */
   hand: string;
   action: CellAction;
+  /** Mão de fronteira (estratégia mista): `action` em pct%, `alt` no restante. */
+  mix?: { alt: CellAction; pct: number };
 }
 
 export interface RangeGrid {
