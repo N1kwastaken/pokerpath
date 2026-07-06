@@ -1391,7 +1391,7 @@ const VS_DEFS: { position: string; scenario: string; label: string; raise: strin
   {
     position: 'BTN', scenario: 'VS_MP', label: 'BTN vs open de MP · 3-Bet / Call / Fold',
     raise: ['JJ+', 'AKs', 'AKo'],
-    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs', 'JTs'],
+    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs', 'JTs', 'AQo'],
   },
   {
     position: 'BTN', scenario: 'VS_CO', label: 'BTN vs open de CO · 3-Bet / Call / Fold',
@@ -1400,7 +1400,7 @@ const VS_DEFS: { position: string; scenario: string; label: string; raise: strin
   },
   {
     position: 'BB', scenario: 'VS_BTN', label: 'BB vs open do BTN · Defesa',
-    raise: ['QQ+', 'AQs+', 'AKo'],
+    raise: ['QQ+', 'AQs+', 'AQo+'],
     call: [
       'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
       'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s',
