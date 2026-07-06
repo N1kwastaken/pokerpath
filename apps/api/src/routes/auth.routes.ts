@@ -1,8 +1,11 @@
 import type { FastifyInstance } from 'fastify';
+import { createHash, randomBytes } from 'node:crypto';
 import {
   registerSchema,
   loginSchema,
   refreshSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
@@ -13,6 +16,12 @@ import {
   NotFoundError,
 } from '../lib/errors.js';
 import { toPublicUser } from '../services/user.serializer.js';
+import { sendMail } from '../services/mail.service.js';
+
+/** Recuperação de senha: validade do link e limite anti-abuso. */
+const RESET_TTL_MIN = 30;
+const RESET_MAX_PER_HOUR = 3;
+const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 
 /**
  * Rotas de autenticação (PRD 4.1, 15.5).
@@ -138,6 +147,90 @@ export async function authRoutes(app: FastifyInstance) {
       await app.tokens.revokeRefreshToken(parsed.data.refreshToken);
     }
     return reply.status(204).send();
+  });
+
+  // ─── Esqueci minha senha ───────────────────────────────────
+  app.post('/auth/forgot-password', async (request, reply) => {
+    const parsed = forgotPasswordSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new BadRequestError(
+        parsed.error.errors[0]?.message ?? 'Dados inválidos',
+        'VALIDATION_ERROR',
+      );
+    }
+    const { email } = parsed.data;
+
+    // A resposta é IDÊNTICA com ou sem conta — não revela e-mails cadastrados.
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const recent = await prisma.passwordResetToken.count({
+        where: { userId: user.id, createdAt: { gte: new Date(Date.now() - 3_600_000) } },
+      });
+      if (recent < RESET_MAX_PER_HOUR) {
+        const token = randomBytes(32).toString('hex');
+        await prisma.passwordResetToken.create({
+          data: {
+            userId: user.id,
+            tokenHash: sha256(token),
+            expiresAt: new Date(Date.now() + RESET_TTL_MIN * 60_000),
+          },
+        });
+        const base = process.env.WEB_APP_URL ?? 'http://localhost:5173';
+        const link = `${base}/reset-password?token=${token}`;
+        try {
+          await sendMail({
+            to: email,
+            subject: 'PokerPath — redefinir sua senha',
+            html: `<p>Olá, ${user.name}!</p>
+<p>Recebemos um pedido para redefinir sua senha no PokerPath. Clique no link abaixo (vale por ${RESET_TTL_MIN} minutos):</p>
+<p><a href="${link}">${link}</a></p>
+<p>Se não foi você, ignore este e-mail — sua senha continua a mesma.</p>`,
+          });
+        } catch (err) {
+          request.log.error({ err }, 'Falha ao enviar e-mail de recuperação');
+        }
+      }
+    }
+
+    return reply.send({
+      ok: true,
+      message: 'Se este e-mail tiver conta, enviamos um link de recuperação.',
+    });
+  });
+
+  // ─── Redefinir senha ───────────────────────────────────────
+  app.post('/auth/reset-password', async (request, reply) => {
+    const parsed = resetPasswordSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new BadRequestError(
+        parsed.error.errors[0]?.message ?? 'Dados inválidos',
+        'VALIDATION_ERROR',
+      );
+    }
+    const { token, password } = parsed.data;
+
+    const row = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash: sha256(token) },
+    });
+    if (!row || row.usedAt || row.expiresAt < new Date()) {
+      throw new BadRequestError(
+        'Link inválido ou expirado. Peça um novo.',
+        'INVALID_RESET_TOKEN',
+      );
+    }
+
+    const passwordHash = await hashPassword(password);
+    // Troca a senha, queima o token e derruba as sessões antigas — juntos.
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: row.userId }, data: { passwordHash } }),
+      prisma.passwordResetToken.update({ where: { id: row.id }, data: { usedAt: new Date() } }),
+      prisma.refreshToken.updateMany({
+        where: { userId: row.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+
+    return reply.send({ ok: true });
   });
 
   // ─── Usuário atual ─────────────────────────────────────────

@@ -41,6 +41,17 @@ export const refreshSchema = z.object({
 });
 export type RefreshInput = z.infer<typeof refreshSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token ausente'),
+  password: passwordSchema,
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 /** Formato público do usuário retornado pela API (sem dados sensíveis). */
 export interface PublicUser {
   id: string;

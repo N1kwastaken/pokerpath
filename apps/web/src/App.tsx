@@ -16,6 +16,8 @@ import { StatsPage } from './pages/StatsPage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { AchievementsPage } from './pages/AchievementsPage.js';
 import { GlossaryPage } from './pages/GlossaryPage.js';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
+import { ResetPasswordPage } from './pages/ResetPasswordPage.js';
 
 export function App() {
   return (
@@ -25,6 +27,8 @@ export function App() {
           <Route path="/welcome" element={<IntroPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>

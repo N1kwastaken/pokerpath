@@ -47,13 +47,16 @@ export function LoginPage() {
           value={email} onChange={(e) => setEmail(e.target.value)} />
         <PasswordField value={password} onChange={setPassword} placeholder="Senha" autoComplete="current-password" />
 
-        <button type="button" onClick={() => setRemember((v) => !v)}
-          className="flex items-center gap-2.5 self-start py-1 text-sm font-medium text-text">
-          <span className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${remember ? 'border-primary bg-primary text-white' : 'border-line bg-card'}`}>
-            {remember && <IconCheck size={13} />}
-          </span>
-          Lembrar de mim
-        </button>
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={() => setRemember((v) => !v)}
+            className="flex items-center gap-2.5 py-1 text-sm font-medium text-text">
+            <span className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${remember ? 'border-primary bg-primary text-white' : 'border-line bg-card'}`}>
+              {remember && <IconCheck size={13} />}
+            </span>
+            Lembrar de mim
+          </button>
+          <Link to="/forgot-password" className="py-1 text-sm font-semibold text-primary">Esqueci minha senha</Link>
+        </div>
 
         {error && <p className="text-sm text-error">{error}</p>}
         <button className="btn-primary mt-2 w-full text-lg" disabled={submitting}>

@@ -29,6 +29,22 @@ export const authApi = {
     return res;
   },
 
+  async forgotPassword(email: string): Promise<{ ok: true; message: string }> {
+    return apiRequest<{ ok: true; message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+      auth: false,
+    });
+  },
+
+  async resetPassword(token: string, password: string): Promise<{ ok: true }> {
+    return apiRequest<{ ok: true }>('/auth/reset-password', {
+      method: 'POST',
+      body: { token, password },
+      auth: false,
+    });
+  },
+
   async me(): Promise<PublicUser> {
     const res = await apiRequest<{ user: PublicUser }>('/auth/me');
     return res.user;
