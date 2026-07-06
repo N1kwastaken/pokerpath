@@ -272,10 +272,11 @@ model Range {
   tableSize String
   stackBb   Int
   position  String
+  scenario  String   @default("RFI") // RFI (abertura) ou VS_<posição> (defesa vs open)
   label     String
   cells     String   // JSON: 13x13 de { hand, action }
   createdAt DateTime @default(now())
 
-  @@unique([gameType, tableSize, stackBb, position])
+  @@unique([gameType, tableSize, stackBb, position, scenario])
   @@map("ranges")
 }

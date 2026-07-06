@@ -39,6 +39,8 @@ export interface RangeGrid {
   tableSize: TableSize;
   stackBb: number;
   position: Position;
+  /** Cenário do chart: 'RFI' (abertura) ou 'VS_<posição>' (defesa vs open, com call). */
+  scenario: string;
   label: string;
   /** 13x13 — linha 0 = A, coluna 0 = A. Diagonal = pares. */
   cells: RangeCell[][];

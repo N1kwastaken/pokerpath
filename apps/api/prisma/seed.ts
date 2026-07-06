@@ -1362,6 +1362,55 @@ function buildCells(tokens: string[]): { hand: string; action: string }[][] {
   return grid;
 }
 
+/** Chart de 3 ações (defesa vs open): raise set + call set; o resto é fold. */
+function buildCells3(raiseTokens: string[], callTokens: string[]): { hand: string; action: string }[][] {
+  const r = raiseSet(raiseTokens);
+  const c = raiseSet(callTokens);
+  const grid: { hand: string; action: string }[][] = [];
+  for (let row = 0; row < 13; row++) {
+    const rowCells: { hand: string; action: string }[] = [];
+    for (let col = 0; col < 13; col++) {
+      const hand = handLabel(row, col);
+      rowCells.push({ hand, action: r.has(hand) ? 'RAISE' : c.has(hand) ? 'CALL' : 'FOLD' });
+    }
+    grid.push(rowCells);
+  }
+  return grid;
+}
+
+/**
+ * Charts de defesa vs open (3-bet/call/fold) — derivados dos exercícios das
+ * seções vs UTG / vs MP-CO / 3-Bet / BB (0 contradições, conferido por script).
+ */
+const VS_DEFS: { position: string; scenario: string; label: string; raise: string[]; call: string[] }[] = [
+  {
+    position: 'BTN', scenario: 'VS_UTG', label: 'BTN vs open de UTG · 3-Bet / Call / Fold',
+    raise: ['JJ+', 'AKs', 'AKo'],
+    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs'],
+  },
+  {
+    position: 'BTN', scenario: 'VS_MP', label: 'BTN vs open de MP · 3-Bet / Call / Fold',
+    raise: ['JJ+', 'AKs', 'AKo'],
+    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs', 'JTs'],
+  },
+  {
+    position: 'BTN', scenario: 'VS_CO', label: 'BTN vs open de CO · 3-Bet / Call / Fold',
+    raise: ['JJ+', 'AQs+', 'AKo', 'A5s', 'A4s', 'A3s', 'A2s'],
+    call: ['TT', '99', '88', '77', '66', 'AJs', 'ATs', 'KQs', 'KJs', 'QJs', 'JTs', 'T9s', '98s', '87s', 'AQo'],
+  },
+  {
+    position: 'BB', scenario: 'VS_BTN', label: 'BB vs open do BTN · Defesa',
+    raise: ['QQ+', 'AQs+', 'AKo'],
+    call: [
+      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
+      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s',
+      'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s',
+      '98s', '87s', '76s', '65s', '54s',
+      'AJo', 'ATo', 'A9o', 'A8o', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
+    ],
+  },
+];
+
 const RANGE_DEFS: { position: string; label: string; tokens: string[] }[] = [
   { position: 'UTG', label: 'UTG · Open Raise', tokens: ['TT+', 'AQs+', 'KQs', 'AQo+'] },
   { position: 'MP', label: 'MP · Open Raise', tokens: ['99+', 'AJs+', 'KQs', 'QJs', 'AQo+'] },
@@ -1469,9 +1518,18 @@ async function main() {
   for (const rd of RANGE_DEFS) {
     const cells = JSON.stringify(buildCells(rd.tokens));
     await prisma.range.upsert({
-      where: { gameType_tableSize_stackBb_position: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position } },
+      where: { gameType_tableSize_stackBb_position_scenario: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position, scenario: 'RFI' } },
       update: { label: rd.label, cells },
-      create: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position, label: rd.label, cells },
+      create: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position, scenario: 'RFI', label: rd.label, cells },
+    });
+    rangeCount++;
+  }
+  for (const vd of VS_DEFS) {
+    const cells = JSON.stringify(buildCells3(vd.raise, vd.call));
+    await prisma.range.upsert({
+      where: { gameType_tableSize_stackBb_position_scenario: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: vd.position, scenario: vd.scenario } },
+      update: { label: vd.label, cells },
+      create: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: vd.position, scenario: vd.scenario, label: vd.label, cells },
     });
     rangeCount++;
   }

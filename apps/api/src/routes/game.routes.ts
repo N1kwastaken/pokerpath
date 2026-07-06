@@ -145,7 +145,7 @@ export async function gameRoutes(app: FastifyInstance) {
     return debugCompleteAll(request.user.sub);
   });
 
-  app.get<{ Querystring: { gameType?: string; tableSize?: string; stack?: string; position?: string } }>(
+  app.get<{ Querystring: { gameType?: string; tableSize?: string; stack?: string; position?: string; scenario?: string } }>(
     '/ranges',
     async (request) => {
       const q = request.query;
@@ -154,6 +154,7 @@ export async function gameRoutes(app: FastifyInstance) {
         tableSize: q.tableSize ?? 'SIX_MAX',
         stackBb: Number(q.stack ?? 100),
         position: q.position ?? 'BTN',
+        scenario: q.scenario ?? 'RFI',
       });
       return { range };
     },

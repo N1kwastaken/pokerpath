@@ -17,14 +17,28 @@ const CELL_COLOR: Record<CellAction, string> = {
 const GAME_LABEL: Record<string, string> = { CASH: 'Cash', TOURNAMENT: 'Torneio' };
 const SIZE_LABEL: Record<string, string> = { SIX_MAX: '6-max', NINE_MAX: '9-max' };
 
+/** Cenários de defesa vs open (3-bet/call/fold) disponíveis. */
+const VS_SCENARIOS = [
+  { key: 'VS_UTG', position: 'BTN', label: 'BTN vs UTG' },
+  { key: 'VS_MP', position: 'BTN', label: 'BTN vs MP' },
+  { key: 'VS_CO', position: 'BTN', label: 'BTN vs CO' },
+  { key: 'VS_BTN', position: 'BB', label: 'BB vs BTN' },
+];
+
 export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
   const [gameType, setGameType] = useState<string>('CASH');
   const [tableSize, setTableSize] = useState<string>('SIX_MAX');
   const [stack, setStack] = useState<number>(100);
   const [position, setPosition] = useState<string>('BTN');
+  const [scenario, setScenario] = useState<string>('RFI');
   const [help, setHelp] = useState<boolean>(false);
 
-  const { data: range, isLoading } = useRange({ gameType, tableSize, stack, position });
+  const vs = VS_SCENARIOS.find((s) => s.key === scenario);
+  const { data: range, isLoading } = useRange({
+    gameType, tableSize, stack,
+    position: vs ? vs.position : position,
+    scenario,
+  });
 
   return (
     <div className={embedded ? '' : 'px-5 py-8'}>
@@ -73,9 +87,15 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
       <FilterCard title="Stack (BB)">
         {STACK_OPTIONS.map((sv) => <Chip key={sv} on={stack === sv} disabled={sv !== 100} onClick={() => setStack(sv)}>{sv}</Chip>)}
       </FilterCard>
-      <FilterCard title="Posição">
-        {POSITIONS.map((p) => <Chip key={p} on={position === p} disabled={!['UTG', 'MP', 'CO', 'BTN', 'SB'].includes(p)} onClick={() => setPosition(p)}>{p}</Chip>)}
+      <FilterCard title="Cenário">
+        <Chip on={scenario === 'RFI'} onClick={() => setScenario('RFI')}>Abertura (RFI)</Chip>
+        {VS_SCENARIOS.map((s) => <Chip key={s.key} on={scenario === s.key} onClick={() => setScenario(s.key)}>{s.label}</Chip>)}
       </FilterCard>
+      {scenario === 'RFI' && (
+        <FilterCard title="Posição">
+          {POSITIONS.map((p) => <Chip key={p} on={position === p} disabled={!['UTG', 'MP', 'CO', 'BTN', 'SB'].includes(p)} onClick={() => setPosition(p)}>{p}</Chip>)}
+        </FilterCard>
+      )}
 
       <div className="mt-6">
         {isLoading ? (

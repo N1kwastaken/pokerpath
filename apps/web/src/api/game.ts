@@ -7,6 +7,8 @@ import { apiRequest } from '../lib/api.js';
 
 export interface RangeFilters {
   gameType: string; tableSize: string; stack: number; position: string;
+  /** 'RFI' (padrão) ou 'VS_<posição>' — chart de defesa vs open. */
+  scenario?: string;
 }
 
 /** Chamadas da API do loop de jogo (PRD 5, 6, 7, 15.3). */
@@ -23,7 +25,7 @@ export const gameApi = {
   skipBasics: () => apiRequest<{ ok: true; count: number }>('/skip-basics', { method: 'POST' }),
   range: (f: RangeFilters) =>
     apiRequest<{ range: RangeGrid | null }>(
-      `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}`,
+      `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}&scenario=${f.scenario ?? 'RFI'}`,
     ).then((r) => r.range),
   achievements: () => apiRequest<{ achievements: AchievementView[] }>('/achievements').then((r) => r.achievements),
   missions: () => apiRequest<{ missions: MissionView[] }>('/missions').then((r) => r.missions),

@@ -762,15 +762,16 @@ export async function getReview(userId: string): Promise<ReviewItem[]> {
 
 // ─── Range (grid 13x13) ────────────────────────────────────────
 export async function getRange(filters: {
-  gameType: string; tableSize: string; stackBb: number; position: string;
+  gameType: string; tableSize: string; stackBb: number; position: string; scenario?: string;
 }): Promise<RangeGrid | null> {
   const row = await prisma.range.findUnique({
     where: {
-      gameType_tableSize_stackBb_position: {
+      gameType_tableSize_stackBb_position_scenario: {
         gameType: filters.gameType,
         tableSize: filters.tableSize,
         stackBb: filters.stackBb,
         position: filters.position,
+        scenario: filters.scenario ?? 'RFI',
       },
     },
   });
@@ -782,6 +783,7 @@ export async function getRange(filters: {
     tableSize: row.tableSize as TableSize,
     stackBb: row.stackBb,
     position: row.position as RangeGrid['position'],
+    scenario: row.scenario,
     label: row.label,
     cells,
   };

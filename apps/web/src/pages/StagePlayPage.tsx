@@ -163,21 +163,31 @@ export function StagePlayPage() {
     } satisfies SavedSession));
   }, [answers, sessionXp, completed, stageId, sessionLen, ordered, data]);
 
-  // Cheat-sheet: range de abertura da posição do exercício atual. Disponível
-  // nas práticas e testes de seção; escondido só na revisão final do mundo
-  // (Mix / Desafio final), que é a prova de verdade.
+  // Cheat-sheet: chart da decisão do exercício atual. Disponível nas práticas
+  // e testes de seção; escondido só na revisão final do mundo (Mix / Desafio
+  // final), que é a prova de verdade. Dois modos:
+  //  - RFI (abertura): chart raise/fold + seta de comparação com a posição anterior.
+  //  - Defesa vs open (3-bet/call/fold): herói BTN vs UTG/MP/CO ou BB vs BTN.
   const RFI_ORDER: Position[] = ['UTG', 'MP', 'CO', 'BTN', 'SB'];
+  const VS_CHARTS: Partial<Record<Position, Position[]>> = { BTN: ['UTG', 'MP', 'CO'], BB: ['BTN'] };
   const isTestStage = !data || stageGroup(data.stage.concept) === 'Revisão';
-  const cheatPos: Position | undefined =
+  const rfiPos: Position | undefined =
     current && current.category === 'OPEN_RAISE' && !current.villainAction && RFI_ORDER.includes(current.heroPosition)
       ? current.heroPosition
       : undefined;
+  const vsVillain: Position | undefined =
+    current && !current.board && !current.callerPosition && current.villainAction === 'Raise 2.5x'
+      && current.villainPosition && VS_CHARTS[current.heroPosition]?.includes(current.villainPosition)
+      ? current.villainPosition
+      : undefined;
+  const cheatPos: Position | undefined = rfiPos ?? (vsVillain ? current!.heroPosition : undefined);
+  const cheatScenario = rfiPos ? 'RFI' : vsVillain ? `VS_${vsVillain}` : 'RFI';
   const showCheat = !!cheatPos && !isTestStage;
-  const prevPos: Position | undefined = cheatPos && RFI_ORDER.indexOf(cheatPos) > 0
-    ? RFI_ORDER[RFI_ORDER.indexOf(cheatPos) - 1]
+  const prevPos: Position | undefined = rfiPos && RFI_ORDER.indexOf(rfiPos) > 0
+    ? RFI_ORDER[RFI_ORDER.indexOf(rfiPos) - 1]
     : undefined;
   const cheatQ = useRange(
-    { gameType: 'CASH', tableSize: 'SIX_MAX', stack: 100, position: cheatPos ?? 'BTN' },
+    { gameType: 'CASH', tableSize: 'SIX_MAX', stack: 100, position: cheatPos ?? 'BTN', scenario: cheatScenario },
     { enabled: showCheat && sheetOpen },
   );
   const prevQ = useRange(
@@ -478,7 +488,9 @@ export function StagePlayPage() {
           <div className="card w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-widest text-subtle">
-                Range de abertura · {sheetPrev && prevPos ? prevPos : cheatPos}
+                {vsVillain
+                  ? `Defesa · ${cheatPos} vs open de ${vsVillain}`
+                  : `Range de abertura · ${sheetPrev && prevPos ? prevPos : cheatPos}`}
               </p>
               <button onClick={() => setSheetOpen(false)} className="text-subtle" aria-label="Fechar"><IconX size={18} /></button>
             </div>
