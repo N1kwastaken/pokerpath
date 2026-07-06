@@ -206,6 +206,14 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Em qual board vale continuar com mais cuidado?`, ['Seco K♠7♦2♣', 'Molhado 9♥8♥7♣'], 1,
       `Boards molhados dão mais projetos ao vilão: cuidado.`),
   ],
+  'Cbet intro': [
+    t(`Agora VOCÊ é o agressor: você abriu, o BB pagou e deu check. Apostar (c-bet) ou dar check?`),
+    t(`Board SECO (ex.: K♠7♦2♣) favorece quem abriu: aposte por valor e com blefes baratos.`),
+    t(`Board MOLHADO (ex.: 9♥8♥7♣) conecta com quem pagou: aposte só valor real; o resto dá check.`),
+    quiz(`Você abriu com A♦5♦ e o flop veio K♠7♦2♣. O BB deu check. E aí?`, ['Check atrás', 'C-bet (blefe barato)'], 1,
+      `Board seco raramente acertou o BB: um c-bet pequeno leva o pote com frequência.`),
+    t(`Sem aposta do vilão, o check é grátis — aqui não existe fold: os botões viram Bet e Check.`),
+  ],
   // ── Flop / Turn / River (enfrentando apostas) ──────────────
   'Flop fortes intro': [
     t(`No flop você já tem 5 cartas para ler: as 2 suas + as 3 da mesa.`),

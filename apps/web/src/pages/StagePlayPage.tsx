@@ -364,6 +364,13 @@ export function StagePlayPage() {
   // ─── EXERCÍCIO (1 tela, sem scroll) ──────────────────────────
   const fb = phase === 'feedback' && result;
   const correctCount = answers.filter(Boolean).length;
+  // Spot de agressor: o vilão deu check — os botões viram Bet/Check (sem fold,
+  // porque dar check é grátis). Internamente Bet=RAISE e Check=CALL.
+  const aggressor = current.villainAction === 'Check';
+  const buttons: { key: Action; label: string; color: string }[] = aggressor
+    ? [{ key: 'CALL', label: 'Check', color: 'bg-subtle' }, { key: 'RAISE', label: 'Bet', color: 'bg-primary' }]
+    : ACT;
+  const actionLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
   return (
     <div className="fixed inset-0 z-30 bg-bg">
       {fb && result?.correct && <Confetti key={idx} count={20} />}
@@ -396,7 +403,7 @@ export function StagePlayPage() {
             </span>
             <div className="min-w-0 flex-1">
               <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
-                {result.correct ? 'Correto' : `Incorreto — era ${LABEL[result.correctAction]}`}
+                {result.correct ? 'Correto' : `Incorreto — era ${actionLabel(result.correctAction)}`}
               </p>
               {result.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={result.explanation} /></p>}
             </div>
@@ -419,7 +426,7 @@ export function StagePlayPage() {
             <div className="animate-slide-up rounded-xl bg-primary/15 py-1.5 text-center text-sm font-black text-primary">⭐ Subiu de nível — {result.levelName}!</div>
           )}
 
-          <GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} />
+          <GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} />
 
           {result.newAchievements.length > 0 && (
             <div className="rounded-xl border border-gold/30 bg-gold/10 p-2 text-center text-xs font-semibold text-gold">
@@ -430,8 +437,8 @@ export function StagePlayPage() {
           <button className="btn-primary w-full" onClick={advance}>Continuar</button>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2.5">
-          {ACT.map((b) => (
+        <div className={`grid gap-2.5 ${aggressor ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {buttons.map((b) => (
             <button key={b.key} onClick={() => choose(b.key)} disabled={mutation.isPending}
               className={`btn3d rounded-2xl py-5 text-base font-extrabold text-white ${b.color} hover:brightness-110`}>
               {b.label}
@@ -456,7 +463,7 @@ export function StagePlayPage() {
         <div className="card flex-1 p-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia</p>
           {fb && result ? (
-            <div className="mt-3"><GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} /></div>
+            <div className="mt-3"><GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} /></div>
           ) : (
             <p className="mt-3 text-sm text-subtle">Responda a mão para ver as frequências GTO.</p>
           )}

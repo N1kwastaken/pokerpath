@@ -30,17 +30,21 @@ export function ReviewList() {
 function ReviewCard({ item }: { item: ReviewItem }) {
   const ex = {
     id: item.id, order: 0, heroPosition: item.heroPosition, villainPosition: item.villainPosition,
-    stackBb: item.stackBb, potSize: item.potSize, heroHand: item.heroHand, board: item.board,
+    callerPosition: item.callerPosition, stackBb: item.stackBb, potSize: item.potSize,
+    heroHand: item.heroHand, board: item.board,
     villainAction: item.villainAction, difficulty: 'EASY', category: item.category, options: [],
   } as unknown as PublicExercise;
+  // Spot de agressor (vilão deu check): Raise/Call viram Bet/Check.
+  const aggressor = item.villainAction === 'Check';
+  const label = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
   return (
     <div className="card space-y-3 p-3">
       <div className="mx-auto max-w-[260px]"><PokerTable ex={ex} /></div>
       <div className="rounded-xl border border-error/30 bg-error/10 p-3">
-        <p className="text-sm font-bold text-error">Você: {LABEL[item.yourAction]} · Certo: {LABEL[item.correctAction]}</p>
+        <p className="text-sm font-bold text-error">Você: {label(item.yourAction)} · Certo: {label(item.correctAction)}</p>
         <p className="mt-0.5 text-xs text-text">{item.explanation}</p>
       </div>
-      <GtoBars freq={item.frequencies} chosen={item.yourAction} correct={item.correctAction} />
+      <GtoBars freq={item.frequencies} chosen={item.yourAction} correct={item.correctAction} aggressor={aggressor} />
     </div>
   );
 }

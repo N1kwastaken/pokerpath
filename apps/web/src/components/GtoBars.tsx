@@ -9,9 +9,16 @@ const ROWS: { key: keyof Frequencies; label: string; bar: string }[] = [
   { key: 'ALLIN', label: 'All In', bar: 'bg-danger' },
 ];
 
-export function GtoBars({ freq, chosen, correct }: { freq: Frequencies; chosen?: Action; correct?: Action }) {
+export function GtoBars({ freq, chosen, correct, aggressor = false }: {
+  freq: Frequencies; chosen?: Action; correct?: Action;
+  /** Spot de agressor (vilão deu check): Raise vira Bet e Call vira Check. */
+  aggressor?: boolean;
+}) {
   const [open, setOpen] = useState(false);
-  const rows = ROWS.filter((r) => (freq[r.key] ?? 0) > 0);
+  const AGG_LABEL: Partial<Record<keyof Frequencies, string>> = { RAISE: 'Bet', CALL: 'Check' };
+  const rows = ROWS
+    .filter((r) => (freq[r.key] ?? 0) > 0)
+    .map((r) => (aggressor && AGG_LABEL[r.key] ? { ...r, label: AGG_LABEL[r.key] as string } : r));
 
   return (
     <div className="space-y-2">

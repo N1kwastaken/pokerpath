@@ -966,6 +966,59 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 6, board: '9♥8♥3♣', heroHand: '7♥6♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Flush+sequencia draw: semi-blefe.' },
         ],
       },
+      { title: 'C-bet: agora você ataca', concept: 'Cbet intro', description: 'Você abriu e o vilão deu check: Bet ou Check?', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+      {
+        title: 'C-bet por valor', concept: 'Cbet valor', description: 'Mão forte aposta; média faz check atrás.',
+        minExercises: 5, passRate: 0.7, xpReward: 60,
+        exercises: [
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♥7♦2♣', heroHand: 'A♠K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair top kicker: aposte por valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♥7♦2♣', heroHand: 'K♦Q♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair: aposte.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♠8♦3♣', heroHand: 'A♥A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Overpair: valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♦7♣2♠', heroHand: '7♠7♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Trinca: aposte — extraia valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'J♠8♥3♦', heroHand: 'Q♦Q♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overpair no board baixo: aposte.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♥9♣4♠', heroHand: 'A♦Q♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Top pair com kicker forte: valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'J♦9♥3♠', heroHand: 'A♠J♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Top pair, kicker ás: aposte.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♥7♠2♦', heroHand: '8♠8♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Par médio: check atrás — showdown value.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♦Q♣6♥', heroHand: '9♥9♠', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Duas overcards no board: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♠K♦8♣', heroHand: 'J♥J♦', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'JJ debaixo de A e K: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♣Q♦5♥', heroHand: 'T♦T♠', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'TT sob K e Q: check, showdown.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♠J♥4♦', heroHand: '6♦6♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Par pequeno: check.' },
+        ],
+      },
+      {
+        title: 'C-bet: leia a textura', concept: 'Cbet textura', description: 'Seco blefa barato; molhado só aposta valor.',
+        minExercises: 6, passRate: 0.7, xpReward: 60,
+        exercises: [
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠7♥2♣', heroHand: 'A♦5♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Board seco favorece quem abriu: c-bet blefe.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♦8♠3♥', heroHand: 'Q♣J♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Seco: blefe barato com overcards.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '8♣3♦2♠', heroHand: 'A♥K♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overcards no board seco: c-bet.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♥K♦8♠', heroHand: '5♣4♣', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Board do agressor (A-K): blefe — o BB quase nunca conectou.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♦7♣2♥', heroHand: 'A♠T♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Seco e sem showdown: aposte como blefe.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♠8♦7♦', heroHand: 'K♥K♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overpair: aposte mesmo no molhado — proteja.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'T♥9♥6♣', heroHand: '8♦7♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Fez a sequência: valor no board molhado.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥7♣', heroHand: '6♥6♠', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Molhado e par pequeno: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'J♥T♥9♣', heroHand: 'A♣Q♥', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Molhado demais pra blefar: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '8♥7♥3♦', heroHand: 'J♠T♦', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Molhado e sem nada: check — blefe caro.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♥J♥T♣', heroHand: 'Q♥Q♠', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Board horrível para QQ: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♠K♥7♦', heroHand: '9♣9♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: '99 sob A e K: check.' },
+        ],
+      },
+      {
+        title: 'C-bet: teste', concept: 'Cbet teste', description: 'Bet ou check — decida como agressor.',
+        minExercises: 7, passRate: 0.75, xpReward: 90,
+        exercises: [
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♣8♦2♥', heroHand: 'A♦K♥', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair top kicker: valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠9♥3♦', heroHand: '8♥8♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Par médio: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♥7♦2♠', heroHand: 'A♠4♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Seco: blefe com backdoor de nut flush.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥4♣', heroHand: 'K♦J♦', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Molhado e só overcards: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♦9♦4♣', heroHand: 'K♠K♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overpair: aposte.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♣J♠5♦', heroHand: 'T♥T♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'TT sob A e J: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♣5♥2♦', heroHand: '5♠5♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Trinca: valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♦7♣2♠', heroHand: 'Q♣J♣', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Board seco: c-bet blefe.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'T♠9♠8♦', heroHand: '7♥7♠', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Par pequeno em board conectado: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♦8♥3♣', heroHand: 'A♥Q♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair com kicker forte: valor.' },
+        ],
+      },
     ],
   },
   {
@@ -1218,9 +1271,13 @@ const RANGE_DEFS: { position: string; label: string; tokens: string[] }[] = [
  * Pré-flop RFI: a alternativa à ação certa é sempre o oposto (RAISE ↔ FOLD).
  */
 const FREQ_MAIN: Record<'EASY' | 'MEDIUM' | 'HARD', number> = { EASY: 100, MEDIUM: 85, HARD: 65 };
-function mixedFreq(correct: 'FOLD' | 'CALL' | 'RAISE', difficulty: 'EASY' | 'MEDIUM' | 'HARD'): string {
+function mixedFreq(correct: 'FOLD' | 'CALL' | 'RAISE', difficulty: 'EASY' | 'MEDIUM' | 'HARD', aggressor = false): string {
   const main = FREQ_MAIN[difficulty];
-  const alt = correct === 'RAISE' ? 'FOLD' : 'RAISE';
+  // Spot de agressor (vilão deu check): a alternativa é Bet↔Check (RAISE↔CALL),
+  // nunca FOLD — dar check é grátis.
+  const alt = aggressor
+    ? (correct === 'RAISE' ? 'CALL' : 'RAISE')
+    : (correct === 'RAISE' ? 'FOLD' : 'RAISE');
   const f: { FOLD: number; CALL: number; RAISE: number } = { FOLD: 0, CALL: 0, RAISE: 0 };
   f[correct] = main;
   f[alt] = 100 - main;
@@ -1284,7 +1341,7 @@ async function main() {
           difficulty: ex.difficulty,
           category: ex.category,
           xpValue: XP[ex.difficulty],
-          frequencies: mixedFreq(ex.correctAction, ex.difficulty),
+          frequencies: mixedFreq(ex.correctAction, ex.difficulty, ex.villainAction === 'Check'),
         };
         await prisma.exercise.upsert({
           where: { stageId_order: { stageId: stage.id, order: exOrder } },
