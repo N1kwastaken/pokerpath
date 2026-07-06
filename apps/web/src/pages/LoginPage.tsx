@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext.js';
 import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
 import { IconCheck } from '../components/Icons.js';
+import { PasswordField } from '../components/PasswordField.js';
 
 /** Tela de login (repaginada) com "lembrar de mim". */
 export function LoginPage() {
@@ -44,8 +45,7 @@ export function LoginPage() {
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">
         <input className="field" type="email" placeholder="E-mail" autoComplete="email"
           value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="field" type="password" placeholder="Senha" autoComplete="current-password"
-          value={password} onChange={(e) => setPassword(e.target.value)} />
+        <PasswordField value={password} onChange={setPassword} placeholder="Senha" autoComplete="current-password" />
 
         <button type="button" onClick={() => setRemember((v) => !v)}
           className="flex items-center gap-2.5 self-start py-1 text-sm font-medium text-text">

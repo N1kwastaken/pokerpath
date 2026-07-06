@@ -4,6 +4,7 @@ import { registerSchema } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
+import { PasswordField } from '../components/PasswordField.js';
 
 /** Tela de cadastro (repaginada). */
 export function RegisterPage() {
@@ -45,8 +46,7 @@ export function RegisterPage() {
           value={name} onChange={(e) => setName(e.target.value)} />
         <input className="field" type="email" placeholder="E-mail" autoComplete="email"
           value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input className="field" type="password" placeholder="Senha (mín. 8 caracteres)" autoComplete="new-password"
-          value={password} onChange={(e) => setPassword(e.target.value)} />
+        <PasswordField value={password} onChange={setPassword} placeholder="Senha (mín. 8 caracteres)" autoComplete="new-password" />
         {error && <p className="text-sm text-error">{error}</p>}
         <button className="btn-primary mt-2 w-full text-lg" disabled={submitting}>
           {submitting ? 'Criando conta...' : 'Criar conta grátis'}

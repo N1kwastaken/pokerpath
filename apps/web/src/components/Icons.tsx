@@ -36,6 +36,12 @@ export const IconBolt = ({ size = 24, className }: P) => (
 export const IconCheck = ({ size = 24, className }: P) => (
   <svg {...base(size, className)}><path d="M20 6 9 17l-5-5" /></svg>
 );
+export const IconEye = ({ size = 24, className }: P) => (
+  <svg {...base(size, className)}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="3" /></svg>
+);
+export const IconEyeOff = ({ size = 24, className }: P) => (
+  <svg {...base(size, className)}><path d="M3 3l18 18" /><path d="M10.6 5.8A9.8 9.8 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17.3 17.3 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9.4 9.4 0 0 0 4.3-1.1" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
+);
 export const IconStar = ({ size = 24, className }: P) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
     <path d="M12 2.6l2.8 5.9 6.4.8-4.7 4.4 1.2 6.3L12 16.9 6.3 20l1.2-6.3L2.8 9.3l6.4-.8L12 2.6Z" />
