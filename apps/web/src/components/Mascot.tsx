@@ -16,14 +16,16 @@ import { useEffect, useState } from 'react';
 export type MascotMood = 'happy' | 'excited' | 'cheer' | 'win' | 'teaching' | 'wave' | 'sad' | 'angry' | 'think' | 'sleep';
 
 /**
- * Posição de cada mood no SEU sheet (grade 4 colunas × 5 linhas): [coluna, linha].
- * Solte a arte em `public/mascot-sheet.png` (idealmente fundo transparente) e o
- * app passa a usar SEUS desenhos automaticamente; sem o arquivo, usa o SVG.
+ * Posição de cada mood no sheet de expressões (grade 5 colunas × 4 linhas):
+ * [coluna, linha]. Linha 0: idle/happy/laughing/excited/wink · 1: thinking/
+ * curious/surprised/shocked/proud · 2: focused/determined/angry/nervous/
+ * confused · 3: sad/crying/sleepy/celebrating/victory.
  */
 const SPRITE: Record<MascotMood, [number, number]> = {
-  happy: [1, 0], wave: [2, 0], excited: [3, 0], cheer: [0, 4], win: [3, 4],
-  teaching: [1, 1], think: [2, 2], sad: [0, 2], angry: [2, 3], sleep: [1, 4],
+  happy: [1, 0], wave: [4, 0], excited: [3, 0], cheer: [3, 3], win: [4, 3],
+  teaching: [4, 1], think: [0, 1], sad: [0, 3], angry: [1, 2], sleep: [2, 3],
 };
+const GRID = { cols: 5, rows: 4 };
 
 export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: MascotMood; size?: number; float?: boolean }) {
   const [sheetOk, setSheetOk] = useState(false);
@@ -40,8 +42,8 @@ export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: Ma
         <div style={{
           width: size, height: size,
           backgroundImage: 'url(/mascot-sheet.png)',
-          backgroundSize: '400% 500%',
-          backgroundPosition: `${(col * 100) / 3}% ${(row * 100) / 4}%`,
+          backgroundSize: `${GRID.cols * 100}% ${GRID.rows * 100}%`,
+          backgroundPosition: `${(col * 100) / (GRID.cols - 1)}% ${(row * 100) / (GRID.rows - 1)}%`,
           backgroundRepeat: 'no-repeat',
         }} />
       ) : (

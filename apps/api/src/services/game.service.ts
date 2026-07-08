@@ -579,7 +579,7 @@ export async function submitAnswer(
 
 
 // ─── Concluir uma AULA (fase sem exercícios) ───────────────────
-export async function completeLesson(userId: string, stageId: string): Promise<LessonResult> {
+export async function completeLesson(userId: string, stageId: string, perfect = false): Promise<LessonResult> {
   const user = await prisma.user.findUnique({ where: { id: userId }, include: { streak: true } });
   if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
 
@@ -601,14 +601,17 @@ export async function completeLesson(userId: string, stageId: string): Promise<L
   const wasCompleted = existing?.status === 'COMPLETED';
   const xpGained = wasCompleted ? 0 : stage.xpReward;
 
+  // Aula perfeita (todos os quizzes certos de primeira) ganha a ficha dourada.
+  const perfectAt = existing?.perfectAt ?? (perfect ? new Date() : null);
   await prisma.userProgress.upsert({
     where: { userId_stageId: { userId, stageId } },
     update: {
       status: 'COMPLETED',
       xpEarned: wasCompleted ? existing?.xpEarned ?? 0 : stage.xpReward,
       completedAt: existing?.completedAt ?? new Date(),
+      perfectAt,
     },
-    create: { userId, stageId, status: 'COMPLETED', xpEarned: stage.xpReward, completedAt: new Date() },
+    create: { userId, stageId, status: 'COMPLETED', xpEarned: stage.xpReward, completedAt: new Date(), perfectAt },
   });
 
   const totalXp = user.totalXp + xpGained;
@@ -641,6 +644,30 @@ export async function completeLesson(userId: string, stageId: string): Promise<L
 }
 
 // ─── Pular "Primeiros Passos" (Mundo 0) ────────────────────────
+/**
+ * Prova de nivelamento: marca todos os mundos ANTERIORES ao nível recomendado
+ * como completos, colocando o usuário direto no nível certo (0 = do zero).
+ */
+export async function placeAtLevel(userId: string, level: number): Promise<{ ok: true; completed: number }> {
+  const lv = Math.max(0, Math.min(3, Math.floor(level)));
+  const worlds = await prisma.world.findMany({
+    where: { order: { lt: lv } },
+    include: { stages: { select: { id: true } } },
+  });
+  let completed = 0;
+  for (const w of worlds) {
+    for (const st of w.stages) {
+      await prisma.userProgress.upsert({
+        where: { userId_stageId: { userId, stageId: st.id } },
+        update: { status: 'COMPLETED', completedAt: new Date() },
+        create: { userId, stageId: st.id, status: 'COMPLETED', completedAt: new Date() },
+      });
+      completed++;
+    }
+  }
+  return { ok: true, completed };
+}
+
 export async function skipBasics(userId: string): Promise<{ ok: true; count: number }> {
   const w0 = await prisma.world.findUnique({ where: { order: 0 }, include: { stages: { select: { id: true } } } });
   if (!w0) return { ok: true, count: 0 };

@@ -18,11 +18,13 @@ export const gameApi = {
   world: (worldId: string) => apiRequest<{ world: WorldDetail }>(`/worlds/${worldId}`).then((r) => r.world),
   stage: (stageId: string, resume = false) => apiRequest<StagePlay>(`/stages/${stageId}${resume ? '?resume=1' : ''}`),
   answer: (input: AnswerInput) => apiRequest<AnswerResult>('/answers', { method: 'POST', body: input }),
-  completeLesson: (stageId: string) => apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST' }),
+  completeLesson: (stageId: string, perfect = false) =>
+    apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST', body: { perfect } }),
   stats: () => apiRequest<StatsResult>('/stats'),
   energy: () => apiRequest<EnergyState>('/energy'),
   review: () => apiRequest<{ review: ReviewItem[] }>('/review').then((r) => r.review),
   skipBasics: () => apiRequest<{ ok: true; count: number }>('/skip-basics', { method: 'POST' }),
+  placement: (level: number) => apiRequest<{ ok: true; completed: number }>('/placement', { method: 'POST', body: { level } }),
   range: (f: RangeFilters) =>
     apiRequest<{ range: RangeGrid | null }>(
       `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}&scenario=${f.scenario ?? 'RFI'}`,

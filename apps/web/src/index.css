@@ -31,6 +31,10 @@
     color-scheme: light;
   }
 
+  /* Rolagem horizontal sem barra: touch no celular; roda do mouse já rola de lado. */
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
   html {
     height: 100%;
     /* App-like no celular: sem double-tap-zoom e sem auto-inflar texto. */

@@ -14,6 +14,7 @@ import {
   getTrail,
   getReview,
   skipBasics,
+  placeAtLevel,
   resetProgress,
   debugSetPlan,
   debugAddXp,
@@ -106,8 +107,8 @@ export async function gameRoutes(app: FastifyInstance) {
   });
 
 
-  app.post<{ Params: { stageId: string } }>('/stages/:stageId/complete', async (request) => {
-    return completeLesson(request.user.sub, request.params.stageId);
+  app.post<{ Params: { stageId: string }; Body: { perfect?: boolean } | null }>('/stages/:stageId/complete', async (request) => {
+    return completeLesson(request.user.sub, request.params.stageId, request.body?.perfect === true);
   });
 
   app.get('/stats', async (request) => {
@@ -124,6 +125,14 @@ export async function gameRoutes(app: FastifyInstance) {
 
   app.post('/skip-basics', async (request) => {
     return skipBasics(request.user.sub);
+  });
+
+  app.post<{ Body: { level?: number } | null }>('/placement', async (request) => {
+    const level = Number(request.body?.level);
+    if (!Number.isFinite(level) || level < 0 || level > 3) {
+      throw new BadRequestError('Nível inválido (0-3).', 'VALIDATION_ERROR');
+    }
+    return placeAtLevel(request.user.sub, level);
   });
 
   app.post('/progress/reset', async (request) => {

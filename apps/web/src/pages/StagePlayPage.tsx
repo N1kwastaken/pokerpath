@@ -21,6 +21,7 @@ import { LessonVisual } from '../components/LessonVisual.js';
 import { lessonFor } from '../content/lessons.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { Glossarized } from '../components/Glossarized.js';
+import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
 import { sound } from '../lib/sound.js';
 
 // Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
@@ -80,10 +81,12 @@ export function StagePlayPage() {
   const [lessonIdx, setLessonIdx] = useState(0);
   const [quizPick, setQuizPick] = useState<number | null>(null);
   const [handPick, setHandPick] = useState<'FOLD' | 'RAISE' | null>(null);
+  const [lessonMistakes, setLessonMistakes] = useState(0);
   const [phase, setPhase] = useState<Phase>('playing');
   const [idx, setIdx] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetPrev, setSheetPrev] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(() => tableTutorialPending());
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [lastChoice, setLastChoice] = useState<Action | null>(null);
   const [answers, setAnswers] = useState<boolean[]>([]);
@@ -107,7 +110,7 @@ export function StagePlayPage() {
   }
 
   const lessonMut = useMutation({
-    mutationFn: () => gameApi.completeLesson(stageId!),
+    mutationFn: () => gameApi.completeLesson(stageId!, lessonMistakes === 0),
     onSuccess: (res) => {
       sound.correct();
       if (stageId) localStorage.setItem('pp.justCompleted', stageId);
@@ -265,8 +268,8 @@ export function StagePlayPage() {
                 </>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => { setHandPick('FOLD'); step.answer === 'FOLD' ? sound.correct() : sound.wrong(); }} className="btn3d rounded-2xl bg-subtle py-4 font-bold text-white">Fold</button>
-                  <button onClick={() => { setHandPick('RAISE'); step.answer === 'RAISE' ? sound.correct() : sound.wrong(); }} className="btn3d rounded-2xl bg-primary py-4 font-bold text-white">Raise</button>
+                  <button onClick={() => { setHandPick('FOLD'); if (step.answer === 'FOLD') sound.correct(); else { sound.wrong(); setLessonMistakes((m) => m + 1); } }} className="btn3d rounded-2xl bg-subtle py-4 font-bold text-white">Fold</button>
+                  <button onClick={() => { setHandPick('RAISE'); if (step.answer === 'RAISE') sound.correct(); else { sound.wrong(); setLessonMistakes((m) => m + 1); } }} className="btn3d rounded-2xl bg-primary py-4 font-bold text-white">Raise</button>
                 </div>
               )}
             </div>
@@ -293,7 +296,7 @@ export function StagePlayPage() {
                     else cls = 'chip-off opacity-50';
                   }
                   return (
-                    <button key={i} disabled={answered} onClick={() => { setQuizPick(i); correct ? sound.correct() : sound.wrong(); }} className={`chip w-full text-left ${cls}`}>{opt}</button>
+                    <button key={i} disabled={answered} onClick={() => { setQuizPick(i); if (correct) sound.correct(); else { sound.wrong(); setLessonMistakes((m) => m + 1); } }} className={`chip w-full text-left ${cls}`}>{opt}</button>
                   );
                 })}
               </div>
@@ -312,7 +315,7 @@ export function StagePlayPage() {
             onClick={() => { if (last) { sound.click(); lessonMut.mutate(); } else { sound.click(); setLessonIdx((i) => i + 1); setQuizPick(null); setHandPick(null); } }}>
             {needsAnswer && !answered ? 'Responda para continuar' : last ? (lessonMut.isPending ? 'Concluindo...' : 'Concluir aula') : 'Próximo'}
           </button>
-          {!last && <button className="btn-ghost w-full" onClick={() => { setLessonIdx(steps.length - 1); setQuizPick(null); setHandPick(null); }}>Pular ao fim</button>}
+          {!last && <button className="btn-ghost w-full" onClick={() => { setLessonIdx(steps.length - 1); setQuizPick(null); setHandPick(null); setLessonMistakes((m) => m + 1); }}>Pular ao fim</button>}
         </div>
       </div>
     );
@@ -482,6 +485,11 @@ export function StagePlayPage() {
       </aside>
 
       </div>
+
+      {/* Tutorial guiado: só na primeira prática de mesa da vida do usuário */}
+      {tutorialOpen && phase === 'playing' && answers.length === 0 && (
+        <TableTutorial onDone={() => setTutorialOpen(false)} />
+      )}
 
       {/* Cheat-sheet: balão com o range da posição (e comparação com a anterior) */}
       {sheetOpen && cheatPos && (

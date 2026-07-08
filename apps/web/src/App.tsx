@@ -18,6 +18,7 @@ import { AchievementsPage } from './pages/AchievementsPage.js';
 import { GlossaryPage } from './pages/GlossaryPage.js';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './pages/ResetPasswordPage.js';
+import { PlacementPage } from './pages/PlacementPage.js';
 
 export function App() {
   return (
@@ -39,6 +40,7 @@ export function App() {
           <Route element={<RequireOnboarding />}>
             {/* Trainer em tela cheia (sem bottom nav) */}
             <Route path="/stages/:stageId" element={<StagePlayPage />} />
+            <Route path="/placement" element={<PlacementPage />} />
             <Route path="/tour" element={<IntroPage review />} />
             {/* Telas com navegação inferior */}
             <Route element={<AppShell />}>

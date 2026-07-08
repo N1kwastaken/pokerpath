@@ -80,7 +80,7 @@ export function LessonVisual({ visual }: { visual: 'suits' | 'order' | 'ranking'
         <div className="flex items-center justify-between px-1 text-[11px] font-bold uppercase tracking-wide text-subtle">
           <span>Mais fraco</span><span>Mais forte →</span>
         </div>
-        <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
+        <div className="mt-2 flex gap-1.5 no-scrollbar overflow-x-auto">
           {ORDER.map((r) => <MiniCard key={r} rank={r} suit="♠" />)}
         </div>
       </div>
@@ -111,7 +111,7 @@ export function LessonVisual({ visual }: { visual: 'suits' | 'order' | 'ranking'
                 <span className="font-bold text-title">{d.name}</span>
                 <span className="ml-auto text-right text-[11px] leading-tight text-subtle">{d.note}</span>
               </div>
-              <div className="flex items-end gap-2 overflow-x-auto pb-1">
+              <div className="flex items-end gap-2 no-scrollbar overflow-x-auto">
                 <div>
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-primary">Sua mão</p>
                   <HandRow cards={d.hole} made={made} />

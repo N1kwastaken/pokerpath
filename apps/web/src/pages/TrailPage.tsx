@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { WorldDetail, StageSummary } from '@pokerpath/shared';
 import { useTrail } from '../hooks/useGame.js';
 import { useAuth } from '../auth/AuthContext.js';
-import { gameApi } from '../api/game.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { IconCheck, IconLock, IconBook, IconTarget, IconStar } from '../components/Icons.js';
 import { stageGroup, categoryColor, categoryDesc } from '../lib/stageGroup.js';
@@ -51,9 +49,7 @@ export function TrailPage() {
   const isFree = user?.plan !== 'PREMIUM';
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
   const fromExercise = !!(location.state as { fromExercise?: boolean } | null)?.fromExercise;
-  const skipMut = useMutation({ mutationFn: () => gameApi.skipBasics(), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trail'] }) });
 
   const currentRef = useRef<HTMLDivElement>(null);
   const [completedId] = useState<string | null>(() => {
@@ -112,7 +108,7 @@ export function TrailPage() {
       {trail && selected && (
         <>
           {/* Seletor de mundos */}
-          <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          <div className="mb-4 flex gap-2 no-scrollbar overflow-x-auto">
             {trail.map((w) => {
               const lock = w.locked || w.premiumLocked;
               const on = w.id === selected.id;
@@ -137,9 +133,9 @@ export function TrailPage() {
             </span>
           </div>
           {selected.order === 0 && selected.stages.some((s) => s.status !== 'COMPLETED') && (
-            <button onClick={() => skipMut.mutate()} disabled={skipMut.isPending}
-              className="mb-2 w-full rounded-lg border border-line bg-card2 py-2 text-xs font-bold text-subtle active:scale-[0.99] disabled:opacity-60">
-              {skipMut.isPending ? 'Pulando...' : 'Já joguei — pular os primeiros passos'}
+            <button onClick={() => navigate('/placement')}
+              className="mb-2 w-full rounded-lg border border-white/15 bg-black/25 py-2 text-xs font-bold text-white/80 active:scale-[0.99]">
+              🎓 Já sei jogar — fazer a prova de nivelamento
             </button>
           )}
 
@@ -231,7 +227,14 @@ function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef, prem
 
   return (
     <div ref={nodeRef} className="flex flex-col items-center" style={{ transform: `translateX(${DX[idx % DX.length]}px)` }}>
-      <div className="h-6 w-0 border-l-2 border-dashed" style={{ borderColor: completed ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.14)' }} />
+      {/* Conector: liga esta ficha à PRÓXIMA (que fica acima, com outro offset) */}
+      <svg width="80" height="24" className="overflow-visible" aria-hidden>
+        <line
+          x1={40 + (DX[(idx + 1) % DX.length] - DX[idx % DX.length])} y1="0" x2="40" y2="24"
+          stroke={completed ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.14)'}
+          strokeWidth="2.5" strokeDasharray="4 6" strokeLinecap="round"
+        />
+      </svg>
       {isCurrent && revealed && (
         <span title="Sua vez — jogue esta fase"
           className="relative z-10 mb-1 flex h-7 w-7 animate-float items-center justify-center rounded-full bg-white text-[13px] font-black text-black shadow-pop ring-2 ring-black/20">
