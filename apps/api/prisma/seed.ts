@@ -187,6 +187,7 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'UTG', heroHand: 'Q♠J♠', correctAction: 'FOLD', difficulty: 'HARD', category: 'OPEN_RAISE', explanation: 'QJs é fold de UTG.' },
         ],
       },
+{ title: 'Como ler o gráfico', concept: 'Ler o gráfico', description: 'O mapa de mãos 13x13, sem mistério.', minExercises: 0, passRate: 0, xpReward: 20, exercises: [] },
 { title: 'UTG: a primeira a falar', concept: 'UTG explicado', description: 'Por que abrir de UTG é o mais difícil.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       { title: 'O range premium do UTG', concept: 'Range de UTG', description: 'TT+, AQ+ e poucas suited. Só isso.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {

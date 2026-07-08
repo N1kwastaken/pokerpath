@@ -31,6 +31,7 @@ const ACT: { key: Action; label: string; color: string }[] = [
 ];
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
 const LESSON_POSITION: Record<string, Position> = {
+  'Ler o gráfico': 'UTG',
   'UTG explicado': 'UTG', 'Range de UTG': 'UTG',
   'MP explicado': 'MP', 'Range de MP': 'MP',
   'CO explicado': 'CO', 'Range de CO': 'CO',

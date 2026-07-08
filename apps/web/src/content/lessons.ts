@@ -27,7 +27,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`No poker você quer ganhar fichas: ter a melhor mão OU fazer todos desistirem.`),
     t(`Você recebe 2 cartas suas; até 5 ficam na mesa, para todos.`),
     quiz(`Dá pra ganhar sem ter a melhor mão?`, ['Não', 'Sim, fazendo todos desistirem'], 1,
-      `Sim! Se todos foldam, você leva o pote sem mostrar as cartas.`),
+      `Sim! Se todos desistem, as fichas apostadas são suas — sem nem mostrar as cartas.`),
   ],
   'Baralho e naipes': [
     t(`São 52 cartas em 4 naipes:`),
@@ -48,8 +48,10 @@ export const LESSONS: Record<string, LessonStep[]> = {
       `Trinca de Ases: as duas da mão + o Ás da mesa = três iguais.`),
   ],
   'Anatomia de uma rodada': [
-    t(`Antes das cartas, SB e BB pagam apostas obrigatórias (os blinds) e criam o pote.`),
-    t(`Ações: Fold (desistir), Call (pagar), Check (passar de graça), Raise (aumentar).`),
+    t(`Antes das cartas, dois jogadores pagam apostas obrigatórias, chamadas BLINDS: o small blind (SB, a menor) e o big blind (BB, a maior).`),
+    t(`Essas fichas vão para o meio da mesa e formam o POTE — o prêmio em disputa na rodada.`),
+    t(`Na sua vez, você escolhe UMA ação: FOLD (desistir da mão), CALL (pagar a aposta), CHECK (passar a vez de graça, se ninguém apostou) ou RAISE (aumentar a aposta).`),
+    t(`Depois vêm as cartas da mesa, em 3 etapas: FLOP (3 cartas de uma vez), TURN (mais 1) e RIVER (a última).`),
     quiz(`Ninguém apostou e você quer ver a carta de graça. Qual ação?`, ['Fold', 'Check', 'Raise'], 1,
       `Check: sem aposta para pagar, você passa de graça.`),
     quiz(`O vilão apostou e você quer continuar pagando o valor. Qual ação?`, ['Call', 'Check'], 0,
@@ -65,7 +67,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
     h('UTG', 'A♠J♣', 'FOLD', `A mesma AJo, mas de UTG (primeiro a agir), é fold.`),
   ],
   'Abrir o pote': [
-    t(`Open raise = ser o primeiro a aumentar. Sizing padrão: ~2,5x o big blind.`),
+    t(`Open raise = ser o primeiro a aumentar a aposta. O tamanho padrão é ~2,5x o big blind (a aposta obrigatória maior).`),
     h('CO', 'A♣A♦', 'RAISE', `AA é premium — sempre raise ao abrir.`),
     t(`Da SB abre-se maior (~3x): você jogará fora de posição contra o BB, então cobra mais caro.`),
   ],
@@ -78,6 +80,15 @@ export const LESSONS: Record<string, LessonStep[]> = {
     h('BTN', 'K♣Q♦', 'RAISE', `KQo abre no botão…`),
     h('UTG', 'K♣Q♦', 'FOLD', `…mas a mesma KQo é fold de UTG.`),
     t(`Pronto para o teste final! 🚀`),
+  ],
+
+  'Ler o gráfico': [
+    t(`Este é um GRÁFICO DE MÃOS — o mapa que diz o que fazer com cada mão inicial. Cada quadradinho é uma combinação das suas 2 cartas:`),
+    t(`A DIAGONAL são os pares (AA, KK… 22). ACIMA dela ficam as mãos do MESMO naipe (AKs, o "s" de suited). ABAIXO, as de naipes diferentes (AKo, o "o" de offsuit).`),
+    t(`As cores dizem a ação: VERDE = aumentar (raise) e CINZA = descartar (fold). Quadradinho dividido = mão de fronteira: joga das duas formas, na proporção das cores.`),
+    quiz(`AKs (A e K do mesmo naipe) fica onde no gráfico?`, ['Acima da diagonal', 'Abaixo da diagonal'], 0,
+      `Mesmo naipe (suited) = acima da diagonal. Naipes diferentes (offsuit) = abaixo.`),
+    t(`Última convenção: "TT+" quer dizer "par de dez OU MELHOR" (TT, JJ, QQ…). É assim que os ranges são escritos.`),
   ],
 
   // ── Mundos 2–5 ─────────────────────────────────────────────

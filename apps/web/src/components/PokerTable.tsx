@@ -113,7 +113,7 @@ export function PokerTable({ ex }: { ex: PublicExercise }) {
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <span className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1 text-xs font-extrabold tracking-wide text-white ring-2 ring-white/30">
-            {ex.heroPosition}{ex.heroPosition === 'BTN' && <Dealer />}
+            VOCÊ · {ex.heroPosition}{ex.heroPosition === 'BTN' && <Dealer />}
           </span>
           <span className="text-[10px] font-semibold tabular-nums text-white/60">{ex.stackBb} BB</span>
         </div>

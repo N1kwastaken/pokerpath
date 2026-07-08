@@ -1,5 +1,17 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+/** Volta para onde o usuário estava (fase, perfil…); fallback: perfil. */
+function BackButton() {
+  const navigate = useNavigate();
+  const hasHistory = window.history.length > 1;
+  if (!hasHistory) return <Link to="/profile" className="mb-4 inline-block text-sm font-medium text-subtle">← Perfil</Link>;
+  return (
+    <button onClick={() => navigate(-1)} className="mb-4 inline-block text-sm font-medium text-subtle">
+      ← Voltar
+    </button>
+  );
+}
 
 /** Glossário — termos essenciais do poker, em dropdowns por seção. */
 type Term = { term: string; def: string };
@@ -70,7 +82,7 @@ export function GlossaryPage({ embedded = false }: { embedded?: boolean }) {
     <div className={embedded ? '' : 'px-5 py-8'}>
       {!embedded && (
         <>
-          <Link to="/profile" className="mb-4 inline-block text-sm font-medium text-subtle">← Perfil</Link>
+          <BackButton />
           <h1 className="text-3xl font-bold text-title">Glossário</h1>
           <p className="mt-1 text-subtle">Toque numa seção para ver os termos.</p>
         </>
