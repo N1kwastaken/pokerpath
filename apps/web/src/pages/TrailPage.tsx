@@ -92,10 +92,15 @@ export function TrailPage() {
   }, [currentStageId, selId]);
 
   return (
-    <div className="px-5 py-7">
+    <div
+      className="min-h-dvh px-5 py-7"
+      style={{
+        background: 'radial-gradient(ellipse at 50% 0%, #14513a 0%, #0d3527 45%, #082418 100%)',
+      }}
+    >
       <header className="mb-3">
-        <p className="text-xs text-subtle">Sua jornada</p>
-        <h1 className="text-2xl font-bold text-title">Treino</h1>
+        <p className="text-xs text-white/55">Sua jornada</p>
+        <h1 className="text-2xl font-bold text-white">Treino</h1>
       </header>
 
       {isLoading && <LogoLoader inline label="Carregando trilha..." />}
@@ -161,13 +166,7 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
   const groups = splitGroups(world.stages);
   const multi = groups.length > 1;
   return (
-    <div
-      className="mt-3 flex flex-col items-center overflow-hidden rounded-3xl px-3 py-6"
-      style={{
-        background: 'radial-gradient(ellipse at 50% 12%, #14513a 0%, #0d3527 55%, #082418 100%)',
-        boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.05), inset 0 0 70px rgba(0,0,0,0.55)',
-      }}
-    >
+    <div className="mt-3 flex flex-col items-center px-1 py-4">
       <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/50">🏁 Fim do mundo</p>
       {[...groups].reverse().map((grp) => {
         const done = grp.stages.filter((s) => s.status === 'COMPLETED').length;
