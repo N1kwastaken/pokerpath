@@ -9,11 +9,13 @@ import { IconCheck, IconLock, IconBook, IconTarget, IconStar } from '../componen
 import { stageGroup, categoryColor, categoryDesc } from '../lib/stageGroup.js';
 
 /**
- * Trilha de UM mundo por vez (Preflop/Flop/Turn/River), sub-dividida nas
- * categorias antigas (Fundamentos, UTG, MP, CO, BTN, SB, Revisão). Ascendente.
- * O mundo atual avança sozinho ao concluir o último; há seletor de mundos.
+ * Trilha de UM mundo por vez (Preflop/Flop/Turn/River), sub-dividida em
+ * "mesas" (Fundamentos, UTG, MP, …). Ascendente, com visual de poker:
+ * feltro ao fundo, fases = FICHAS (borda listrada), fase atual marcada
+ * pelo dealer button, fase perfeita = ficha dourada.
  */
-const DX = [0, -40, -56, -40, 0, 40, 56, 40];
+const DX = [0, 18, 0, -18];
+const GOLD = '#C9A84C';
 
 function darken(hex: string, f = 0.7): string {
   const m = hex.replace('#', '');
@@ -131,8 +133,14 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
   const groups = splitGroups(world.stages);
   const multi = groups.length > 1;
   return (
-    <div className="mt-3 flex flex-col items-center">
-      <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-subtle">🏁 Fim do mundo</p>
+    <div
+      className="mt-3 flex flex-col items-center overflow-hidden rounded-3xl px-3 py-6"
+      style={{
+        background: 'radial-gradient(ellipse at 50% 12%, #14513a 0%, #0d3527 55%, #082418 100%)',
+        boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.05), inset 0 0 70px rgba(0,0,0,0.55)',
+      }}
+    >
+      <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/50">🏁 Fim do mundo</p>
       {[...groups].reverse().map((grp) => {
         const done = grp.stages.filter((s) => s.status === 'COMPLETED').length;
         const catColor = multi ? categoryColor(grp.name) : world.color;
@@ -151,6 +159,7 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
               <div className="my-5 flex items-center gap-3 rounded-2xl px-5 py-4 shadow-pop" style={{ backgroundColor: catColor }}>
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-black/20 text-xl font-black text-white">{grp.name[0]}</span>
                 <div className="min-w-0">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60">Mesa</p>
                   <h3 className="text-lg font-extrabold uppercase tracking-wide text-white">{grp.name}</h3>
                   <p className="truncate text-xs font-semibold text-white/85">{categoryDesc(grp.name)}</p>
                 </div>
@@ -160,7 +169,7 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
           </div>
         );
       })}
-      <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-subtle">Início ↑</p>
+      <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-white/50">Início ↑</p>
     </div>
   );
 }
@@ -181,17 +190,19 @@ function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef }: {
     return () => clearTimeout(t);
   }, [animateUnlock]);
 
-  const colored = color;
-  const fill = !revealed ? 'rgb(var(--subtle))' : locked ? 'rgb(var(--subtle))' : colored;
-  const edge = !revealed || locked ? 'rgba(0,0,0,0.45)' : darken(colored);
+  // Ficha: cor da mesa; dourada quando a fase foi perfeita; cinza quando travada.
+  const chipColor = completed && stage.perfect ? GOLD : color;
+  const fill = !revealed || locked ? 'rgb(var(--subtle))' : chipColor;
+  const edge = !revealed || locked ? 'rgba(0,0,0,0.45)' : darken(chipColor);
+  const stripes = !revealed || locked ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.8)';
 
   return (
     <div ref={nodeRef} className="flex flex-col items-center" style={{ transform: `translateX(${DX[idx % DX.length]}px)` }}>
-      <div className="h-6 w-1 rounded-full" style={{ backgroundColor: completed ? 'rgb(var(--primary))' : 'rgb(var(--line))' }} />
+      <div className="h-6 w-0 border-l-2 border-dashed" style={{ borderColor: completed ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.14)' }} />
       {isCurrent && revealed && (
-        <span className="relative z-10 mb-1 animate-float whitespace-nowrap rounded-lg bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide shadow-pop" style={{ color }}>
-          Começar
-          <span className="absolute -bottom-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 bg-white" />
+        <span title="Sua vez — jogue esta fase"
+          className="relative z-10 mb-1 flex h-7 w-7 animate-float items-center justify-center rounded-full bg-white text-[13px] font-black text-black shadow-pop ring-2 ring-black/20">
+          D
         </span>
       )}
       <button onClick={onOpen} disabled={locked} aria-label={stage.title} className="group relative my-1 flex items-center justify-center">
@@ -199,7 +210,12 @@ function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef }: {
           className="relative flex h-[62px] w-[62px] items-center justify-center rounded-full text-white shadow-[0_5px_0_0_var(--edge)] transition-[background-color,box-shadow] duration-700 group-active:translate-y-[3px]"
           style={{ backgroundColor: fill, ['--edge' as string]: edge } as React.CSSProperties}
         >
-          {isCurrent && revealed && <span className="absolute inset-0 animate-ping rounded-full" style={{ backgroundColor: color, opacity: 0.3 }} />}
+          {/* Borda listrada de ficha de poker */}
+          <svg className="pointer-events-none absolute inset-0" viewBox="0 0 62 62" aria-hidden>
+            <circle cx="31" cy="31" r="26.5" fill="none" stroke={stripes} strokeWidth="5" strokeDasharray="7.3 13.5" />
+            <circle cx="31" cy="31" r="20.5" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+          </svg>
+          {isCurrent && revealed && <span className="absolute inset-0 animate-ping rounded-full" style={{ backgroundColor: chipColor, opacity: 0.3 }} />}
           {completed && (
             stage.perfect ? (
               <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-white/70" title="Sessão perfeita">
