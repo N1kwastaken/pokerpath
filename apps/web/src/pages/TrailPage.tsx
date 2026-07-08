@@ -73,6 +73,24 @@ export function TrailPage() {
     return () => clearTimeout(t);
   }, [currentStageId, fromExercise]);
 
+  // Botão "ir para a fase atual": aparece quando a ficha atual sai da tela,
+  // no lado OPOSTO (fase abaixo → botão embaixo; fase acima → botão em cima).
+  const [offscreen, setOffscreen] = useState<'above' | 'below' | null>(null);
+  useEffect(() => {
+    function update() {
+      const el = currentRef.current;
+      if (!el) return setOffscreen(null);
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 90) setOffscreen('above');
+      else if (r.top > window.innerHeight - 100) setOffscreen('below');
+      else setOffscreen(null);
+    }
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { window.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [currentStageId, selId]);
+
   return (
     <div className="px-5 py-7">
       <header className="mb-3">
@@ -120,6 +138,16 @@ export function TrailPage() {
           {/* Trilha do mundo (ascendente, agrupada por categoria) */}
           <WorldTrail world={selected} currentId={currentStageId} completedId={completedId} currentRef={currentRef}
             onOpen={(id, locked, premium) => { if (premium) return navigate('/premium'); if (locked) return; navigate(`/stages/${id}`); }} />
+
+          {offscreen && (
+            <button
+              onClick={() => currentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className={`fixed left-1/2 z-40 flex -translate-x-1/2 animate-slide-up items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold text-title shadow-pop ${offscreen === 'above' ? 'top-4' : 'bottom-24'}`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-black text-black">D</span>
+              Fase atual {offscreen === 'above' ? '↑' : '↓'}
+            </button>
+          )}
         </>
       )}
     </div>
