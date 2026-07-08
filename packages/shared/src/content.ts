@@ -81,6 +81,8 @@ export interface StageSummary {
   status: ProgressStatus;
   /** Aula (sem exercícios) em vez de prática. */
   isLesson: boolean;
+  /** Conteúdo exclusivo do plano Premium (postflop dos níveis 2+). */
+  premium: boolean;
   /** Já fechou uma sessão inteira sem errar (estrela na trilha). */
   perfect: boolean;
   exercisesDone: number;

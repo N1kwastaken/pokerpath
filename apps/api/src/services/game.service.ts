@@ -37,10 +37,15 @@ import { evaluateAchievements } from './achievement.service.js';
 import { isGodmodeEmail } from '../lib/godmode.js';
 
 /** Todo o PRÉ-FLOP é grátis; o PÓS-FLOP (C-Bet em diante, Mundo 11+) é Premium. */
-const POSTFLOP_MIN_ORDER = 2;
-
-function isPremiumLocked(plan: string, worldOrder: number): boolean {
-  return plan === 'FREE' && worldOrder >= POSTFLOP_MIN_ORDER;
+/**
+ * Premium é POR FASE (coluna Stage.premium: postflop dos níveis 2+).
+ * Para o usuário FREE, fases premium ficam bloqueadas mas NÃO travam a
+ * progressão: a corrente pula por cima delas, e o mundo "conta como completo"
+ * quando todas as fases grátis foram concluídas — assim todo o preflop segue
+ * jogável em qualquer nível.
+ */
+function isStagePremiumLocked(plan: string, stagePremium: boolean): boolean {
+  return plan === 'FREE' && stagePremium;
 }
 
 function startOfToday(): Date {
@@ -67,6 +72,7 @@ function toStageSummary(
     xpReward: stage.xpReward,
     status,
     isLesson,
+    premium: stage.premium,
     perfect: !!progress?.perfectAt,
     exercisesDone: progress?.exercisesDone ?? 0,
     correctAnswers: progress?.correctAnswers ?? 0,
@@ -102,7 +108,7 @@ export async function getWorldsForUser(
 ): Promise<WorldSummary[]> {
   const worlds = await prisma.world.findMany({
     orderBy: { order: 'asc' },
-    include: { stages: { select: { id: true } } },
+    include: { stages: { select: { id: true, premium: true } } },
   });
   const progress = await prisma.userProgress.findMany({ where: { userId } });
   const progByStage = new Map(progress.map((p) => [p.stageId, p]));
@@ -130,11 +136,14 @@ export async function getWorldsForUser(
       totalStages: total,
       completedStages: completed,
       locked: !godmode && !prevWorldComplete,
-      premiumLocked: !godmode && isPremiumLocked(plan, w.order),
+      premiumLocked: false, // premium agora é por fase, não por mundo
       xpEarned,
     });
 
-    prevWorldComplete = total > 0 && completed === total;
+    // Para FREE, fases premium não contam como exigidas para "completar".
+    const required = w.stages.filter((s) => godmode || !isStagePremiumLocked(plan, s.premium));
+    const requiredDone = required.filter((s) => progByStage.get(s.id)?.status === 'COMPLETED').length;
+    prevWorldComplete = required.length > 0 && requiredDone === required.length;
   }
 
   return result;
@@ -154,9 +163,8 @@ export async function getWorldDetail(
   if (!world) throw new NotFoundError('Mundo não encontrado', 'WORLD_NOT_FOUND');
 
   // Mundo anterior precisa estar completo para este desbloquear.
-  const locked = godmode ? false : await isWorldLockedByProgression(userId, world.order);
-  const premiumLocked = godmode ? false : isPremiumLocked(plan, world.order);
-  const accessible = !locked && !premiumLocked;
+  const locked = godmode ? false : await isWorldLockedByProgression(userId, world.order, plan);
+  const accessible = !locked;
 
   const progress = await prisma.userProgress.findMany({
     where: { userId, stageId: { in: world.stages.map((s) => s.id) } },
@@ -167,12 +175,14 @@ export async function getWorldDetail(
   let prevStageComplete = true;
   for (const s of world.stages) {
     const p = progByStage.get(s.id);
+    const premiumBlocked = !godmode && isStagePremiumLocked(plan, s.premium);
     let status: ProgressStatus;
     if (p?.status === 'COMPLETED') status = 'COMPLETED';
-    else if (accessible && (godmode || prevStageComplete)) status = 'IN_PROGRESS';
+    else if (!premiumBlocked && accessible && (godmode || prevStageComplete)) status = 'IN_PROGRESS';
     else status = 'LOCKED';
     stages.push(toStageSummary(s, status, s._count.exercises === 0, p));
-    prevStageComplete = p?.status === 'COMPLETED';
+    // Fase premium não trava a corrente do usuário FREE.
+    prevStageComplete = p?.status === 'COMPLETED' || premiumBlocked;
   }
 
   return {
@@ -183,7 +193,7 @@ export async function getWorldDetail(
     icon: world.icon,
     color: world.color,
     locked,
-    premiumLocked,
+    premiumLocked: false,
     stages,
   };
 }
@@ -200,50 +210,62 @@ export async function getTrail(userId: string, plan: string, godmode = false): P
   const out: WorldDetail[] = [];
   let prevWorldComplete = true;
   for (const w of worlds) {
-    const premiumLocked = godmode ? false : isPremiumLocked(plan, w.order);
     const progressionLocked = godmode ? false : w.order > 0 && !prevWorldComplete;
-    const accessible = !premiumLocked && !progressionLocked;
+    const accessible = !progressionLocked;
 
     const stages: StageSummary[] = [];
     let prevStageComplete = true;
-    let completedCount = 0;
+    let requiredCount = 0;
+    let requiredDone = 0;
     for (const s of w.stages) {
       const p = byStage.get(s.id);
+      const premiumBlocked = !godmode && isStagePremiumLocked(plan, s.premium);
       let status: ProgressStatus;
-      if (p?.status === 'COMPLETED') { status = 'COMPLETED'; completedCount++; }
-      else if (accessible && (godmode || prevStageComplete)) status = 'IN_PROGRESS';
+      if (p?.status === 'COMPLETED') status = 'COMPLETED';
+      else if (!premiumBlocked && accessible && (godmode || prevStageComplete)) status = 'IN_PROGRESS';
       else status = 'LOCKED';
       stages.push(toStageSummary(s, status, s._count.exercises === 0, p));
-      prevStageComplete = p?.status === 'COMPLETED';
+      if (!premiumBlocked) {
+        requiredCount++;
+        if (p?.status === 'COMPLETED') requiredDone++;
+      }
+      // Fase premium não trava a corrente do usuário FREE.
+      prevStageComplete = p?.status === 'COMPLETED' || premiumBlocked;
     }
     out.push({
       id: w.id, order: w.order, name: w.name, description: w.description,
-      icon: w.icon, color: w.color, locked: progressionLocked, premiumLocked, stages,
+      icon: w.icon, color: w.color, locked: progressionLocked, premiumLocked: false, stages,
     });
-    prevWorldComplete = w.stages.length > 0 && completedCount === w.stages.length;
+    prevWorldComplete = requiredCount > 0 && requiredDone === requiredCount;
   }
   return out;
 }
 
-/** Verdadeiro se o mundo está bloqueado porque o anterior não foi concluído. */
+/**
+ * Verdadeiro se o mundo está bloqueado porque o anterior não foi concluído.
+ * Para FREE, fases premium do mundo anterior não são exigidas.
+ */
 async function isWorldLockedByProgression(
   userId: string,
   worldOrder: number,
+  plan: string,
 ): Promise<boolean> {
   if (worldOrder <= 0) return false;
   const prev = await prisma.world.findUnique({
     where: { order: worldOrder - 1 },
-    include: { stages: { select: { id: true } } },
+    include: { stages: { select: { id: true, premium: true } } },
   });
-  if (!prev || prev.stages.length === 0) return false;
+  if (!prev) return false;
+  const required = prev.stages.filter((s) => !isStagePremiumLocked(plan, s.premium));
+  if (required.length === 0) return false;
   const done = await prisma.userProgress.count({
     where: {
       userId,
       status: 'COMPLETED',
-      stageId: { in: prev.stages.map((s) => s.id) },
+      stageId: { in: required.map((s) => s.id) },
     },
   });
-  return done < prev.stages.length;
+  return done < required.length;
 }
 
 /** Garante que a fase pode ser jogada; lança erro caso contrário. */
@@ -254,32 +276,34 @@ async function assertStageAccessible(
   godmode = false,
 ): Promise<void> {
   if (godmode) return;
-  if (isPremiumLocked(plan, stage.world.order)) {
+  if (isStagePremiumLocked(plan, stage.premium)) {
     throw new ForbiddenError(
-      'Este mundo é exclusivo do plano Premium.',
+      'Esta fase é exclusiva do plano Premium.',
       'PREMIUM_REQUIRED',
     );
   }
-  if (await isWorldLockedByProgression(userId, stage.world.order)) {
+  if (await isWorldLockedByProgression(userId, stage.world.order, plan)) {
     throw new ForbiddenError(
       'Complete o mundo anterior para desbloquear este.',
       'WORLD_LOCKED',
     );
   }
-  // Fases anteriores do mesmo mundo precisam estar completas.
+  // Fases anteriores do mesmo mundo precisam estar completas (fases premium
+  // não contam para o usuário FREE — elas não travam a corrente).
   if (stage.order > 1) {
     const prevStages = await prisma.stage.findMany({
       where: { worldId: stage.worldId, order: { lt: stage.order } },
-      select: { id: true },
+      select: { id: true, premium: true },
     });
+    const required = prevStages.filter((s) => !isStagePremiumLocked(plan, s.premium));
     const done = await prisma.userProgress.count({
       where: {
         userId,
         status: 'COMPLETED',
-        stageId: { in: prevStages.map((s) => s.id) },
+        stageId: { in: required.map((s) => s.id) },
       },
     });
-    if (done < prevStages.length) {
+    if (done < required.length) {
       throw new ForbiddenError(
         'Complete a fase anterior primeiro.',
         'STAGE_LOCKED',

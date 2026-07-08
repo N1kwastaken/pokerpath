@@ -8,6 +8,9 @@ export function stageGroup(concept: string): string {
   if (/^cbet/i.test(concept)) return 'C-Bet';
   if (/^barrel/i.test(concept)) return 'Barrel';
   if (/^valuebet/i.test(concept)) return 'Value Bet';
+  if (/^flop/i.test(concept)) return 'Flop';
+  if (/^turn/i.test(concept)) return 'Turn';
+  if (/^river/i.test(concept)) return 'River';
   if (/board/i.test(concept)) return 'Leitura';
   if (/projeto/i.test(concept)) return 'Projetos';
   if (/forte/i.test(concept)) return 'Mãos fortes';
@@ -36,6 +39,9 @@ const CAT: Record<string, { color: string; desc: string }> = {
   'C-Bet': { color: '#8D6E63', desc: 'Apostar ou dar check' },
   'Barrel': { color: '#607D8B', desc: 'Segunda bala no turn' },
   'Value Bet': { color: '#9E9D24', desc: 'O river do agressor' },
+  'Flop': { color: '#E4572E', desc: 'Decisões no flop' },
+  'Turn': { color: '#20A39E', desc: 'A quarta carta' },
+  'River': { color: '#8E7CC3', desc: 'A última carta' },
   'Leitura': { color: '#20A39E', desc: 'Ler a textura do board' },
   'Mãos fortes': { color: '#E4572E', desc: 'Mãos feitas de valor' },
   'Projetos': { color: '#17A2B8', desc: 'Projetos e semi-blefe' },

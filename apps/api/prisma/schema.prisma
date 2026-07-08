@@ -116,6 +116,7 @@ model Stage {
   maxExercises Int      @default(20)
   passRate     Float    @default(0.7)
   xpReward     Int      @default(50)
+  premium      Boolean  @default(false) // conteúdo premium (postflop dos níveis 2+)
   createdAt    DateTime @default(now())
 
   exercises    Exercise[]

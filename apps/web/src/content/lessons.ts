@@ -58,6 +58,36 @@ export const LESSONS: Record<string, LessonStep[]> = {
       `Call = pagar a aposta. Não dá check quando já há aposta.`),
   ],
 
+  'Lendo sua mão': [
+    t(`Sua jogada final usa 5 cartas: as 2 da sua mão + as melhores da mesa. Vamos treinar a leitura:`),
+    quiz(`Você tem 8♠ 8♦ e a mesa mostra K♥ 8♣ 3♠. Qual é a sua jogada?`, ['Um par', 'Trinca', 'Dois pares'], 1,
+      `Trinca! Seus dois 8 + o 8 da mesa = três iguais.`),
+    quiz(`Você tem A♠ K♠ e a mesa mostra Q♠ 7♠ 2♠. E agora?`, ['Carta alta', 'Flush'], 1,
+      `Flush: cinco cartas de espadas (2 suas + 3 da mesa).`),
+    quiz(`Você tem 9♥ 8♥ e a mesa mostra 7♣ 6♦ 5♠. Qual jogada?`, ['Par', 'Sequência'], 1,
+      `Sequência: 5-6-7-8-9 em ordem.`),
+    quiz(`Você tem A♦ Q♣ e a mesa mostra Q♥ 9♠ 4♦. Sua jogada?`, ['Par de damas', 'Dois pares'], 0,
+      `Um par de damas (a sua Q + a Q da mesa), com o Ás de reforço.`),
+  ],
+  'Ações na prática': [
+    t(`Vamos treinar as 4 ações. Regra de ouro: só existe CHECK enquanto ninguém apostou.`),
+    quiz(`Ninguém apostou. Sua mão é fraca, mas dá pra ver a próxima carta de graça. O que fazer?`, ['Fold', 'Check'], 1,
+      `Check! Nunca desista de graça — ver carta grátis é sempre melhor que foldar aqui.`),
+    quiz(`O vilão apostou e sua mão é muito fraca. O que fazer?`, ['Call', 'Fold'], 1,
+      `Fold: pagar com mão fraca é queimar fichas.`),
+    quiz(`Você tem uma mão FORTÍSSIMA e o vilão apostou. Qual jogada ganha mais fichas?`, ['Call', 'Raise'], 1,
+      `Raise: com a melhor mão, aumente — faça o pote crescer.`),
+    quiz(`O vilão apostou, sua mão é boa mas não incrível, e você quer só continuar. O que fazer?`, ['Call', 'Raise'], 0,
+      `Call: paga o valor da aposta e segue na mão.`),
+  ],
+  'Mesa e posições': [
+    t(`Na mesa de 6 jogadores, cada cadeira tem um nome. O disco branco (D) marca o "dealer" e gira a cada mão:`),
+    v('positions'),
+    t(`Nos treinos, VOCÊ é sempre a cadeira de baixo, marcada em verde. Os nomes (UTG, MP, CO, BTN, SB, BB) você vai decorar com o tempo — sem pressa.`),
+    quiz(`Quem age por último vê o que todos fizeram antes. Qual é a melhor cadeira?`, ['UTG (a primeira a falar)', 'BTN (o botão)'], 1,
+      `O botão (BTN): decide por último, com o máximo de informação.`),
+  ],
+
   // ── Mundo 1 ────────────────────────────────────────────────
   'Posição (aula)': [
     t(`Posição é sua ordem de jogo. Quem age por último leva vantagem:`),

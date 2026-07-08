@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { WorldDetail, StageSummary } from '@pokerpath/shared';
 import { useTrail } from '../hooks/useGame.js';
+import { useAuth } from '../auth/AuthContext.js';
 import { gameApi } from '../api/game.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { IconCheck, IconLock, IconBook, IconTarget, IconStar } from '../components/Icons.js';
@@ -46,6 +47,8 @@ function DrawCheck({ size = 12 }: { size?: number }) {
 
 export function TrailPage() {
   const { data: trail, isLoading, isError } = useTrail();
+  const { user } = useAuth();
+  const isFree = user?.plan !== 'PREMIUM';
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -141,7 +144,7 @@ export function TrailPage() {
           )}
 
           {/* Trilha do mundo (ascendente, agrupada por categoria) */}
-          <WorldTrail world={selected} currentId={currentStageId} completedId={completedId} currentRef={currentRef}
+          <WorldTrail world={selected} currentId={currentStageId} completedId={completedId} currentRef={currentRef} isFree={isFree}
             onOpen={(id, locked, premium) => { if (premium) return navigate('/premium'); if (locked) return; navigate(`/stages/${id}`); }} />
 
           {offscreen && (
@@ -159,9 +162,9 @@ export function TrailPage() {
   );
 }
 
-function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
+function WorldTrail({ world, currentId, completedId, currentRef, onOpen, isFree }: {
   world: WorldDetail; currentId?: string; completedId: string | null; currentRef: React.Ref<HTMLDivElement>;
-  onOpen: (id: string, locked: boolean, premium: boolean) => void;
+  onOpen: (id: string, locked: boolean, premium: boolean) => void; isFree: boolean;
 }) {
   const groups = splitGroups(world.stages);
   const multi = groups.length > 1;
@@ -175,11 +178,12 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
           <div key={grp.name} className="w-full">
             {[...grp.stages].reverse().map((s, ri) => {
               const i = grp.stages.length - 1 - ri;
+              const premiumLocked = isFree && s.premium && s.status !== 'COMPLETED';
               return (
                 <Node key={s.id} stage={s} color={catColor} idx={i}
-                  isCurrent={s.id === currentId} completedId={completedId}
+                  isCurrent={s.id === currentId} completedId={completedId} premiumLocked={premiumLocked}
                   nodeRef={s.id === currentId ? currentRef : undefined}
-                  onOpen={() => onOpen(s.id, s.status === 'LOCKED', world.premiumLocked)} />
+                  onOpen={() => onOpen(s.id, s.status === 'LOCKED' && !premiumLocked, premiumLocked)} />
               );
             })}
             {multi && (
@@ -201,10 +205,11 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen }: {
   );
 }
 
-function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef }: {
+function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef, premiumLocked }: {
   stage: StageSummary; color: string; idx: number; isCurrent: boolean; completedId: string | null; onOpen: () => void; nodeRef?: React.Ref<HTMLDivElement>;
+  premiumLocked: boolean;
 }) {
-  const locked = stage.status === 'LOCKED';
+  const locked = stage.status === 'LOCKED' && !premiumLocked;
   const completed = stage.status === 'COMPLETED';
   const lesson = stage.isLesson;
   const justChecked = !!completedId && stage.id === completedId;
@@ -219,9 +224,10 @@ function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef }: {
 
   // Ficha: cor da mesa; dourada quando a fase foi perfeita; cinza quando travada.
   const chipColor = completed && stage.perfect ? GOLD : color;
-  const fill = !revealed || locked ? 'rgb(var(--subtle))' : chipColor;
-  const edge = !revealed || locked ? 'rgba(0,0,0,0.45)' : darken(chipColor);
-  const stripes = !revealed || locked ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.8)';
+  const dimmed = !revealed || locked || premiumLocked;
+  const fill = dimmed ? 'rgb(var(--subtle))' : chipColor;
+  const edge = dimmed ? 'rgba(0,0,0,0.45)' : darken(chipColor);
+  const stripes = dimmed ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.8)';
 
   return (
     <div ref={nodeRef} className="flex flex-col items-center" style={{ transform: `translateX(${DX[idx % DX.length]}px)` }}>
@@ -255,7 +261,10 @@ function Node({ stage, color, idx, isCurrent, completedId, onOpen, nodeRef }: {
             )
           )}
           <span className="relative flex items-center">
-            {locked ? <IconLock size={22} /> : completed ? <IconCheck size={26} /> : lesson ? <IconBook size={24} /> : <IconTarget size={24} />}
+            {premiumLocked ? <IconLock size={22} className="text-gold" />
+              : locked ? <IconLock size={22} />
+              : completed ? <IconCheck size={26} />
+              : lesson ? <IconBook size={24} /> : <IconTarget size={24} />}
           </span>
         </span>
       </button>
