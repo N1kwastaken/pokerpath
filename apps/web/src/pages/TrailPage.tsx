@@ -142,7 +142,7 @@ export function TrailPage() {
           {offscreen && (
             <button
               onClick={() => currentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              className={`fixed left-1/2 z-40 flex -translate-x-1/2 animate-slide-up items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold text-title shadow-pop ${offscreen === 'above' ? 'top-4' : 'bottom-24'}`}
+              className={`fixed inset-x-0 z-40 mx-auto flex w-fit animate-slide-up items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold text-title shadow-pop ${offscreen === 'above' ? 'top-4' : 'bottom-24'}`}
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-black text-black">D</span>
               Fase atual {offscreen === 'above' ? '↑' : '↓'}
