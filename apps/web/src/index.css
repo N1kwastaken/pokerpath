@@ -15,6 +15,9 @@
     --primary: 31 164 99;
     --primary2: 22 120 71;
     --primary-soft: 16 38 28;
+    --felt-1: #14513a;
+    --felt-2: #0d3527;
+    --felt-3: #082418;
     color-scheme: dark;
   }
   [data-theme='light'] {
@@ -28,8 +31,22 @@
     --primary: 27 138 76;
     --primary2: 20 92 52;
     --primary-soft: 214 240 224;
+    /* Feltro mais claro e alegre no modo light. */
+    --felt-1: #2fa06b;
+    --felt-2: #1f8354;
+    --felt-3: #15653f;
     color-scheme: light;
   }
+
+  /* ── Cor de destaque escolhida pelo usuário (efeito IKEA) ── */
+  [data-accent='blue'] { --primary: 59 130 246; --primary2: 38 99 196; --primary-soft: 14 28 52; }
+  [data-theme='light'][data-accent='blue'] { --primary: 37 99 235; --primary2: 29 78 186; --primary-soft: 219 234 254; }
+  [data-accent='purple'] { --primary: 147 92 246; --primary2: 111 66 193; --primary-soft: 32 22 54; }
+  [data-theme='light'][data-accent='purple'] { --primary: 124 58 237; --primary2: 96 42 190; --primary-soft: 233 221 253; }
+  [data-accent='orange'] { --primary: 234 124 42; --primary2: 186 92 26; --primary-soft: 50 28 12; }
+  [data-theme='light'][data-accent='orange'] { --primary: 217 104 24; --primary2: 172 78 16; --primary-soft: 253 230 211; }
+  [data-accent='pink'] { --primary: 231 76 145; --primary2: 184 51 110; --primary-soft: 52 18 33; }
+  [data-theme='light'][data-accent='pink'] { --primary: 214 51 122; --primary2: 168 34 92; --primary-soft: 251 219 233; }
 
   /* Rolagem horizontal sem barra: touch no celular; roda do mouse já rola de lado. */
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }

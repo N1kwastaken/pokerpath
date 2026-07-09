@@ -94,7 +94,7 @@ export function TrailPage() {
     <div
       className="min-h-dvh px-5 py-7"
       style={{
-        background: 'radial-gradient(ellipse at 50% 0%, #14513a 0%, #0d3527 45%, #082418 100%)',
+        background: 'radial-gradient(ellipse at 50% 0%, var(--felt-1) 0%, var(--felt-2) 45%, var(--felt-3) 100%)',
       }}
     >
       <header className="mb-3">

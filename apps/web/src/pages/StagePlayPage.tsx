@@ -22,6 +22,7 @@ import { lessonFor } from '../content/lessons.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { Glossarized } from '../components/Glossarized.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
+import { OrderGame, MatchGame } from '../components/LessonGames.js';
 import { sound } from '../lib/sound.js';
 
 // Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
@@ -81,6 +82,7 @@ export function StagePlayPage() {
   const [lessonIdx, setLessonIdx] = useState(0);
   const [quizPick, setQuizPick] = useState<number | null>(null);
   const [handPick, setHandPick] = useState<'FOLD' | 'RAISE' | null>(null);
+  const [gameDone, setGameDone] = useState(false);
   const [lessonMistakes, setLessonMistakes] = useState(0);
   const [phase, setPhase] = useState<Phase>('playing');
   const [idx, setIdx] = useState(0);
@@ -229,8 +231,12 @@ export function StagePlayPage() {
     const steps = lessonFor(data.stage.concept);
     const step = steps[lessonIdx];
     const last = lessonIdx >= steps.length - 1;
-    const needsAnswer = step.kind === 'quiz' || step.kind === 'hand';
-    const answered = step.kind === 'hand' ? handPick !== null : step.kind === 'quiz' ? quizPick !== null : true;
+    const needsAnswer = step.kind === 'quiz' || step.kind === 'hand' || step.kind === 'order' || step.kind === 'match';
+    const answered =
+      step.kind === 'hand' ? handPick !== null
+      : step.kind === 'quiz' ? quizPick !== null
+      : step.kind === 'order' || step.kind === 'match' ? gameDone
+      : true;
     return (
       <div className="flex min-h-dvh flex-col px-6 py-8">
         <div className="flex items-center justify-between">
@@ -239,7 +245,7 @@ export function StagePlayPage() {
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <Mascot mood="happy" size={44} float={false} />
+          <Mascot mood="happy" size={72} float={false} />
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Aula</p>
             <h1 className="truncate text-xl font-extrabold leading-tight text-title">{data.stage.title}</h1>
@@ -273,6 +279,12 @@ export function StagePlayPage() {
                 </div>
               )}
             </div>
+          ) : step.kind === 'order' ? (
+            <OrderGame key={lessonIdx} prompt={step.prompt} items={step.items} explain={step.explain}
+              onComplete={() => setGameDone(true)} onMistake={() => setLessonMistakes((m) => m + 1)} />
+          ) : step.kind === 'match' ? (
+            <MatchGame key={lessonIdx} prompt={step.prompt} pairs={step.pairs} explain={step.explain}
+              onComplete={() => setGameDone(true)} onMistake={() => setLessonMistakes((m) => m + 1)} />
           ) : step.kind === 'text' ? (
             <>
               <div className="whitespace-pre-line px-1 text-xl font-medium leading-relaxed text-title"><Glossarized text={step.text} /></div>
@@ -312,10 +324,10 @@ export function StagePlayPage() {
 
         <div className="space-y-3 pt-4">
           <button className="btn-primary w-full" disabled={(needsAnswer && !answered) || lessonMut.isPending}
-            onClick={() => { if (last) { sound.click(); lessonMut.mutate(); } else { sound.click(); setLessonIdx((i) => i + 1); setQuizPick(null); setHandPick(null); } }}>
+            onClick={() => { if (last) { sound.click(); lessonMut.mutate(); } else { sound.click(); setLessonIdx((i) => i + 1); setQuizPick(null); setHandPick(null); setGameDone(false); } }}>
             {needsAnswer && !answered ? 'Responda para continuar' : last ? (lessonMut.isPending ? 'Concluindo...' : 'Concluir aula') : 'Próximo'}
           </button>
-          {!last && <button className="btn-ghost w-full" onClick={() => { setLessonIdx(steps.length - 1); setQuizPick(null); setHandPick(null); setLessonMistakes((m) => m + 1); }}>Pular ao fim</button>}
+          {!last && <button className="btn-ghost w-full" onClick={() => { setLessonIdx(steps.length - 1); setQuizPick(null); setHandPick(null); setGameDone(false); setLessonMistakes((m) => m + 1); }}>Pular ao fim</button>}
         </div>
       </div>
     );
@@ -346,7 +358,7 @@ export function StagePlayPage() {
     return (
       <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
         {passed && <Confetti count={50} />}
-        <Mascot mood={worldDone ? 'cheer' : passed ? 'win' : 'sad'} size={132} />
+        <Mascot mood={worldDone ? 'cheer' : passed ? 'win' : 'sad'} size={176} />
         <h1 className="mt-5 text-3xl font-bold text-title">{passed ? 'Fase concluída!' : 'Quase lá!'}</h1>
         {worldDone && <p className="mt-1 font-bold text-primary">Mundo completo! 🏆</p>}
         {!passed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}

@@ -19,6 +19,7 @@ import { GlossaryPage } from './pages/GlossaryPage.js';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './pages/ResetPasswordPage.js';
 import { PlacementPage } from './pages/PlacementPage.js';
+import { SetupPage } from './pages/SetupPage.js';
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
       <Routes>
         <Route element={<PublicOnlyRoute />}>
           <Route path="/welcome" element={<IntroPage />} />
+          <Route path="/setup" element={<SetupPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

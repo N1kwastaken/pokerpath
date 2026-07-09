@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthContext.js';
 import { useTheme } from '../lib/theme.js';
+import { ACCENTS, applyAccent, currentAccent } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
 import { gameApi } from '../api/game.js';
 import { IconUser, IconLogout, IconChevron } from '../components/Icons.js';
@@ -11,6 +12,7 @@ import { IconUser, IconLogout, IconChevron } from '../components/Icons.js';
 export function ProfilePage() {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
+  const [accent, setAccent] = useState(currentAccent());
   const queryClient = useQueryClient();
   const [muted, setMuted] = useState(sound.isMuted());
 
@@ -55,6 +57,17 @@ export function ProfilePage() {
       <div className="card divide-y divide-line">
         <Row label="Tema escuro" onClick={toggle} value={theme === 'dark' ? 'Ligado' : 'Desligado'} />
         <Row label="Som" onClick={() => setMuted(sound.toggleMute())} value={muted ? 'Mudo' : 'Ligado'} />
+        <div className="flex items-center justify-between p-4">
+          <span className="font-medium text-title">Cor do app</span>
+          <div className="flex gap-2">
+            {ACCENTS.map((a) => (
+              <button key={a.key} aria-label={a.name}
+                onClick={() => { applyAccent(a.key); setAccent(a.key); }}
+                className={`h-7 w-7 rounded-full transition-transform ${accent === a.key ? 'scale-110 ring-2 ring-title' : 'opacity-70'}`}
+                style={{ backgroundColor: a.hex }} />
+            ))}
+          </div>
+        </div>
       </div>
 
       <Link to="/achievements" className="mt-4 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">

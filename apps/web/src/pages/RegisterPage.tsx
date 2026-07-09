@@ -1,15 +1,33 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { registerSchema } from '@pokerpath/shared';
+import { registerSchema, type OnboardingInput } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
 import { PasswordField } from '../components/PasswordField.js';
+import { userApi } from '../api/game.js';
+import { SETUP_KEY, type SetupData } from './SetupPage.js';
+
+function loadSetup(): SetupData | null {
+  try {
+    const raw = localStorage.getItem(SETUP_KEY);
+    return raw ? (JSON.parse(raw) as SetupData) : null;
+  } catch { return null; }
+}
+
+/** Respostas do /setup viram o onboarding automaticamente após o cadastro. */
+function setupToOnboarding(s: SetupData): OnboardingInput {
+  const experienceLevel = (['beginner', 'recreational', 'intermediate'].includes(s.experience) ? s.experience : 'beginner') as OnboardingInput['experienceLevel'];
+  const playFrequency = ({ beginner: 'never', recreational: 'sometimes', intermediate: 'weekly' } as const)[experienceLevel as 'beginner' | 'recreational' | 'intermediate'] ?? 'never';
+  const goal = (['learn', 'improve', 'review'].includes(s.goal) ? s.goal : 'learn') as OnboardingInput['goal'];
+  return { experienceLevel, playFrequency, goal };
+}
 
 /** Tela de cadastro (repaginada). */
 export function RegisterPage() {
-  const { register } = useAuth();
-  const [name, setName] = useState('');
+  const { register, setUser } = useAuth();
+  const [setup] = useState(() => loadSetup());
+  const [name, setName] = useState(setup?.name ?? '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +42,14 @@ export function RegisterPage() {
     tokenStorage.setRemember(true);
     try {
       await register(parsed.data);
+      // Quem montou o app no /setup já respondeu tudo: pula o onboarding.
+      if (setup) {
+        try {
+          const updated = await userApi.onboarding(setupToOnboarding(setup));
+          setUser(updated);
+          localStorage.removeItem(SETUP_KEY);
+        } catch { /* sem drama: cai no onboarding normal */ }
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível cadastrar');
     } finally {
@@ -37,7 +63,7 @@ export function RegisterPage() {
 
       <div className="flex flex-col items-center text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary text-4xl font-black text-white shadow-pop">♠</div>
-        <h1 className="mt-5 text-3xl font-bold text-title">Crie sua conta</h1>
+        <h1 className="mt-5 text-3xl font-bold text-title">{setup?.name ? 'Seu app está pronto, ' + setup.name + '!' : 'Crie sua conta'}</h1>
         <p className="mt-1 text-subtle">Grátis para começar. Leva 10 segundos.</p>
       </div>
 

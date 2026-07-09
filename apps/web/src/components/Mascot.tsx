@@ -45,6 +45,8 @@ export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: Ma
           backgroundSize: `${GRID.cols * 100}% ${GRID.rows * 100}%`,
           backgroundPosition: `${(col * 100) / (GRID.cols - 1)}% ${(row * 100) / (GRID.rows - 1)}%`,
           backgroundRepeat: 'no-repeat',
+          // Halo claro: braços/detalhes pretos do Ace somem no fundo escuro sem isso.
+          filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.35)) drop-shadow(0 3px 8px rgba(0,0,0,0.45))',
         }} />
       ) : (
         <AceSvg mood={mood} size={size} />

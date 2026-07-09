@@ -41,7 +41,7 @@ export function TableTutorial({ onDone }: { onDone: () => void }) {
     <div className="fixed inset-x-0 bottom-0 z-50 p-4">
       <div className="mx-auto max-w-md animate-slide-up rounded-3xl border border-line bg-card p-4 shadow-pop">
         <div className="flex items-start gap-3">
-          <Mascot mood={last ? 'excited' : 'teaching'} size={64} float={false} />
+          <Mascot mood={last ? 'excited' : 'teaching'} size={92} float={false} />
           <div className="min-w-0 flex-1">
             <p className="font-extrabold text-title">{step.title}</p>
             <p className="mt-1 text-sm leading-snug text-text">{step.text}</p>

@@ -38,7 +38,9 @@ async function refreshAccessToken(): Promise<boolean> {
   });
 
   if (!res.ok) {
-    tokenStorage.clear();
+    // Só descarta a sessão se o refresh foi REJEITADO (401/403). Erro de rede
+    // ou servidor reiniciando (5xx) não pode deslogar quem pediu "lembrar".
+    if (res.status === 401 || res.status === 403) tokenStorage.clear();
     return false;
   }
 

@@ -12,7 +12,9 @@ export type LessonStep =
   | { kind: 'text'; text: string }
   | { kind: 'visual'; visual: 'suits' | 'order' | 'ranking' | 'positions' | 'handranks' }
   | { kind: 'hand'; position: Position; hand: string; answer: 'FOLD' | 'RAISE'; explain: string }
-  | { kind: 'quiz'; q: string; options: string[]; answer: number; explain: string };
+  | { kind: 'quiz'; q: string; options: string[]; answer: number; explain: string }
+  | { kind: 'order'; prompt: string; items: string[]; explain: string }
+  | { kind: 'match'; prompt: string; pairs: [string, string][]; explain: string };
 
 const t = (text: string): LessonStep => ({ kind: 'text', text });
 const v = (visual: 'suits' | 'order' | 'ranking' | 'positions' | 'handranks'): LessonStep => ({ kind: 'visual', visual });
@@ -20,6 +22,10 @@ const h = (position: Position, hand: string, answer: 'FOLD' | 'RAISE', explain: 
   ({ kind: 'hand', position, hand, answer, explain });
 const quiz = (q: string, options: string[], answer: number, explain: string): LessonStep =>
   ({ kind: 'quiz', q, options, answer, explain });
+const order = (prompt: string, items: string[], explain: string): LessonStep =>
+  ({ kind: 'order', prompt, items, explain });
+const match = (prompt: string, pairs: [string, string][], explain: string): LessonStep =>
+  ({ kind: 'match', prompt, pairs, explain });
 
 export const LESSONS: Record<string, LessonStep[]> = {
   // ── Mundo 0 ────────────────────────────────────────────────
@@ -39,6 +45,8 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Do 2 (mais fraco) ao Ás (mais forte):`),
     v('order'),
     quiz(`Quem vale mais: A ou K?`, ['K', 'A'], 1, `O Ás (A) é a carta mais alta.`),
+    order(`Agora você: coloque da MAIS FORTE para a mais fraca.`, ['A', 'K', 'Q', 'J', 'T', '9'],
+      `Ás > Rei > Dama > Valete > Dez > Nove. O T representa o 10.`),
   ],
   'Ranking de mãos': [
     t(`Sua jogada usa 5 cartas: as 2 da sua mão + as da mesa. Veja cada uma, da mais forte à mais fraca:`),
@@ -46,6 +54,14 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Flush ou Sequência: quem ganha?`, ['Sequência', 'Flush'], 1, `Flush é mais forte.`),
     quiz(`Você tem A♠ A♦ e a mesa traz A♥ 9♣ 5♠. Que jogada é essa?`, ['Par', 'Trinca', 'Dois pares'], 1,
       `Trinca de Ases: as duas da mão + o Ás da mesa = três iguais.`),
+    match(`Combine cada jogada com a descrição:`, [
+      ['Trinca', '3 cartas iguais'],
+      ['Flush', '5 do mesmo naipe'],
+      ['Sequência', '5 em ordem'],
+      ['Full house', 'trinca + par'],
+    ], `Essas quatro você vai ver o tempo todo nas mesas.`),
+    order(`Ordene da jogada MAIS FORTE para a mais fraca:`, ['Quadra', 'Full house', 'Flush', 'Sequência', 'Par'],
+      `Quadra > Full house > Flush > Sequência > Par. Quanto mais rara, mais forte.`),
   ],
   'Anatomia de uma rodada': [
     t(`Antes das cartas, dois jogadores pagam apostas obrigatórias, chamadas BLINDS: o small blind (SB, a menor) e o big blind (BB, a maior).`),
@@ -86,6 +102,8 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Nos treinos, VOCÊ é sempre a cadeira de baixo, marcada em verde. Os nomes (UTG, MP, CO, BTN, SB, BB) você vai decorar com o tempo — sem pressa.`),
     quiz(`Quem age por último vê o que todos fizeram antes. Qual é a melhor cadeira?`, ['UTG (a primeira a falar)', 'BTN (o botão)'], 1,
       `O botão (BTN): decide por último, com o máximo de informação.`),
+    order(`Monte a ordem em que as posições AGEM no pré-flop:`, ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB'],
+      `UTG fala primeiro; os blinds (SB e BB), por já terem pago, falam por último no pré-flop.`),
   ],
 
   // ── Mundo 1 ────────────────────────────────────────────────

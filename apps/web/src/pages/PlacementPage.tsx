@@ -82,7 +82,7 @@ export function PlacementPage() {
   if (done) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
-        <Mascot mood={level >= 2 ? 'cheer' : 'happy'} size={120} />
+        <Mascot mood={level >= 2 ? 'cheer' : 'happy'} size={160} />
         <h1 className="mt-4 text-2xl font-bold text-title">Prova concluída!</h1>
         <p className="mt-2 text-subtle">
           Básico {scores[0]}/4 · Preflop {scores[1]}/4 · Intermediário {scores[2]}/4
@@ -113,7 +113,7 @@ export function PlacementPage() {
       </div>
 
       <div className="mt-4 flex items-center gap-3">
-        <Mascot mood="think" size={44} float={false} />
+        <Mascot mood="think" size={72} float={false} />
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Prova de nivelamento</p>
           <h1 className="text-xl font-extrabold leading-tight text-title">Onde você deve começar?</h1>
