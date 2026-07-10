@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 type Theme = 'light' | 'dark';
 const KEY = 'pp.theme';
 
-const ThemeCtx = createContext<{ theme: Theme; toggle: () => void } | null>(null);
+const ThemeCtx = createContext<{ theme: Theme; toggle: () => void; set: (t: Theme) => void } | null>(null);
 
 function apply(theme: Theme) {
   document.documentElement.dataset.theme = theme;
@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
   useEffect(() => { apply(theme); localStorage.setItem(KEY, theme); }, [theme]);
   return (
-    <ThemeCtx.Provider value={{ theme, toggle: () => setTheme((t) => (t === 'light' ? 'dark' : 'light')) }}>
+    <ThemeCtx.Provider value={{ theme, toggle: () => setTheme((t) => (t === 'light' ? 'dark' : 'light')), set: setTheme }}>
       {children}
     </ThemeCtx.Provider>
   );

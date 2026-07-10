@@ -63,8 +63,8 @@ export function RegisterPage() {
 
       <div className="flex flex-col items-center text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary text-4xl font-black text-white shadow-pop">♠</div>
-        <h1 className="mt-5 text-3xl font-bold text-title">{setup?.name ? 'Seu app está pronto, ' + setup.name + '!' : 'Crie sua conta'}</h1>
-        <p className="mt-1 text-subtle">Grátis para começar. Leva 10 segundos.</p>
+        <h1 className="mt-5 text-3xl font-bold text-title">{setup?.name ? 'Falta pouco, ' + setup.name + '!' : 'Crie sua conta'}</h1>
+        <p className="mt-1 text-subtle">{setup ? 'Crie a conta para salvar seu progresso.' : 'Grátis para começar. Leva 10 segundos.'}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">

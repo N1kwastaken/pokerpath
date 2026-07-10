@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mascot } from '../components/Mascot.js';
 import { LessonHandTable } from '../components/LessonHandTable.js';
-import { ACCENTS, applyAccent, currentAccent } from '../lib/accent.js';
+import { useTheme } from '../lib/theme.js';
 import { sound } from '../lib/sound.js';
 
 /**
- * Montagem do app ANTES do cadastro (efeito IKEA, estilo Duolingo): o visitante
- * responde, escolhe a cor do próprio app e já joga uma mão — só então criamos
- * a conta ("continue para salvar o SEU app"). Respostas ficam em pp.setup e
- * viram o onboarding automaticamente após o cadastro.
+ * Personalização ANTES do cadastro (efeito IKEA, estilo Duolingo): o visitante
+ * responde, escolhe o tema e já joga uma mão — só então criamos a conta.
+ * Respostas ficam em pp.setup e viram o onboarding automaticamente depois.
  */
 export type SetupData = { name: string; experience: string; goal: string };
 export const SETUP_KEY = 'pp.setup';
@@ -25,13 +24,44 @@ const GOAL_OPTIONS = [
   { key: 'review', label: 'Afiar meu jogo', emoji: '🎯' },
 ];
 
+/** Ilustração hiperminimalista de uma tela do app (mesa + cartas + botões). */
+function ThemePreview({ mode }: { mode: 'dark' | 'light' }) {
+  const dark = mode === 'dark';
+  const bg = dark ? '#0a0d0b' : '#fafaf9';
+  const card = dark ? '#1c211e' : '#eceeed';
+  const text = dark ? '#3a423d' : '#c9cdcb';
+  return (
+    <div className="w-full overflow-hidden rounded-2xl border" style={{ backgroundColor: bg, borderColor: dark ? '#2a312d' : '#e0e3e1' }}>
+      <div className="p-3">
+        {/* header */}
+        <div className="h-2 w-14 rounded-full" style={{ backgroundColor: text }} />
+        <div className="mt-1.5 h-2 w-8 rounded-full opacity-60" style={{ backgroundColor: text }} />
+        {/* mesa */}
+        <div className="mx-auto mt-3 flex h-16 w-4/5 items-center justify-center rounded-[50%]"
+          style={{ background: 'radial-gradient(ellipse at 50% 35%, #1c8454, #0c3d27)' }}>
+          <div className="flex gap-1">
+            <span className="h-6 w-4 rounded-[3px] bg-white shadow" />
+            <span className="h-6 w-4 rounded-[3px] bg-white shadow" />
+          </div>
+        </div>
+        {/* botões */}
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          <span className="h-4 rounded-md" style={{ backgroundColor: card }} />
+          <span className="h-4 rounded-md bg-call/80" />
+          <span className="h-4 rounded-md bg-primary" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SetupPage() {
   const navigate = useNavigate();
+  const { theme, set: setTheme } = useTheme();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [experience, setExperience] = useState<string | null>(null);
   const [goal, setGoal] = useState<string | null>(null);
-  const [accent, setAccent] = useState(currentAccent());
   const [demoPick, setDemoPick] = useState<'FOLD' | 'RAISE' | null>(null);
 
   const TOTAL = 6;
@@ -54,7 +84,7 @@ export function SetupPage() {
   return (
     <div className="flex min-h-dvh flex-col px-6 py-8">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-widest text-primary">Montando o seu app</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-primary">Personalize seu treino</span>
         <span className="text-xs font-bold tabular-nums text-subtle">{step + 1}/{TOTAL}</span>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-card2">
@@ -65,7 +95,7 @@ export function SetupPage() {
         {step === 0 && (
           <div className="text-center">
             <Mascot mood="wave" size={150} />
-            <h1 className="mt-4 text-2xl font-bold text-title">Vamos montar o seu PokerPath</h1>
+            <h1 className="mt-4 text-2xl font-bold text-title">Bem-vindo ao PokerPath!</h1>
             <p className="mt-2 text-text">Algumas escolhas rápidas e você já começa a jogar — a conta fica pra depois.</p>
           </div>
         )}
@@ -108,17 +138,19 @@ export function SetupPage() {
 
         {step === 4 && (
           <div>
-            <h1 className="text-2xl font-bold text-title">Escolha a cor do SEU app</h1>
-            <p className="mt-1 text-sm text-subtle">Aplicada na hora — dá pra trocar depois no perfil.</p>
-            <div className="mt-5 grid grid-cols-5 gap-3">
-              {ACCENTS.map((a) => (
-                <button key={a.key} onClick={() => { sound.click(); setAccent(a.key); applyAccent(a.key); }}
-                  aria-label={a.name}
-                  className={`aspect-square rounded-2xl transition-transform ${accent === a.key ? 'scale-110 ring-4 ring-white/40' : 'opacity-80'}`}
-                  style={{ backgroundColor: a.hex }} />
+            <h1 className="text-2xl font-bold text-title">Claro ou escuro?</h1>
+            <p className="mt-1 text-sm text-subtle">Aplicado na hora — dá pra trocar depois no perfil.</p>
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              {(['dark', 'light'] as const).map((m) => (
+                <button key={m} onClick={() => { sound.click(); setTheme(m); }}
+                  className={`rounded-3xl p-1.5 transition-all ${theme === m ? 'ring-4 ring-primary' : 'opacity-70'}`}>
+                  <ThemePreview mode={m} />
+                  <p className={`mt-2 pb-1 text-sm font-bold ${theme === m ? 'text-primary' : 'text-subtle'}`}>
+                    {m === 'dark' ? '🌙 Escuro' : '☀️ Claro'}
+                  </p>
+                </button>
               ))}
             </div>
-            <p className="mt-3 text-center text-sm font-bold text-primary">{ACCENTS.find((a) => a.key === accent)?.name}</p>
           </div>
         )}
 
@@ -146,7 +178,7 @@ export function SetupPage() {
 
       {step === 5 && demoPick ? (
         <button className="btn-primary w-full text-lg" onClick={finishToRegister}>
-          Salvar o meu app — criar conta →
+          Continuar — criar conta grátis →
         </button>
       ) : step !== 5 && (
         <button className="btn-primary w-full text-lg" disabled={!canNext} onClick={next}>

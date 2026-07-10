@@ -45,7 +45,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Do 2 (mais fraco) ao Ás (mais forte):`),
     v('order'),
     quiz(`Quem vale mais: A ou K?`, ['K', 'A'], 1, `O Ás (A) é a carta mais alta.`),
-    order(`Agora você: coloque da MAIS FORTE para a mais fraca.`, ['A', 'K', 'Q', 'J', 'T', '9'],
+    order(`Agora você: coloque da MAIS FORTE para a mais fraca.`, ['A♠', 'K♥', 'Q♦', 'J♣', 'T♠', '9♥'],
       `Ás > Rei > Dama > Valete > Dez > Nove. O T representa o 10.`),
   ],
   'Ranking de mãos': [
@@ -54,14 +54,19 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Flush ou Sequência: quem ganha?`, ['Sequência', 'Flush'], 1, `Flush é mais forte.`),
     quiz(`Você tem A♠ A♦ e a mesa traz A♥ 9♣ 5♠. Que jogada é essa?`, ['Par', 'Trinca', 'Dois pares'], 1,
       `Trinca de Ases: as duas da mão + o Ás da mesa = três iguais.`),
-    match(`Combine cada jogada com a descrição:`, [
-      ['Trinca', '3 cartas iguais'],
-      ['Flush', '5 do mesmo naipe'],
-      ['Sequência', '5 em ordem'],
-      ['Full house', 'trinca + par'],
-    ], `Essas quatro você vai ver o tempo todo nas mesas.`),
-    order(`Ordene da jogada MAIS FORTE para a mais fraca:`, ['Quadra', 'Full house', 'Flush', 'Sequência', 'Par'],
-      `Quadra > Full house > Flush > Sequência > Par. Quanto mais rara, mais forte.`),
+    match(`Combine o nome da jogada com as cartas:`, [
+      ['Trinca', '8♠ 8♥ 8♦'],
+      ['Flush', 'A♠ J♠ 6♠ 3♠'],
+      ['Sequência', '5♥ 6♣ 7♦ 8♠'],
+      ['Full house', 'K♠ K♥ K♦ 9♣ 9♠'],
+    ], `Trinca = 3 iguais; flush = mesmo naipe; sequência = em ordem; full = trinca + par.`),
+    order(`Ordene da jogada MAIS FORTE para a mais fraca:`, [
+      'Quadra|9♠ 9♥ 9♦ 9♣',
+      'Full house|K♠ K♥ K♦ 9♣ 9♠',
+      'Flush|A♦ J♦ 8♦ 4♦ 2♦',
+      'Sequência|4♣ 5♦ 6♠ 7♥ 8♣',
+      'Par|Q♠ Q♥',
+    ], `Quadra > Full house > Flush > Sequência > Par. Quanto mais rara, mais forte.`),
   ],
   'Anatomia de uma rodada': [
     t(`Antes das cartas, dois jogadores pagam apostas obrigatórias, chamadas BLINDS: o small blind (SB, a menor) e o big blind (BB, a maior).`),

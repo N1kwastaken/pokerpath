@@ -9,6 +9,50 @@ function shuffled<T>(arr: T[]): T[] {
   return a;
 }
 
+// ── Itens ilustrados: cartas de baralho de verdade nos jogos ──
+const CARDS_RE = /^([AKQJT2-9][♠♥♦♣])( [AKQJT2-9][♠♥♦♣])*$/;
+
+function MiniCard({ token, big = false }: { token: string; big?: boolean }) {
+  const rank = token.slice(0, -1);
+  const suit = token.slice(-1);
+  const red = suit === '♥' || suit === '♦';
+  return (
+    <span
+      className={`inline-flex flex-col items-center justify-center rounded-[4px] bg-white font-black leading-none shadow-[0_1px_3px_rgba(0,0,0,0.4)] ring-1 ring-black/15 ${big ? 'h-12 w-9 text-sm' : 'h-9 w-7 text-[11px]'}`}
+      style={{ color: red ? '#D6323C' : '#111' }}
+    >
+      {rank}
+      <span className={big ? 'text-base' : 'text-xs'}>{suit}</span>
+    </span>
+  );
+}
+
+/**
+ * Renderiza um item do jogo:
+ *  - "A♠"            → uma carta grande
+ *  - "8♠ 8♥ 8♦"      → fileira de cartas
+ *  - "Trinca|8♠ 8♥ 8♦" → rótulo + fileira de cartas embaixo
+ *  - texto comum      → texto
+ */
+function ItemView({ item, numbered }: { item: string; numbered?: number }) {
+  const [label, cards] = item.includes('|') ? item.split('|') : [null, item];
+  const isCards = CARDS_RE.test(cards.trim());
+  return (
+    <span className="flex flex-col items-center gap-1">
+      {label && <span className="text-xs font-bold">{numbered != null ? `${numbered}. ` : ''}{label}</span>}
+      {isCards ? (
+        <span className="flex items-center gap-0.5">
+          {!label && numbered != null && <span className="mr-1 text-xs font-black">{numbered}.</span>}
+          {cards.trim().split(' ').map((t, i) => <MiniCard key={i} token={t} big={!label && cards.trim().split(' ').length === 1} />)}
+        </span>
+      ) : (
+        !label && <span>{numbered != null ? `${numbered}. ` : ''}{cards}</span>
+      )}
+    </span>
+  );
+}
+
+
 /** Ordenar: toque nos itens na ordem certa; conferir valida a sequência. */
 export function OrderGame({ prompt, items, explain, onComplete, onMistake }: {
   prompt: string; items: string[]; explain: string;
@@ -45,14 +89,16 @@ export function OrderGame({ prompt, items, explain, onComplete, onMistake }: {
         {chosen.length === 0 && <span className="px-1 text-xs text-subtle">Toque nos itens abaixo, na ordem</span>}
         {chosen.map((x, i) => (
           <button key={x} onClick={() => unpick(x)}
-            className={`chip px-3 py-1.5 text-sm font-bold ${state === 'done' ? 'border-primary bg-primary/10 text-primary' : 'chip-on'}`}>
-            {i + 1}. {x}
+            className={`chip px-2.5 py-1.5 text-sm font-bold ${state === 'done' ? 'border-primary bg-primary/10 text-primary' : 'chip-on'}`}>
+            <ItemView item={x} numbered={i + 1} />
           </button>
         ))}
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {pool.map((x) => (
-          <button key={x} onClick={() => pick(x)} className="chip chip-off px-3 py-1.5 text-sm font-bold">{x}</button>
+          <button key={x} onClick={() => pick(x)} className="chip chip-off px-2.5 py-1.5 text-sm font-bold">
+            <ItemView item={x} />
+          </button>
         ))}
       </div>
       {state === 'wrong' && <p className="mt-2 text-sm font-semibold text-error">Não foi dessa vez — tente outra ordem!</p>}
@@ -114,8 +160,8 @@ export function MatchGame({ prompt, pairs, explain, onComplete, onMistake }: {
         <div className="space-y-2">
           {right.map((y) => (
             <button key={y} onClick={() => tapRight(y)} disabled={rightMatched(y)}
-              className={`chip w-full px-3 py-2 text-sm ${rightMatched(y) ? 'border-primary bg-primary/10 text-primary opacity-60' : wrong === y ? 'animate-shake border-error bg-error/10 text-error' : 'chip-off'}`}>
-              {y}
+              className={`chip flex w-full items-center justify-center px-2 py-2 text-sm ${rightMatched(y) ? 'border-primary bg-primary/10 text-primary opacity-60' : wrong === y ? 'animate-shake border-error bg-error/10 text-error' : 'chip-off'}`}>
+              <ItemView item={y} />
             </button>
           ))}
         </div>
