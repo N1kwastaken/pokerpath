@@ -12,6 +12,8 @@ export default defineConfig({
   server: {
     host: true, // expõe na rede local — permite jogar pelo celular (http://IP-do-PC:5173)
     port: 5173,
+    // Libera túneis (Cloudflare/ngrok) — o Vite bloqueia hosts externos por padrão.
+    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app', '.loca.lt'],
     // Proxy para a API em dev — o frontend chama /api/... sem se preocupar com CORS.
     proxy: {
       '/api': {
