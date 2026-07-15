@@ -35,3 +35,9 @@ apps/web/.vite/
 
 # Testing
 coverage/
+
+# Prisma — schema Postgres gerado no build (fonte: schema.prisma)
+apps/api/prisma/schema.postgres.prisma
+
+# Claude Code — permissões locais (não versionar)
+.claude/settings.local.json

@@ -1,0 +1,24 @@
+# Blueprint do Render — deploy do PokerPath num serviço só (API + site).
+# A API Fastify serve o build do web em produção; o banco é Postgres no Neon
+# (DATABASE_URL é colada manualmente no painel — sync: false).
+#
+# Uso: Render Dashboard → New → Blueprint → conectar este repositório.
+services:
+  - type: web
+    name: pokerpath
+    runtime: node
+    plan: free
+    # Build: instala tudo, compila shared+api+web e prepara o banco
+    # (schema Postgres gerado do schema.prisma + db push + seed idempotente).
+    buildCommand: npm ci && npm run build && npm run deploy:db -w @pokerpath/api
+    startCommand: npm run start -w @pokerpath/api
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL # cole aqui a connection string do Neon (com ?sslmode=require)
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true

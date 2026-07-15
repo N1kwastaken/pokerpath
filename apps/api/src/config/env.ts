@@ -47,7 +47,11 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET é obrigatória'),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
-  WEB_ORIGIN: z.string().default('http://localhost:5173'),
+  // No Render, RENDER_EXTERNAL_URL é a URL pública do serviço — como o front
+  // é servido pela própria API (mesma origem), esse default já cobre o CORS.
+  WEB_ORIGIN: z
+    .string()
+    .default(process.env.RENDER_EXTERNAL_URL ?? 'http://localhost:5173'),
 });
 
 const parsed = envSchema.safeParse(process.env);
