@@ -14,7 +14,8 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "db:premium": "tsx prisma/premium.ts",
-    "deploy:db": "node prisma/make-postgres-schema.mjs && prisma generate --schema prisma/schema.postgres.prisma && prisma db push --schema prisma/schema.postgres.prisma && tsx prisma/seed.ts"
+    "deploy:generate": "node prisma/make-postgres-schema.mjs && prisma generate --schema prisma/schema.postgres.prisma",
+    "deploy:db": "node prisma/make-postgres-schema.mjs && prisma db push --schema prisma/schema.postgres.prisma && tsx prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

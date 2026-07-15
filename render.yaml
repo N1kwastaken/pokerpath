@@ -12,7 +12,9 @@ services:
     # (schema Postgres gerado do schema.prisma + db push + seed idempotente).
     # --include=dev é obrigatório: o Render exporta NODE_ENV=production no
     # build, o que faria o npm ci pular as devDependencies (tsc, vite, tsx).
-    buildCommand: npm ci --include=dev && npm run build && npm run deploy:db -w @pokerpath/api
+    # deploy:generate roda ANTES do build: o tsc precisa do client Prisma
+    # gerado (o postinstall do npm workspaces não encontra o schema sozinho).
+    buildCommand: npm ci --include=dev && npm run deploy:generate -w @pokerpath/api && npm run build && npm run deploy:db -w @pokerpath/api
     startCommand: npm run start -w @pokerpath/api
     healthCheckPath: /api/health
     envVars:
