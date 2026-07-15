@@ -10,10 +10,14 @@ services:
     plan: free
     # Build: instala tudo, compila shared+api+web e prepara o banco
     # (schema Postgres gerado do schema.prisma + db push + seed idempotente).
-    buildCommand: npm ci && npm run build && npm run deploy:db -w @pokerpath/api
+    # --include=dev é obrigatório: o Render exporta NODE_ENV=production no
+    # build, o que faria o npm ci pular as devDependencies (tsc, vite, tsx).
+    buildCommand: npm ci --include=dev && npm run build && npm run deploy:db -w @pokerpath/api
     startCommand: npm run start -w @pokerpath/api
     healthCheckPath: /api/health
     envVars:
+      - key: NODE_VERSION # Node 22 LTS (sem pin, o Render usa a mais nova)
+        value: "22"
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL # cole aqui a connection string do Neon (com ?sslmode=require)
