@@ -31,8 +31,13 @@ model User {
   email               String   @unique
   passwordHash        String
   plan                String   @default("FREE")
+  // Conta de beta tester (pré-launch): premium liberado + badge DEV.
+  // NO LAUNCH: trocar o default para false — as contas antigas permanecem true.
+  isDev               Boolean  @default(true)
   totalXp             Int      @default(0)
   onboardingCompleted Boolean  @default(false)
+  // Código curto para adicionar amigos (gerado sob demanda no 1º acesso).
+  friendCode          String?  @unique
 
   // Respostas do onboarding (PRD 4.1) -- opcionais ate completar.
   experienceLevel     String?
@@ -49,8 +54,25 @@ model User {
   missions            UserMission[]
   refreshTokens       RefreshToken[]
   passwordResets      PasswordResetToken[]
+  friendships         Friendship[]      @relation("userFriendships")
+  friendOf            Friendship[]      @relation("friendOfUser")
 
   @@map("users")
+}
+
+// Amizade MÚTUA (uma linha vale para os dois lados) criada via friendCode.
+model Friendship {
+  id        String   @id @default(uuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  user   User @relation("userFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("friendOfUser", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([friendId])
+  @@map("friendships")
 }
 
 // Tokens de recuperacao de senha (uso unico, curta validade). Guardamos so o

@@ -75,7 +75,8 @@ export function IntroPage({ review = false }: { review?: boolean }) {
         ) : (
           <div className="space-y-3">
             <button className="btn-primary w-full text-lg" onClick={() => finish('/setup')}>Começar grátis →</button>
-            <button className="btn-soft w-full" onClick={() => finish('/login')}>Já tenho conta</button>
+            <button className="btn-soft w-full" onClick={() => finish('/g')}>Explorar sem conta 👀</button>
+            <button className="btn-ghost w-full" onClick={() => finish('/login')}>Já tenho conta</button>
           </div>
         )
       ) : (

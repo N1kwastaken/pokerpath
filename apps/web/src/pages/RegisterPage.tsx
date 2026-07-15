@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { registerSchema, type OnboardingInput } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
 import { PasswordField } from '../components/PasswordField.js';
 import { userApi } from '../api/game.js';
+import { guestApi } from '../api/guest.js';
+import { guestDone, clearGuestProgress } from '../lib/guestProgress.js';
 import { SETUP_KEY, type SetupData } from './SetupPage.js';
 
 function loadSetup(): SetupData | null {
@@ -26,6 +28,7 @@ function setupToOnboarding(s: SetupData): OnboardingInput {
 /** Tela de cadastro (repaginada). */
 export function RegisterPage() {
   const { register, setUser } = useAuth();
+  const navigate = useNavigate();
   const [setup] = useState(() => loadSetup());
   const [name, setName] = useState(setup?.name ?? '');
   const [email, setEmail] = useState('');
@@ -42,12 +45,22 @@ export function RegisterPage() {
     tokenStorage.setRemember(true);
     try {
       await register(parsed.data);
+      // Progresso jogado como convidado (Mundo 0) "gradua" para a conta nova.
+      const played = guestDone();
+      if (played.length > 0) {
+        try { await guestApi.graduate(played); clearGuestProgress(); }
+        catch { /* fica para a próxima sessão */ }
+      }
       // Quem montou o app no /setup já respondeu tudo: pula o onboarding.
       if (setup) {
         try {
           const updated = await userApi.onboarding(setupToOnboarding(setup));
           setUser(updated);
           localStorage.removeItem(SETUP_KEY);
+          // Já jogou poker antes? Oferece a prova de nivelamento na entrada.
+          if (updated.onboardingCompleted && setup.experience !== 'beginner') {
+            navigate('/placement', { replace: true });
+          }
         } catch { /* sem drama: cai no onboarding normal */ }
       }
     } catch (err) {

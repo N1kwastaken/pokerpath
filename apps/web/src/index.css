@@ -47,6 +47,11 @@
   [data-theme='light'][data-accent='orange'] { --primary: 217 104 24; --primary2: 172 78 16; --primary-soft: 253 230 211; }
   [data-accent='pink'] { --primary: 231 76 145; --primary2: 184 51 110; --primary-soft: 52 18 33; }
   [data-theme='light'][data-accent='pink'] { --primary: 214 51 122; --primary2: 168 34 92; --primary-soft: 251 219 233; }
+  /* Cores de prestígio: prata (terminou o jogo) e ouro (100% perfeito) */
+  [data-accent='silver'] { --primary: 148 163 184; --primary2: 100 116 139; --primary-soft: 30 36 46; }
+  [data-theme='light'][data-accent='silver'] { --primary: 100 116 139; --primary2: 71 85 105; --primary-soft: 226 232 240; }
+  [data-accent='gold'] { --primary: 201 168 76; --primary2: 161 130 47; --primary-soft: 46 37 14; }
+  [data-theme='light'][data-accent='gold'] { --primary: 180 142 42; --primary2: 140 108 26; --primary-soft: 249 236 200; }
 
   /* Rolagem horizontal sem barra: touch no celular; roda do mouse já rola de lado. */
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }

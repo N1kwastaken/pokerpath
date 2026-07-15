@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthContext.js';
 import { useTheme } from '../lib/theme.js';
-import { ACCENTS, applyAccent, currentAccent } from '../lib/accent.js';
+import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
 import { gameApi } from '../api/game.js';
 import { IconUser, IconLogout, IconChevron } from '../components/Icons.js';
@@ -14,6 +14,9 @@ export function ProfilePage() {
   const { theme, toggle } = useTheme();
   const [accent, setAccent] = useState(currentAccent());
   const queryClient = useQueryClient();
+  // Cores são conquistadas pelo progresso — a trilha diz o que já foi liberado.
+  const { data: trail } = useQuery({ queryKey: ['trail'], queryFn: gameApi.trail });
+  const unlocked = unlockedAccents(trail);
   const [muted, setMuted] = useState(sound.isMuted());
 
   // Qualquer ação de debug recarrega para refletir o novo estado (XP, plano, etc.).
@@ -42,7 +45,12 @@ export function ProfilePage() {
           <IconUser size={30} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold text-title">{user.name}</p>
+          <p className="flex items-center gap-2 truncate text-lg font-bold text-title">
+            {user.name}
+            {user.isDev && (
+              <span title="Beta tester: premium liberado" className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent">DEV</span>
+            )}
+          </p>
           <p className="truncate text-sm text-subtle">{user.email}</p>
         </div>
       </div>
@@ -57,20 +65,34 @@ export function ProfilePage() {
       <div className="card divide-y divide-line">
         <Row label="Tema escuro" onClick={toggle} value={theme === 'dark' ? 'Ligado' : 'Desligado'} />
         <Row label="Som" onClick={() => setMuted(sound.toggleMute())} value={muted ? 'Mudo' : 'Ligado'} />
-        <div className="flex items-center justify-between p-4">
-          <span className="font-medium text-title">Cor do app</span>
-          <div className="flex gap-2">
-            {ACCENTS.map((a) => (
-              <button key={a.key} aria-label={a.name}
-                onClick={() => { applyAccent(a.key); setAccent(a.key); }}
-                className={`h-7 w-7 rounded-full transition-transform ${accent === a.key ? 'scale-110 ring-2 ring-title' : 'opacity-70'}`}
-                style={{ backgroundColor: a.hex }} />
-            ))}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-title">Cor do app</span>
+            <div className="flex gap-2">
+              {ACCENTS.map((a) => {
+                const isUnlocked = unlocked.has(a.key);
+                return (
+                  <button key={a.key} aria-label={a.name} title={isUnlocked ? a.name : unlockLabel(a)}
+                    disabled={!isUnlocked}
+                    onClick={() => { sound.click(); applyAccent(a.key); setAccent(a.key); }}
+                    className={`relative h-7 w-7 rounded-full transition-transform ${accent === a.key ? 'scale-110 ring-2 ring-title' : isUnlocked ? 'opacity-70' : 'opacity-30'}`}
+                    style={{ backgroundColor: a.hex }}>
+                    {!isUnlocked && <span className="absolute inset-0 flex items-center justify-center text-[11px]">🔒</span>}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+          <p className="mt-1.5 text-[11px] text-subtle">Novas cores são conquistadas jogando: uma por nível — prata ao terminar o jogo e ouro no 100% perfeito.</p>
         </div>
       </div>
 
-      <Link to="/achievements" className="mt-4 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
+      <Link to="/friends" className="mt-4 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
+        <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">👥</span> Amigos</span>
+        <IconChevron size={18} className="text-subtle" />
+      </Link>
+
+      <Link to="/achievements" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
         <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">🏆</span> Conquistas</span>
         <IconChevron size={18} className="text-subtle" />
       </Link>
@@ -85,7 +107,13 @@ export function ProfilePage() {
         <IconChevron size={18} className="text-subtle" />
       </Link>
 
-      <Link to="/premium" className="btn-primary mt-4 w-full">⭐ Conhecer o Premium</Link>
+      {user.isDev ? (
+        <div className="mt-4 w-full rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center text-sm font-semibold text-accent">
+          ⭐ Conta DEV — você tem o Premium liberado como beta tester. Obrigado por testar!
+        </div>
+      ) : (
+        <Link to="/premium" className="btn-primary mt-4 w-full">⭐ Conhecer o Premium</Link>
+      )}
       <button
         onClick={logout}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-error/30 bg-error/10 py-3.5 font-semibold text-error transition-colors hover:bg-error/15 active:scale-[0.98]"

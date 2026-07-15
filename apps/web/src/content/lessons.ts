@@ -11,8 +11,10 @@ import type { Position } from '@pokerpath/shared';
 export type LessonStep =
   | { kind: 'text'; text: string }
   | { kind: 'visual'; visual: 'suits' | 'order' | 'ranking' | 'positions' | 'handranks' }
-  | { kind: 'hand'; position: Position; hand: string; answer: 'FOLD' | 'RAISE'; explain: string }
-  | { kind: 'quiz'; q: string; options: string[]; answer: number; explain: string }
+  // facing: contexto de aposta do vilão (ex.: "O BTN abriu 2,5x") — habilita o botão Call.
+  | { kind: 'hand'; position: Position; hand: string; answer: 'FOLD' | 'RAISE' | 'CALL'; explain: string; facing?: string }
+  // table: mostra a situação NA MESA (mão do herói + cartas comunitárias) em vez de só texto.
+  | { kind: 'quiz'; q: string; options: string[]; answer: number; explain: string; table?: { position: Position; hand: string; board?: string } }
   | { kind: 'order'; prompt: string; items: string[]; explain: string }
   | { kind: 'match'; prompt: string; pairs: [string, string][]; explain: string };
 
@@ -20,8 +22,12 @@ const t = (text: string): LessonStep => ({ kind: 'text', text });
 const v = (visual: 'suits' | 'order' | 'ranking' | 'positions' | 'handranks'): LessonStep => ({ kind: 'visual', visual });
 const h = (position: Position, hand: string, answer: 'FOLD' | 'RAISE', explain: string): LessonStep =>
   ({ kind: 'hand', position, hand, answer, explain });
+const hc = (position: Position, hand: string, facing: string, answer: 'FOLD' | 'RAISE' | 'CALL', explain: string): LessonStep =>
+  ({ kind: 'hand', position, hand, answer, explain, facing });
 const quiz = (q: string, options: string[], answer: number, explain: string): LessonStep =>
   ({ kind: 'quiz', q, options, answer, explain });
+const quizT = (table: { position: Position; hand: string; board?: string }, q: string, options: string[], answer: number, explain: string): LessonStep =>
+  ({ kind: 'quiz', q, options, answer, explain, table });
 const order = (prompt: string, items: string[], explain: string): LessonStep =>
   ({ kind: 'order', prompt, items, explain });
 const match = (prompt: string, pairs: [string, string][], explain: string): LessonStep =>
@@ -52,14 +58,15 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Sua jogada usa 5 cartas: as 2 da sua mão + as da mesa. Veja cada uma, da mais forte à mais fraca:`),
     v('handranks'),
     quiz(`Flush ou Sequência: quem ganha?`, ['Sequência', 'Flush'], 1, `Flush é mais forte.`),
-    quiz(`Você tem A♠ A♦ e a mesa traz A♥ 9♣ 5♠. Que jogada é essa?`, ['Par', 'Trinca', 'Dois pares'], 1,
+    quizT({ position: 'BTN', hand: 'A♠A♦', board: 'A♥ 9♣ 5♠' },
+      `Olhe a mesa: você tem A♠ A♦ e o flop trouxe mais um Ás. Que jogada é essa?`, ['Par', 'Trinca', 'Dois pares'], 1,
       `Trinca de Ases: as duas da mão + o Ás da mesa = três iguais.`),
     match(`Combine o nome da jogada com as cartas:`, [
       ['Trinca', '8♠ 8♥ 8♦'],
-      ['Flush', 'A♠ J♠ 6♠ 3♠'],
-      ['Sequência', '5♥ 6♣ 7♦ 8♠'],
+      ['Flush', 'A♠ J♠ 8♠ 6♠ 3♠'],
+      ['Sequência', '5♥ 6♣ 7♦ 8♠ 9♣'],
       ['Full house', 'K♠ K♥ K♦ 9♣ 9♠'],
-    ], `Trinca = 3 iguais; flush = mesmo naipe; sequência = em ordem; full = trinca + par.`),
+    ], `Trinca = 3 iguais; flush = mesmo naipe (5 cartas); sequência = 5 em ordem; full = trinca + par.`),
     order(`Ordene da jogada MAIS FORTE para a mais fraca:`, [
       'Quadra|9♠ 9♥ 9♦ 9♣',
       'Full house|K♠ K♥ K♦ 9♣ 9♠',
@@ -81,13 +88,17 @@ export const LESSONS: Record<string, LessonStep[]> = {
 
   'Lendo sua mão': [
     t(`Sua jogada final usa 5 cartas: as 2 da sua mão + as melhores da mesa. Vamos treinar a leitura:`),
-    quiz(`Você tem 8♠ 8♦ e a mesa mostra K♥ 8♣ 3♠. Qual é a sua jogada?`, ['Um par', 'Trinca', 'Dois pares'], 1,
+    quizT({ position: 'BTN', hand: '8♠8♦', board: 'K♥ 8♣ 3♠' },
+      `Qual é a sua jogada?`, ['Um par', 'Trinca', 'Dois pares'], 1,
       `Trinca! Seus dois 8 + o 8 da mesa = três iguais.`),
-    quiz(`Você tem A♠ K♠ e a mesa mostra Q♠ 7♠ 2♠. E agora?`, ['Carta alta', 'Flush'], 1,
+    quizT({ position: 'BTN', hand: 'A♠K♠', board: 'Q♠ 7♠ 2♠' },
+      `E agora?`, ['Carta alta', 'Flush'], 1,
       `Flush: cinco cartas de espadas (2 suas + 3 da mesa).`),
-    quiz(`Você tem 9♥ 8♥ e a mesa mostra 7♣ 6♦ 5♠. Qual jogada?`, ['Par', 'Sequência'], 1,
+    quizT({ position: 'BTN', hand: '9♥8♥', board: '7♣ 6♦ 5♠' },
+      `Qual jogada?`, ['Par', 'Sequência'], 1,
       `Sequência: 5-6-7-8-9 em ordem.`),
-    quiz(`Você tem A♦ Q♣ e a mesa mostra Q♥ 9♠ 4♦. Sua jogada?`, ['Par de damas', 'Dois pares'], 0,
+    quizT({ position: 'BTN', hand: 'A♦Q♣', board: 'Q♥ 9♠ 4♦' },
+      `Sua jogada?`, ['Par de damas', 'Dois pares'], 0,
       `Um par de damas (a sua Q + a Q da mesa), com o Ás de reforço.`),
   ],
   'Ações na prática': [
@@ -105,10 +116,12 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Na mesa de 6 jogadores, cada cadeira tem um nome. O disco branco (D) marca o "dealer" e gira a cada mão:`),
     v('positions'),
     t(`Nos treinos, VOCÊ é sempre a cadeira de baixo, marcada em verde. Os nomes (UTG, MP, CO, BTN, SB, BB) você vai decorar com o tempo — sem pressa.`),
+    t(`Do flop em diante, o BTN é SEMPRE o último a agir — por isso é a melhor cadeira: decide vendo o que todos fizeram.`),
     quiz(`Quem age por último vê o que todos fizeram antes. Qual é a melhor cadeira?`, ['UTG (a primeira a falar)', 'BTN (o botão)'], 1,
-      `O botão (BTN): decide por último, com o máximo de informação.`),
-    order(`Monte a ordem em que as posições AGEM no pré-flop:`, ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB'],
-      `UTG fala primeiro; os blinds (SB e BB), por já terem pago, falam por último no pré-flop.`),
+      `O botão (BTN): depois do flop, decide por último, com o máximo de informação.`),
+    t(`No PRÉ-FLOP existe UMA exceção: SB e BB já pagaram os blinds, então ganham o direito de falar depois de todos — inclusive do BTN. Quem começa é o UTG.`),
+    order(`Monte a ordem em que as posições AGEM no PRÉ-FLOP (lembre da exceção dos blinds):`, ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB'],
+      `UTG fala primeiro. SB e BB, por já terem pago, fecham o pré-flop — só nessa rodada agem depois do BTN.`),
   ],
 
   // ── Mundo 1 ────────────────────────────────────────────────
@@ -142,6 +155,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`AKs (A e K do mesmo naipe) fica onde no gráfico?`, ['Acima da diagonal', 'Abaixo da diagonal'], 0,
       `Mesmo naipe (suited) = acima da diagonal. Naipes diferentes (offsuit) = abaixo.`),
     t(`Última convenção: "TT+" quer dizer "par de dez OU MELHOR" (TT, JJ, QQ…). É assim que os ranges são escritos.`),
+    t(`E o melhor: você NÃO precisa decorar nada. Dentro de qualquer fase, toque no botão 📊 no topo para abrir o gráfico da sua posição — e nos termos sublinhados para o glossário.`),
   ],
 
   // ── Mundos 2–5 ─────────────────────────────────────────────
@@ -207,10 +221,14 @@ export const LESSONS: Record<string, LessonStep[]> = {
   ],
   'Defesa do BB': [
     t(`Contra um open há 3 opções: Fold (lixo), Call (a maioria das mãos jogáveis) ou 3-bet (relançar) com as premium por valor.`),
-    quiz(`Você tem A♠ A♥ no BB e o BTN abriu. Melhor jogada?`, ['Call', '3-bet (Raise)'], 1,
-      `AA é 3-bet por valor — construa o pote.`),
-    quiz(`72o no BB contra um open. Jogada?`, ['Call', 'Fold'], 1,
-      `72o não defende nem com preço. Fold.`),
+    hc('BB', 'K♠J♠', 'O BTN abriu 2,5x', 'CALL',
+      `KJs é forte demais pra foldar, mas não é premium: CALL — pague e veja o flop com desconto.`),
+    hc('BB', 'A♠A♥', 'O BTN abriu 2,5x', 'RAISE',
+      `AA é 3-bet por valor — relance e construa o pote.`),
+    hc('BB', '7♦2♣', 'O BTN abriu 2,5x', 'FOLD',
+      `72o não defende nem com o desconto do blind. Fold.`),
+    quiz(`Então: qual ação cobre a MAIORIA das mãos jogáveis do BB contra um open?`, ['Call', '3-bet'], 0,
+      `Call — com o desconto do blind, pagar e ver o flop é o padrão; o 3-bet fica para as premium (e alguns blefes).`),
   ],
   // ── 3-Bet ──────────────────────────────────────────────────
   '3bet explicado': [

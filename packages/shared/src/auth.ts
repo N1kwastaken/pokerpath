@@ -58,12 +58,31 @@ export interface PublicUser {
   name: string;
   email: string;
   plan: 'FREE' | 'PREMIUM';
+  /** Beta tester pré-launch: premium liberado + badge DEV. */
+  isDev: boolean;
   totalXp: number;
   level: number;
   levelName: string;
   currentStreak: number;
   onboardingCompleted: boolean;
   createdAt: string;
+}
+
+/** Amigo na lista (adicionado via código curto). */
+export interface FriendView {
+  id: string;
+  name: string;
+  totalXp: number;
+  level: number;
+  levelName: string;
+  currentStreak: number;
+  isDev: boolean;
+}
+
+export interface FriendsResponse {
+  /** Seu código para compartilhar. */
+  code: string;
+  friends: FriendView[];
 }
 
 /** Resposta padrão de autenticação. */

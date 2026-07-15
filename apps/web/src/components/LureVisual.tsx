@@ -44,7 +44,7 @@ function GtoLure() {
       <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia GTO</p>
       <Bar label="Raise" pct={72} color="bg-primary" />
       <Bar label="Call" pct={18} color="bg-call" />
-      <Bar label="Fold" pct={10} color="bg-subtle" />
+      <Bar label="Fold" pct={10} color="bg-error" />
     </div>
   );
 }

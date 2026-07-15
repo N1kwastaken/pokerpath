@@ -25,6 +25,8 @@ import {
   type PublicExercise,
   type StageSummary,
   type StagePlay,
+  type GuestWorld,
+  type GuestStagePlay,
   type ReviewItem,
   type WorldDetail,
   type WorldSummary,
@@ -34,7 +36,7 @@ import { prisma } from '../lib/prisma.js';
 import { ForbiddenError, NotFoundError } from '../lib/errors.js';
 import { computeStreak } from './streak.service.js';
 import { evaluateAchievements } from './achievement.service.js';
-import { isGodmodeEmail } from '../lib/godmode.js';
+import { isGodmodeEmail, effectivePlan } from '../lib/godmode.js';
 
 /** Todo o PRÉ-FLOP é grátis; o PÓS-FLOP (C-Bet em diante, Mundo 11+) é Premium. */
 /**
@@ -396,10 +398,10 @@ export async function submitAnswer(
   }
 
   const godmode = isGodmodeEmail(user.email);
-  await assertStageAccessible(userId, user.plan, exercise.stage, godmode);
+  await assertStageAccessible(userId, effectivePlan(user), exercise.stage, godmode);
 
-  // Limite diário no plano FREE (PRD 13.2).
-  if (user.plan === 'FREE' && !godmode) {
+  // Limite diário no plano FREE (PRD 13.2). Contas DEV = premium.
+  if (effectivePlan(user) === 'FREE' && !godmode) {
     const todayCount = await prisma.userAnswer.count({
       where: { userId, createdAt: { gte: startOfToday() } },
     });
@@ -593,7 +595,7 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
   }
 
   const godmode = isGodmodeEmail(user.email);
-  await assertStageAccessible(userId, user.plan, stage, godmode);
+  await assertStageAccessible(userId, effectivePlan(user), stage, godmode);
 
   const existing = await prisma.userProgress.findUnique({
     where: { userId_stageId: { userId, stageId } },
@@ -668,6 +670,83 @@ export async function placeAtLevel(userId: string, level: number): Promise<{ ok:
   return { ok: true, completed };
 }
 
+// ─── Modo convidado: Mundo 0 jogável sem conta ─────────────────
+// O gabarito viaja junto (validação local) — exceção controlada, só nos
+// fundamentos. Sem energia, XP nem progressão de servidor.
+
+export async function getGuestWorld0(): Promise<GuestWorld> {
+  const world = await prisma.world.findFirst({
+    where: { order: 0 },
+    include: {
+      stages: { orderBy: { order: 'asc' }, include: { _count: { select: { exercises: true } } } },
+    },
+  });
+  if (!world) throw new NotFoundError('Mundo não encontrado', 'WORLD_NOT_FOUND');
+  return {
+    id: world.id,
+    order: world.order,
+    name: world.name,
+    description: world.description,
+    icon: world.icon,
+    color: world.color,
+    stages: world.stages.map((s) => toStageSummary(s, 'IN_PROGRESS', s._count.exercises === 0)),
+  };
+}
+
+export async function getGuestStage(stageId: string): Promise<GuestStagePlay> {
+  const stage = await prisma.stage.findUnique({
+    where: { id: stageId },
+    include: { world: true, exercises: { orderBy: { order: 'asc' } } },
+  });
+  if (!stage) throw new NotFoundError('Fase não encontrada', 'STAGE_NOT_FOUND');
+  if (stage.world.order !== 0) {
+    throw new ForbiddenError('Crie uma conta grátis para jogar esta fase.', 'GUEST_LOCKED');
+  }
+  return {
+    stage: toStageSummary(stage, 'IN_PROGRESS', stage.exercises.length === 0),
+    worldId: stage.worldId,
+    worldName: stage.world.name,
+    exercises: stage.exercises.map((ex) => ({
+      id: ex.id,
+      order: ex.order,
+      heroPosition: ex.heroPosition as Position,
+      villainPosition: (ex.villainPosition as Position | null) ?? null,
+      callerPosition: (ex.callerPosition as Position | null) ?? null,
+      stackBb: ex.stackBb,
+      potSize: ex.potSize,
+      heroHand: ex.heroHand,
+      board: ex.board,
+      villainAction: ex.villainAction,
+      difficulty: ex.difficulty as Difficulty,
+      category: ex.category as Category,
+      options: ACTIONS,
+      correctAction: ex.correctAction as Action,
+      explanation: ex.explanation,
+      frequencies: parseFrequencies(ex.frequencies, ex.correctAction as Action),
+    })),
+  };
+}
+
+/** Ao criar conta, o progresso de convidado vira progresso real (só Mundo 0). */
+export async function graduateGuest(
+  userId: string,
+  stageIds: string[],
+): Promise<{ ok: true; completed: number }> {
+  if (stageIds.length === 0) return { ok: true, completed: 0 };
+  const stages = await prisma.stage.findMany({
+    where: { id: { in: stageIds }, world: { order: 0 } },
+    select: { id: true },
+  });
+  for (const st of stages) {
+    await prisma.userProgress.upsert({
+      where: { userId_stageId: { userId, stageId: st.id } },
+      update: { status: 'COMPLETED', completedAt: new Date() },
+      create: { userId, stageId: st.id, status: 'COMPLETED', completedAt: new Date() },
+    });
+  }
+  return { ok: true, completed: stages.length };
+}
+
 export async function skipBasics(userId: string): Promise<{ ok: true; count: number }> {
   const w0 = await prisma.world.findUnique({ where: { order: 0 }, include: { stages: { select: { id: true } } } });
   if (!w0) return { ok: true, count: 0 };
@@ -728,10 +807,10 @@ export async function debugCompleteAll(userId: string): Promise<{ ok: true; coun
 
 // ─── Energia diária (Premium = infinita) ───────────────────────
 export async function getEnergy(userId: string): Promise<EnergyState> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true, email: true } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true, email: true, isDev: true } });
   if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
   const max = FREE_DAILY_EXERCISE_LIMIT;
-  if (user.plan === 'PREMIUM' || isGodmodeEmail(user.email)) {
+  if (effectivePlan(user) === 'PREMIUM' || isGodmodeEmail(user.email)) {
     return { max, used: 0, remaining: max, infinite: true };
   }
   const used = await prisma.userAnswer.count({ where: { userId, createdAt: { gte: startOfToday() } } });

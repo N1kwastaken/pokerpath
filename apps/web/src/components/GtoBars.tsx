@@ -5,8 +5,8 @@ import type { Frequencies, Action } from '@pokerpath/shared';
 const ROWS: { key: keyof Frequencies; label: string; bar: string }[] = [
   { key: 'RAISE', label: 'Raise', bar: 'bg-primary' },
   { key: 'CALL', label: 'Call', bar: 'bg-call' },
-  { key: 'FOLD', label: 'Fold', bar: 'bg-subtle' },
-  { key: 'ALLIN', label: 'All In', bar: 'bg-danger' },
+  { key: 'FOLD', label: 'Fold', bar: 'bg-error' },
+  { key: 'ALLIN', label: 'All In', bar: 'bg-accent' },
 ];
 
 export function GtoBars({ freq, chosen, correct, aggressor = false }: {

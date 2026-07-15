@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
 import { USER_LEVELS } from '@pokerpath/shared';
@@ -15,31 +15,19 @@ import { GtoBars } from '../components/GtoBars.js';
 import { IconX, IconCheck, IconBolt } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
-import { LessonHandTable } from '../components/LessonHandTable.js';
-import { PositionRangeCard } from '../components/PositionRangeCard.js';
-import { LessonVisual } from '../components/LessonVisual.js';
-import { lessonFor } from '../content/lessons.js';
+import { LessonPlayer } from '../components/LessonPlayer.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { Glossarized } from '../components/Glossarized.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
-import { OrderGame, MatchGame } from '../components/LessonGames.js';
 import { sound } from '../lib/sound.js';
 
 // Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
 const ACT: { key: Action; label: string; color: string }[] = [
-  { key: 'FOLD', label: 'Fold', color: 'bg-subtle' },
+  { key: 'FOLD', label: 'Fold', color: 'bg-error' },
   { key: 'CALL', label: 'Call', color: 'bg-call' },
   { key: 'RAISE', label: 'Raise', color: 'bg-primary' },
 ];
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
-const LESSON_POSITION: Record<string, Position> = {
-  'Ler o gráfico': 'UTG',
-  'UTG explicado': 'UTG', 'Range de UTG': 'UTG',
-  'MP explicado': 'MP', 'Range de MP': 'MP',
-  'CO explicado': 'CO', 'Range de CO': 'CO',
-  'BTN explicado': 'BTN', 'Range de BTN': 'BTN',
-  'SB explicado': 'SB', 'Range de SB': 'SB',
-};
 function xpProgress(totalXp: number, level: number): { pct: number; hasNext: boolean } {
   const cur = USER_LEVELS[level - 1]?.xpRequired ?? 0;
   const nx = USER_LEVELS[level]?.xpRequired;
@@ -73,17 +61,7 @@ export function StagePlayPage() {
   const [resume, setResume] = useState(!!saved && saved.answers.length > 0);
   const { data, isLoading, error } = useStage(stageId, resume);
   const { data: energy } = useEnergy();
-  const lessonPosition = data?.stage ? LESSON_POSITION[data.stage.concept] : undefined;
-  const rangeQ = useRange(
-    { gameType: 'CASH', tableSize: 'SIX_MAX', stack: 100, position: lessonPosition ?? 'BTN' },
-    { enabled: !!lessonPosition },
-  );
 
-  const [lessonIdx, setLessonIdx] = useState(0);
-  const [quizPick, setQuizPick] = useState<number | null>(null);
-  const [handPick, setHandPick] = useState<'FOLD' | 'RAISE' | null>(null);
-  const [gameDone, setGameDone] = useState(false);
-  const [lessonMistakes, setLessonMistakes] = useState(0);
   const [phase, setPhase] = useState<Phase>('playing');
   const [idx, setIdx] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -112,7 +90,7 @@ export function StagePlayPage() {
   }
 
   const lessonMut = useMutation({
-    mutationFn: () => gameApi.completeLesson(stageId!, lessonMistakes === 0),
+    mutationFn: (perfect: boolean) => gameApi.completeLesson(stageId!, perfect),
     onSuccess: (res) => {
       sound.correct();
       if (stageId) localStorage.setItem('pp.justCompleted', stageId);
@@ -228,108 +206,14 @@ export function StagePlayPage() {
 
   // ─── AULA ────────────────────────────────────────────────────
   if (data.stage.isLesson) {
-    const steps = lessonFor(data.stage.concept);
-    const step = steps[lessonIdx];
-    const last = lessonIdx >= steps.length - 1;
-    const needsAnswer = step.kind === 'quiz' || step.kind === 'hand' || step.kind === 'order' || step.kind === 'match';
-    const answered =
-      step.kind === 'hand' ? handPick !== null
-      : step.kind === 'quiz' ? quizPick !== null
-      : step.kind === 'order' || step.kind === 'match' ? gameDone
-      : true;
     return (
-      <div className="flex min-h-dvh flex-col px-6 py-8">
-        <div className="flex items-center justify-between">
-          <button onClick={backToWorld} className="text-sm font-medium text-subtle">Sair</button>
-          <Link to="/glossary" className="text-sm font-medium text-primary">📖 Glossário</Link>
-        </div>
-
-        <div className="mt-4 flex items-center gap-3">
-          <Mascot mood="happy" size={72} float={false} />
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Aula</p>
-            <h1 className="truncate text-xl font-extrabold leading-tight text-title">{data.stage.title}</h1>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-center gap-1.5">
-          {steps.map((_, i) => <span key={i} className={`h-1.5 rounded-full transition-all ${i === lessonIdx ? 'w-6 bg-primary' : 'w-1.5 bg-line'}`} />)}
-        </div>
-
-        <div className="mt-5 flex flex-1 flex-col">
-          {step.kind === 'visual' ? (
-            <LessonVisual visual={step.visual} />
-          ) : step.kind === 'hand' ? (
-            <div className="flex flex-col gap-3">
-              <LessonHandTable position={step.position} hand={step.hand} />
-              {answered ? (
-                <>
-                  <div className={`rounded-2xl border p-4 ${handPick === step.answer ? 'border-primary/40 bg-primary/10' : 'border-error/40 bg-error/10'}`}>
-                    <p className={`font-bold ${handPick === step.answer ? 'text-primary' : 'text-error'}`}>
-                      {handPick === step.answer ? 'Correto!' : `Era ${step.answer === 'RAISE' ? 'Raise' : 'Fold'}`}
-                    </p>
-                    <p className="mt-0.5 text-sm text-text"><Glossarized text={step.explain} /></p>
-                  </div>
-                  <PositionRangeCard position={step.position} hand={step.hand} action={step.answer} />
-                </>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => { setHandPick('FOLD'); if (step.answer === 'FOLD') sound.correct(); else { sound.wrong(); setLessonMistakes((m) => m + 1); } }} className="btn3d rounded-2xl bg-subtle py-4 font-bold text-white">Fold</button>
-                  <button onClick={() => { setHandPick('RAISE'); if (step.answer === 'RAISE') sound.correct(); else { sound.wrong(); setLessonMistakes((m) => m + 1); } }} className="btn3d rounded-2xl bg-primary py-4 font-bold text-white">Raise</button>
-                </div>
-              )}
-            </div>
-          ) : step.kind === 'order' ? (
-            <OrderGame key={lessonIdx} prompt={step.prompt} items={step.items} explain={step.explain}
-              onComplete={() => setGameDone(true)} onMistake={() => setLessonMistakes((m) => m + 1)} />
-          ) : step.kind === 'match' ? (
-            <MatchGame key={lessonIdx} prompt={step.prompt} pairs={step.pairs} explain={step.explain}
-              onComplete={() => setGameDone(true)} onMistake={() => setLessonMistakes((m) => m + 1)} />
-          ) : step.kind === 'text' ? (
-            <>
-              <div className="whitespace-pre-line px-1 text-xl font-medium leading-relaxed text-title"><Glossarized text={step.text} /></div>
-              {lessonPosition && rangeQ.data && rangeQ.data.cells.length > 0 && (
-                <div className="card mt-4 p-4">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-widest text-subtle">Range de abertura · {lessonPosition}</p>
-                  <RangeGridView grid={rangeQ.data} />
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="card p-5">
-              <p className="text-base font-semibold text-title">{step.q}</p>
-              <div className="mt-4 space-y-2.5">
-                {step.options.map((opt, i) => {
-                  const correct = i === step.answer;
-                  let cls = 'chip-off';
-                  if (answered) {
-                    if (correct) cls = 'border-primary bg-primary/10 text-primary';
-                    else if (quizPick === i) cls = 'border-error bg-error/10 text-error';
-                    else cls = 'chip-off opacity-50';
-                  }
-                  return (
-                    <button key={i} disabled={answered} onClick={() => { setQuizPick(i); if (correct) sound.correct(); else { sound.wrong(); setLessonMistakes((m) => m + 1); } }} className={`chip w-full text-left ${cls}`}>{opt}</button>
-                  );
-                })}
-              </div>
-              {answered && (
-                <div className={`mt-4 rounded-xl p-3 text-sm ${quizPick === step.answer ? 'bg-primary/10' : 'bg-error/10'}`}>
-                  <span className={`font-bold ${quizPick === step.answer ? 'text-primary' : 'text-error'}`}>{quizPick === step.answer ? 'Correto! ' : 'Quase! '}</span>
-                  <span className="text-text"><Glossarized text={step.explain} /></span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3 pt-4">
-          <button className="btn-primary w-full" disabled={(needsAnswer && !answered) || lessonMut.isPending}
-            onClick={() => { if (last) { sound.click(); lessonMut.mutate(); } else { sound.click(); setLessonIdx((i) => i + 1); setQuizPick(null); setHandPick(null); setGameDone(false); } }}>
-            {needsAnswer && !answered ? 'Responda para continuar' : last ? (lessonMut.isPending ? 'Concluindo...' : 'Concluir aula') : 'Próximo'}
-          </button>
-          {!last && <button className="btn-ghost w-full" onClick={() => { setLessonIdx(steps.length - 1); setQuizPick(null); setHandPick(null); setGameDone(false); setLessonMistakes((m) => m + 1); }}>Pular ao fim</button>}
-        </div>
-      </div>
+      <LessonPlayer
+        title={data.stage.title}
+        concept={data.stage.concept}
+        onExit={backToWorld}
+        finishing={lessonMut.isPending}
+        onFinish={(perfect) => lessonMut.mutate(perfect)}
+      />
     );
   }
 
@@ -394,7 +278,7 @@ export function StagePlayPage() {
   // porque dar check é grátis). Internamente Bet=RAISE e Check=CALL.
   const aggressor = current.villainAction === 'Check';
   const buttons: { key: Action; label: string; color: string }[] = aggressor
-    ? [{ key: 'CALL', label: 'Check', color: 'bg-subtle' }, { key: 'RAISE', label: 'Bet', color: 'bg-primary' }]
+    ? [{ key: 'CALL', label: 'Check', color: 'bg-call' }, { key: 'RAISE', label: 'Bet', color: 'bg-primary' }]
     : ACT;
   const actionLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
   return (

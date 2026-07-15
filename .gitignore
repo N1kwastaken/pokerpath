@@ -41,3 +41,6 @@ apps/api/prisma/schema.postgres.prisma
 
 # Claude Code — permissões locais (não versionar)
 .claude/settings.local.json
+
+# Prisma — shadow db temporário
+apps/api/shadow.db

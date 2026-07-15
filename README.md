@@ -1,7 +1,32 @@
 # ♠ PokerPath
 
-Aplicativo gamificado para aprender poker — estilo Duolingo.
-Implementação baseada no PRD oficial do projeto.
+Aprenda poker como um jogo — trilha gamificada (estilo Duolingo) com aulas
+ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
+
+**🌐 Produção:** https://pokerpath.onrender.com
+*(plano grátis do Render: após ~15 min sem uso, o primeiro acesso demora ~30–60s para "acordar")*
+
+## O que tem no app
+
+- **4 níveis em espiral** — Primeiros Passos (Mundo 0), Iniciante, Intermediário
+  e Avançado; cada nível cobre do preflop ao river, com jargão crescendo aos poucos.
+  ~110 fases e ~760 exercícios validados contra os ranges.
+- **Modo visitante** — o Mundo 0 é jogável **sem conta** (`/g`); ao criar a
+  conta, o progresso "gradua" automaticamente.
+- **Prova de nivelamento** — quem já jogou pode pular níveis (`/placement`).
+- **Aulas interativas** — mini-jogos (ordenar cartas, combinar pares), quizzes
+  com a situação montada na mesa, tutorial guiado na primeira prática.
+- **Treino na mesa** — Fold/Call/Raise (e Bet/Check como agressor) com
+  frequências GTO no feedback, cheat-sheet de range (📊) e glossário integrado.
+- **Charts GTO** — abertura (RFI) e 3-bet/defesa, com células mistas proporcionais.
+- **Gamificação** — XP, níveis, streak, energia, conquistas, missões diárias e
+  semanais, fichas douradas por fase perfeita.
+- **Amigos** — código curto para adicionar; lista com XP, nível e streak.
+- **Cores por progresso** — cada nível concluído libera uma cor de app;
+  prata ao terminar o jogo, ouro no 100% perfeito.
+- **Contas DEV** — toda conta criada antes do launch tem premium liberado +
+  badge DEV (`User.isDev`, default `true`; trocar para `false` no launch).
+- **Mascote Ace** — sprite sheet de expressões em `apps/web/public/mascot-sheet.png`.
 
 ## Arquitetura
 
@@ -16,88 +41,74 @@ pokerpath/
     └── shared/     # Tipos, enums e schemas Zod compartilhados
 ```
 
-### Stack
-
 | Camada      | Tecnologia                              |
 | ----------- | --------------------------------------- |
-| Frontend    | React 18, Vite, TypeScript, TailwindCSS |
+| Frontend    | React 18, Vite 6, TypeScript, TailwindCSS |
 | Backend     | Node.js, Fastify 5, TypeScript          |
-| Banco       | SQLite (dev) · PostgreSQL (produção)    |
+| Banco       | SQLite (dev) · PostgreSQL/Neon (produção) |
 | Auth        | JWT (access + refresh) + bcrypt         |
-| Compartilh. | Zod schemas + tipos de domínio          |
+| Deploy      | Render (API serve o build do web) + Neon |
 
-> **Banco:** o desenvolvimento usa **SQLite** (`apps/api/prisma/dev.db`) para
-> rodar sem subir um servidor. Em produção, troque `provider` para `postgresql`
-> em `apps/api/prisma/schema.prisma` (PRD 15.2). Como o SQLite não suporta
-> `enum`, os campos de enum são `String`, validados pelos schemas Zod em
-> `packages/shared` — a fonte única de verdade.
+> **Banco:** o desenvolvimento usa **SQLite** (`apps/api/prisma/dev.db`).
+> Como o SQLite não suporta `enum`, os campos de enum são `String`, validados
+> pelos schemas Zod em `packages/shared` — a fonte única de verdade.
+> Em produção o schema Postgres é **gerado no build** a partir do principal
+> (`apps/api/prisma/make-postgres-schema.mjs`).
 
-## Pré-requisitos
+## Rodando localmente
 
-- Node.js >= 20
-
-## Configuração inicial
+Pré-requisito: Node.js >= 20.
 
 ```bash
-# 1. Instalar dependências (raiz do monorepo)
 npm install
-
-# 2. Configurar variáveis de ambiente da API
 cp apps/api/.env.example apps/api/.env   # já vem com SQLite por padrão
-
-# 3. Build do pacote compartilhado (necessário antes do primeiro run)
-npm run build:shared
-
-# 4. Banco de dados
-npm run db:generate    # gera o Prisma Client
-npm run db:migrate     # cria as tabelas (SQLite)
-npm run db:seed        # popula Mundos 1–5, fases, exercícios, conquistas e missões
-
-# 5. Rodar tudo (API + Web em paralelo)
-npm run dev
+npm run build:shared                     # necessário antes do primeiro run
+npm run db:generate
+npm run db:migrate
+npm run db:seed                          # mundos, fases, exercícios, charts, conquistas
+npm run dev                              # API + Web em paralelo
 ```
 
-- Web: http://localhost:5173
-- API: http://localhost:3333/api
-- Healthcheck: http://localhost:3333/api/health
-
-## Scripts úteis
+- Web: http://localhost:5173 · API: http://localhost:3333/api · Health: `/api/health`
+- Também há `.claude/launch.json` com os dois servidores (`api`, `web`).
 
 | Comando               | Descrição                          |
 | --------------------- | ---------------------------------- |
 | `npm run dev`         | Sobe API + Web juntos              |
-| `npm run dev:api`     | Só a API                           |
-| `npm run dev:web`     | Só o frontend                      |
+| `npm run dev:api` / `dev:web` | Só um dos lados             |
 | `npm run db:studio`   | Prisma Studio (UI do banco)        |
+| `npm run db:seed`     | Re-seed (idempotente: preserva progresso) |
 | `npm run typecheck`   | Checagem de tipos em todos os pkgs |
 
-## API do loop de jogo
+## Deploy (Render + Neon)
 
-Todas exigem `Authorization: Bearer <accessToken>`.
+O deploy é automático: **todo push na `main` redeploya** o serviço do Render
+(blueprint em `render.yaml`). O build instala tudo (`npm ci --include=dev`),
+gera o client Prisma para Postgres, compila shared+api+web, aplica o schema no
+Neon (`db push`) e roda o seed (idempotente). Em produção a própria API serve
+o site (`@fastify/static` + fallback SPA) — um serviço só, sem CORS.
 
-| Método | Rota              | Função                                                |
-| ------ | ----------------- | ----------------------------------------------------- |
-| POST   | `/onboarding`     | Salva as 3 respostas e conclui o onboarding (PRD 4.1) |
-| GET    | `/worlds`         | Mapa de mundos com progresso e bloqueios              |
-| GET    | `/worlds/:id`     | Fases do mundo com status de desbloqueio              |
-| GET    | `/stages/:id`     | Exercícios da fase **sem o gabarito** (PRD 15.5)      |
-| POST   | `/answers`        | Valida a resposta no servidor; devolve XP e feedback  |
+Variáveis no Render: `DATABASE_URL` (Neon, conexão direta), `NODE_ENV`,
+`NODE_VERSION=22` e segredos JWT gerados pelo painel.
 
-A resposta correta nunca é enviada junto do exercício: a validação é
-server-side (PRD 15.5). O `POST /answers` calcula XP, progressão de fase/mundo,
-streak e conquistas, retornando tudo o que o cliente precisa para o feedback.
+## API (visão geral)
 
-## Status
+Rotas autenticadas (`Authorization: Bearer <accessToken>`): `/worlds`, `/trail`,
+`/stages/:id` (exercícios **sem gabarito** — validação server-side), `/answers`,
+`/stages/:id/complete`, `/stats`, `/energy`, `/review`, `/placement`,
+`/achievements`, `/missions`, `/friends`, `/guest/graduate`.
 
-✅ **Etapa 1 — Base do projeto**
-Estrutura, ambiente, frontend, backend, banco e autenticação.
+Rotas públicas: `/auth/*` (register/login/refresh/forgot/reset), `/ranges`
+(charts), `/guest/world0` e `/guest/stages/:id` (modo visitante — só Mundo 0,
+com gabarito no payload porque a validação é local e sem XP).
 
-✅ **Etapa 2 — Loop completo de jogo**
-Onboarding, Dashboard, Mapa de Mundos, Detalhe do Mundo, tela de Exercício com
-cartas e feedback imediato, Resumo da fase. Backend: conteúdo (mundos/fases/
-exercícios), `POST /answers` com XP, progressão linear, streak, conquistas,
-gating premium (Mundos 4+) e limite diário do plano FREE.
+## Contas úteis (dev)
 
-🔜 Próximas etapas (PRD): Conquistas (tela), Missões, Ligas/Ranking,
-mais Mundos (8–15: Facing Raise, 3Bet, 4Bet, C-Bet, Turn, River, ICM, Exploit),
-integração de pagamento (Stripe) e app mobile (React Native).
+- Godmode (debug, tudo liberado): `sousa@gmail.com`
+- Teste local: `reset.teste@pokerpath.dev` / `senhanova123`
+
+## Próximos passos
+
+Ranges postflop refinados por textura (solver), postflop no nível Avançado,
+tradução EN (`pp.lang`), e-mail de recuperação em produção (Resend + domínio),
+pagamento (Stripe) e app mobile.

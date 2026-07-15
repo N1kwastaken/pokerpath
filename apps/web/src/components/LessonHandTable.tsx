@@ -22,12 +22,24 @@ function tokens(hand: string): string[] {
   return out;
 }
 
-export function LessonHandTable({ position, hand }: { position: Position; hand: string }) {
+export function LessonHandTable({ position, hand, board, facing }: {
+  position: Position; hand: string;
+  /** Cartas comunitárias, separadas por espaço (ex.: "A♥ 9♣ 5♠") — mostradas no centro. */
+  board?: string;
+  /** Contexto de aposta (ex.: "O BTN abriu 2,5x") — badge acima da mesa. */
+  facing?: string;
+}) {
   const cards = tokens(hand);
+  const boardCards = board ? board.split(' ') : [];
   const hero = SEAT_XY[position];
 
   return (
     <div>
+      {facing && (
+        <p className="mb-2 text-center">
+          <span className="rounded-full border border-line bg-card px-3 py-1 text-xs font-bold text-title">⚡ {facing}</span>
+        </p>
+      )}
       <div className="relative mx-auto aspect-[10/8] w-full max-w-xs">
         <div className="absolute inset-2 rounded-[44%] border border-line bg-gradient-to-b from-card2 to-card shadow-card" />
         <div className="absolute inset-6 rounded-[44%] border border-line/60" />
@@ -56,16 +68,28 @@ export function LessonHandTable({ position, hand }: { position: Position; hand: 
           </span>
         </div>
 
-        {/* Cartas no centro */}
+        {/* Cartas no centro: board (mesa) em cima, mão do herói embaixo */}
         <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
+          {boardCards.length > 0 && (
+            <>
+              <div className="flex gap-1">
+                {boardCards.map((t, i) => (
+                  <div key={i} className="animate-deal-in scale-[0.82]" style={{ animationDelay: `${i * 110}ms` }}>
+                    <Card token={t} />
+                  </div>
+                ))}
+              </div>
+              <span className="mb-1.5 mt-0.5 rounded-full bg-card px-2.5 py-0.5 text-[10px] font-bold text-subtle">Mesa</span>
+            </>
+          )}
           <div className="flex gap-2">
             {cards.map((t, i) => (
-              <div key={i} className="animate-deal-in" style={{ animationDelay: `${i * 110}ms` }}>
+              <div key={i} className="animate-deal-in" style={{ animationDelay: `${(boardCards.length + i) * 110}ms` }}>
                 <Card token={t} />
               </div>
             ))}
           </div>
-          <span className="mt-2 rounded-full bg-primary/10 px-3 py-0.5 text-xs font-bold text-primary">Sua mão</span>
+          <span className="mt-1.5 rounded-full bg-primary/10 px-3 py-0.5 text-xs font-bold text-primary">Sua mão</span>
         </div>
       </div>
     </div>

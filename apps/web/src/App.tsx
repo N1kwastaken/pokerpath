@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ProtectedRoute, PublicOnlyRoute, RequireOnboarding, OnboardingGate } from './routes/guards.js';
+import { ProtectedRoute, PublicOnlyRoute, RequireOnboarding, OnboardingGate, GuestRoute } from './routes/guards.js';
+import { GuestTrailPage } from './pages/GuestTrailPage.js';
+import { GuestStagePage } from './pages/GuestStagePage.js';
 import { AppShell } from './components/AppShell.js';
 import { IntroPage } from './pages/IntroPage.js';
 import { LoginPage } from './pages/LoginPage.js';
@@ -15,6 +17,7 @@ import { ReviewHubPage } from './pages/ReviewHubPage.js';
 import { StatsPage } from './pages/StatsPage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { AchievementsPage } from './pages/AchievementsPage.js';
+import { FriendsPage } from './pages/FriendsPage.js';
 import { GlossaryPage } from './pages/GlossaryPage.js';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './pages/ResetPasswordPage.js';
@@ -32,6 +35,15 @@ export function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+        </Route>
+
+        {/* Modo convidado: Mundo 0 jogável sem conta */}
+        <Route element={<GuestRoute />}>
+          <Route path="/g/stages/:stageId" element={<GuestStagePage />} />
+          <Route element={<AppShell />}>
+            <Route path="/g" element={<GuestTrailPage />} />
+            <Route path="/g/glossary" element={<GlossaryPage />} />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoute />}>
@@ -54,6 +66,7 @@ export function App() {
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/friends" element={<FriendsPage />} />
               <Route path="/glossary" element={<GlossaryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
             </Route>

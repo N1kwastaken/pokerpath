@@ -26,6 +26,9 @@ const SPRITE: Record<MascotMood, [number, number]> = {
   teaching: [4, 1], think: [0, 1], sad: [0, 3], angry: [1, 2], sleep: [2, 3],
 };
 const GRID = { cols: 5, rows: 4 };
+// Proporção REAL da célula do sheet (2110/5 ÷ 1296/4). Renderizar fora dessa
+// razão espreme/estica o Ace — `size` é a ALTURA; a largura deriva daqui.
+const CELL_ASPECT = 422 / 324;
 
 export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: MascotMood; size?: number; float?: boolean }) {
   const [sheetOk, setSheetOk] = useState(false);
@@ -36,11 +39,12 @@ export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: Ma
     im.src = '/mascot-sheet.png';
   }, []);
   const [col, row] = SPRITE[mood];
+  const w = Math.round(size * CELL_ASPECT);
   return (
-    <div className={float ? 'animate-float' : ''} style={{ width: size, height: size }} role="img" aria-label={`Ace, o mascote (${mood})`}>
+    <div className={float ? 'animate-float' : ''} style={{ width: sheetOk ? w : size, height: size }} role="img" aria-label={`Ace, o mascote (${mood})`}>
       {sheetOk ? (
         <div style={{
-          width: size, height: size,
+          width: w, height: size,
           backgroundImage: 'url(/mascot-sheet.png)',
           backgroundSize: `${GRID.cols * 100}% ${GRID.rows * 100}%`,
           backgroundPosition: `${(col * 100) / (GRID.cols - 1)}% ${(row * 100) / (GRID.rows - 1)}%`,

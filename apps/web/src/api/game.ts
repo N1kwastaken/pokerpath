@@ -2,6 +2,7 @@ import type {
   AnswerInput, AnswerResult, OnboardingInput, PublicUser,
   StagePlay, WorldDetail, WorldSummary, StatsResult, RangeGrid, LessonResult,
   AchievementView, MissionView, MissionClaimResult, ReviewItem, EnergyState,
+  FriendsResponse, FriendView,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
 
@@ -29,6 +30,9 @@ export const gameApi = {
     apiRequest<{ range: RangeGrid | null }>(
       `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}&scenario=${f.scenario ?? 'RFI'}`,
     ).then((r) => r.range),
+  friends: () => apiRequest<FriendsResponse>('/friends'),
+  addFriend: (code: string) => apiRequest<{ friend: FriendView }>('/friends', { method: 'POST', body: { code } }).then((r) => r.friend),
+  removeFriend: (friendId: string) => apiRequest<{ ok: true }>(`/friends/${friendId}`, { method: 'DELETE' }),
   achievements: () => apiRequest<{ achievements: AchievementView[] }>('/achievements').then((r) => r.achievements),
   missions: () => apiRequest<{ missions: MissionView[] }>('/missions').then((r) => r.missions),
   claimMission: (code: string) => apiRequest<MissionClaimResult>(`/missions/${code}/claim`, { method: 'POST' }),

@@ -15,6 +15,7 @@ export function toPublicUser(
     name: user.name,
     email: user.email,
     plan: user.plan as Plan,
+    isDev: user.isDev,
     totalXp: user.totalXp,
     level: level.level,
     levelName: level.name,

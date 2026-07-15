@@ -134,6 +134,34 @@ export interface StagePlay {
   exercises: PublicExercise[];
 }
 
+// ─── Modo convidado (Mundo 0 sem conta) ────────────────────────
+// Exceção CONTROLADA ao princípio acima: só o Mundo 0 (fundamentos) é jogável
+// sem login, e nele o gabarito viaja junto — a validação é local no cliente,
+// sem XP/progressão de servidor. Ao criar conta, o progresso "gradua".
+
+export interface GuestExercise extends PublicExercise {
+  correctAction: Action;
+  explanation: string | null;
+  frequencies: Frequencies;
+}
+
+export interface GuestWorld {
+  id: string;
+  order: number;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  stages: StageSummary[];
+}
+
+export interface GuestStagePlay {
+  stage: StageSummary;
+  worldId: string;
+  worldName: string;
+  exercises: GuestExercise[];
+}
+
 // ─── Resposta a um exercício (PRD 15.3) ────────────────────────
 
 export const answerSchema = z.object({

@@ -9,18 +9,19 @@ import {
   submitAnswer,
   completeLesson,
   getStats,
-  getRange,
   getEnergy,
   getTrail,
   getReview,
   skipBasics,
+  graduateGuest,
   placeAtLevel,
   resetProgress,
   debugSetPlan,
   debugAddXp,
   debugCompleteAll,
 } from '../services/game.service.js';
-import { isGodmodeEmail } from '../lib/godmode.js';
+import { listFriends, addFriend, removeFriend } from '../services/friends.service.js';
+import { isGodmodeEmail, effectivePlan } from '../lib/godmode.js';
 import {
   getAchievements,
   getMissions,
@@ -42,10 +43,10 @@ export async function gameRoutes(app: FastifyInstance) {
   async function accountOf(userId: string): Promise<{ plan: string; godmode: boolean }> {
     const u = await prisma.user.findUnique({
       where: { id: userId },
-      select: { plan: true, email: true },
+      select: { plan: true, email: true, isDev: true },
     });
     if (!u) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
-    return { plan: u.plan, godmode: isGodmodeEmail(u.email) };
+    return { plan: effectivePlan(u), godmode: isGodmodeEmail(u.email) };
   }
 
   /** Bloqueia rotas de debug para contas que não são godmode. */
@@ -127,6 +128,14 @@ export async function gameRoutes(app: FastifyInstance) {
     return skipBasics(request.user.sub);
   });
 
+  // Gradua o progresso de convidado (Mundo 0 jogado sem conta) na conta nova.
+  app.post<{ Body: { stageIds?: string[] } | null }>('/guest/graduate', async (request) => {
+    const ids = Array.isArray(request.body?.stageIds)
+      ? request.body!.stageIds.filter((s): s is string => typeof s === 'string').slice(0, 50)
+      : [];
+    return graduateGuest(request.user.sub, ids);
+  });
+
   app.post<{ Body: { level?: number } | null }>('/placement', async (request) => {
     const level = Number(request.body?.level);
     if (!Number.isFinite(level) || level < 0 || level > 3) {
@@ -154,20 +163,8 @@ export async function gameRoutes(app: FastifyInstance) {
     return debugCompleteAll(request.user.sub);
   });
 
-  app.get<{ Querystring: { gameType?: string; tableSize?: string; stack?: string; position?: string; scenario?: string } }>(
-    '/ranges',
-    async (request) => {
-      const q = request.query;
-      const range = await getRange({
-        gameType: q.gameType ?? 'CASH',
-        tableSize: q.tableSize ?? 'SIX_MAX',
-        stackBb: Number(q.stack ?? 100),
-        position: q.position ?? 'BTN',
-        scenario: q.scenario ?? 'RFI',
-      });
-      return { range };
-    },
-  );
+  // (GET /ranges mudou para guest.routes — conteúdo estático, público, para
+  //  a aula do gráfico funcionar também no modo convidado.)
 
   app.get('/achievements', async (request) => {
     return { achievements: await getAchievements(request.user.sub) };
@@ -179,5 +176,19 @@ export async function gameRoutes(app: FastifyInstance) {
 
   app.post<{ Params: { code: string } }>('/missions/:code/claim', async (request) => {
     return claimMission(request.user.sub, request.params.code);
+  });
+
+  // ─── Amigos (código curto → amizade mútua) ────────────────
+  app.get('/friends', async (request) => {
+    return listFriends(request.user.sub);
+  });
+
+  app.post<{ Body: { code?: string } | null }>('/friends', async (request) => {
+    const code = typeof request.body?.code === 'string' ? request.body.code : '';
+    return { friend: await addFriend(request.user.sub, code) };
+  });
+
+  app.delete<{ Params: { friendId: string } }>('/friends/:friendId', async (request) => {
+    return removeFriend(request.user.sub, request.params.friendId);
   });
 }

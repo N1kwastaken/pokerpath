@@ -13,6 +13,14 @@ export function ProtectedRoute() {
   return <Outlet />;
 }
 
+/** Modo convidado (Mundo 0 sem conta): quem já tem conta vai para a trilha real. */
+export function GuestRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <Splash />;
+  if (isAuthenticated) return <Navigate to="/worlds" replace />;
+  return <Outlet />;
+}
+
 /** Rotas exclusivas para visitantes (landing/login/cadastro). */
 export function PublicOnlyRoute() {
   const { isAuthenticated, isLoading } = useAuth();

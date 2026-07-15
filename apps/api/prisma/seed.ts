@@ -105,6 +105,9 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'BTN', heroHand: 'K♥5♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'OPEN_RAISE', explanation: 'Rei com 5: o 5 estraga a mão. Desista.' },
         ],
       },
+      // Fecha o Mundo 0 apresentando o GRÁFICO: o "mapa" que resolve o
+      // forte-ou-fraca de uma vez — pedido de beta testers (aparecia tarde demais).
+      { title: 'O mapa das mãos', concept: 'Ler o gráfico', description: 'O gráfico 13x13: forte ou fraca, sem decoreba.', minExercises: 0, passRate: 0, xpReward: 20, exercises: [] },
     ],
   },
 

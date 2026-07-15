@@ -168,7 +168,7 @@ export function SetupPage() {
               </div>
             ) : (
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <button onClick={() => { setDemoPick('FOLD'); sound.wrong(); }} className="btn3d rounded-2xl bg-subtle py-4 font-bold text-white">Fold</button>
+                <button onClick={() => { setDemoPick('FOLD'); sound.wrong(); }} className="btn3d rounded-2xl bg-error py-4 font-bold text-white">Fold</button>
                 <button onClick={() => { setDemoPick('RAISE'); sound.correct(); }} className="btn3d rounded-2xl bg-primary py-4 font-bold text-white">Raise</button>
               </div>
             )}

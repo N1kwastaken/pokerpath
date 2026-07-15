@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { IconHome, IconTarget, IconGrid, IconChart, IconUser } from './Icons.js';
+import { useAuth } from '../auth/AuthContext.js';
+import { IconHome, IconTarget, IconGrid, IconChart, IconUser, IconLogin } from './Icons.js';
 
 const TABS = [
   { to: '/', label: 'Início', Icon: IconHome, end: true },
@@ -9,12 +10,21 @@ const TABS = [
   { to: '/profile', label: 'Perfil', Icon: IconUser, end: false },
 ];
 
+// Modo convidado: menos abas, e "Perfil" vira "Entrar" (porta com flechinha).
+const GUEST_TABS = [
+  { to: '/g', label: 'Treino', Icon: IconTarget, end: true },
+  { to: '/g/glossary', label: 'Glossário', Icon: IconGrid, end: false },
+  { to: '/login', label: 'Entrar', Icon: IconLogin, end: false },
+];
+
 /** Navegação inferior minimalista (iOS-like). */
 export function BottomNav() {
+  const { isAuthenticated } = useAuth();
+  const tabs = isAuthenticated ? TABS : GUEST_TABS;
   return (
     <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-line bg-card">
       <div className="flex items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)] pt-2">
-        {TABS.map(({ to, label, Icon, end }) => (
+        {tabs.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
             to={to}
