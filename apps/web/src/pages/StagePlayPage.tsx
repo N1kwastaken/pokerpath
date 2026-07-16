@@ -348,12 +348,28 @@ export function StagePlayPage() {
         </div>
       ) : (
         <div className={`grid gap-2.5 ${aggressor ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          {buttons.map((b) => (
-            <button key={b.key} onClick={() => choose(b.key)} disabled={mutation.isPending}
-              className={`btn3d rounded-2xl py-5 text-base font-extrabold text-white ${b.color} hover:brightness-110`}>
-              {b.label}
-            </button>
-          ))}
+          {buttons.map((b) => {
+            // Feedback IMEDIATO ao tocar: o botão escolhido pulsa com spinner
+            // enquanto o servidor valida; os outros apagam. Sem isso, a espera
+            // da rede parece travamento.
+            const pending = mutation.isPending;
+            const chosen = pending && lastChoice === b.key;
+            return (
+              <button key={b.key} onClick={() => choose(b.key)} disabled={pending}
+                className={`btn3d rounded-2xl py-5 text-base font-extrabold text-white transition ${b.color} ${
+                  chosen ? 'scale-[0.97] animate-pulse' : pending ? 'opacity-40' : 'hover:brightness-110'
+                }`}>
+                {chosen ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    {b.label}
+                  </span>
+                ) : (
+                  b.label
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
       </div>

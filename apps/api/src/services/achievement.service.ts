@@ -35,12 +35,24 @@ async function reachedWorlds(userId: string): Promise<number> {
 /**
  * Avalia e persiste conquistas recém-desbloqueadas.
  * Retorna apenas as novas (para o cliente celebrar).
+ *
+ * PERFORMANCE: o chamador pode informar o CONTEXTO do evento (resposta certa?
+ * fase/mundo concluídos?) — só reavaliamos conquistas que esse evento pode
+ * ter mudado, e todas as consultas restantes rodam em paralelo. Campos de
+ * contexto omitidos = "não sei, cheque" (comportamento antigo).
  */
 export async function evaluateAchievements(args: {
   userId: string;
   currentStreak: number;
+  /** Uma resposta acabou de ser registrada (exercício, não aula). */
+  answered?: boolean;
+  correct?: boolean;
+  category?: string;
+  stageCompleted?: boolean;
+  worldCompleted?: boolean;
 }): Promise<UnlockedAchievement[]> {
-  const { userId, currentStreak } = args;
+  const { userId, currentStreak, answered, correct, category, stageCompleted, worldCompleted } = args;
+  const maybe = (v: boolean | undefined) => v !== false; // undefined ⇒ cheque
 
   // Conjunto de códigos já desbloqueados (evita trabalho e duplicidade).
   const owned = new Set(
@@ -54,45 +66,54 @@ export async function evaluateAchievements(args: {
 
   const unlock = new Set<string>();
   const want = (code: string) => !owned.has(code);
+  const checks: Promise<void>[] = [];
 
-  // FIRST_HAND — primeiro exercício respondido.
+  // FIRST_HAND — primeiro exercício respondido. Se uma resposta acabou de ser
+  // gravada, não precisa contar nada.
   if (want('FIRST_HAND')) {
-    const any = await prisma.userAnswer.count({ where: { userId } });
-    if (any >= 1) unlock.add('FIRST_HAND');
+    if (answered === true) unlock.add('FIRST_HAND');
+    else if (answered === undefined) {
+      checks.push(prisma.userAnswer.count({ where: { userId } }).then((n) => {
+        if (n >= 1) unlock.add('FIRST_HAND');
+      }));
+    }
   }
 
-  // PERFECT_WEEK — streak de 7 dias.
+  // PERFECT_WEEK — streak de 7 dias (sem consulta).
   if (want('PERFECT_WEEK') && currentStreak >= 7) unlock.add('PERFECT_WEEK');
 
-  // HOT_STREAK / SHARP_SHOOTER — acertos seguidos (5 / 50).
-  if (want('HOT_STREAK') || want('SHARP_SHOOTER')) {
-    const streak = await consecutiveCorrect(userId);
-    if (want('HOT_STREAK') && streak >= 5) unlock.add('HOT_STREAK');
-    if (want('SHARP_SHOOTER') && streak >= 50) unlock.add('SHARP_SHOOTER');
+  // HOT_STREAK / SHARP_SHOOTER — acertos seguidos (5 / 50). Um erro zera a
+  // sequência, então só vale checar quando a resposta foi CERTA.
+  if ((want('HOT_STREAK') || want('SHARP_SHOOTER')) && maybe(correct)) {
+    checks.push(consecutiveCorrect(userId).then((streak) => {
+      if (want('HOT_STREAK') && streak >= 5) unlock.add('HOT_STREAK');
+      if (want('SHARP_SHOOTER') && streak >= 50) unlock.add('SHARP_SHOOTER');
+    }));
   }
 
-  // EXPLORER — chegar a TODOS os mundos existentes.
-  if (want('EXPLORER')) {
-    const total = await prisma.world.count();
-    if (total > 0 && (await reachedWorlds(userId)) >= total) unlock.add('EXPLORER');
+  // EXPLORER — chegar a TODOS os mundos: só muda ao concluir fase/mundo.
+  if (want('EXPLORER') && maybe(stageCompleted)) {
+    checks.push(Promise.all([prisma.world.count(), reachedWorlds(userId)]).then(([total, reached]) => {
+      if (total > 0 && reached >= total) unlock.add('EXPLORER');
+    }));
   }
 
-  // THREEBET_MACHINE — 100 acertos de 3-bet.
-  if (want('THREEBET_MACHINE')) {
-    const n = await prisma.userAnswer.count({
+  // THREEBET_MACHINE — 100 acertos de 3-bet: só muda com acerto de 3-bet.
+  if (want('THREEBET_MACHINE') && maybe(correct) && (category === undefined || category === 'THREE_BET')) {
+    checks.push(prisma.userAnswer.count({
       where: { userId, isCorrect: true, exercise: { category: 'THREE_BET' } },
-    });
-    if (n >= 100) unlock.add('THREEBET_MACHINE');
+    }).then((n) => { if (n >= 100) unlock.add('THREEBET_MACHINE'); }));
   }
 
-  // BTN_MASTER — Mundo Preflop (order 1) completo com 90%+ de acerto médio.
-  // A média ignora aulas (accuracy 0); só conta fases de prática.
-  if (want('BTN_MASTER')) {
-    const pre = await prisma.world.findUnique({
-      where: { order: 1 },
-      include: { stages: { select: { id: true } } },
-    });
-    if (pre && pre.stages.length > 0) {
+  // BTN_MASTER — Nível Iniciante (order 1) completo com 90%+ de acerto médio.
+  // A média ignora aulas (accuracy 0). Só muda ao concluir uma fase.
+  if (want('BTN_MASTER') && maybe(stageCompleted)) {
+    checks.push((async () => {
+      const pre = await prisma.world.findUnique({
+        where: { order: 1 },
+        include: { stages: { select: { id: true } } },
+      });
+      if (!pre || pre.stages.length === 0) return;
       const prog = await prisma.userProgress.findMany({
         where: { userId, stageId: { in: pre.stages.map((s) => s.id) } },
       });
@@ -104,16 +125,17 @@ export async function evaluateAchievements(args: {
         ? graded.reduce((s, p) => s + p.accuracy, 0) / graded.length
         : 0;
       if (allDone && avg >= 0.9) unlock.add('BTN_MASTER');
-    }
+    })());
   }
 
-  // FULL_GAME — todos os 15 mundos completos.
-  if (want('FULL_GAME')) {
-    const worlds = await prisma.world.findMany({
-      include: { stages: { select: { id: true } } },
-    });
-    const real = worlds.filter((w) => w.stages.length > 0);
-    if (real.length > 0) {
+  // FULL_GAME — todos os mundos completos: só muda ao concluir um MUNDO.
+  if (want('FULL_GAME') && maybe(worldCompleted)) {
+    checks.push((async () => {
+      const worlds = await prisma.world.findMany({
+        include: { stages: { select: { id: true } } },
+      });
+      const real = worlds.filter((w) => w.stages.length > 0);
+      if (real.length === 0) return;
       const completedWorlds = await Promise.all(
         real.map(async (w) => {
           const done = await prisma.userProgress.count({
@@ -127,8 +149,10 @@ export async function evaluateAchievements(args: {
         }),
       );
       if (completedWorlds.every(Boolean)) unlock.add('FULL_GAME');
-    }
+    })());
   }
+
+  await Promise.all(checks);
 
   if (unlock.size === 0) return [];
 

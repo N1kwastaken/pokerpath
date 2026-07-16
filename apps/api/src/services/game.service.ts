@@ -270,6 +270,25 @@ async function isWorldLockedByProgression(
   return done < required.length;
 }
 
+/** Fases anteriores do mesmo mundo completas? (premium não trava o FREE) */
+async function prevStagesDone(
+  userId: string,
+  stage: Stage,
+  plan: string,
+): Promise<boolean> {
+  if (stage.order <= 1) return true;
+  const prevStages = await prisma.stage.findMany({
+    where: { worldId: stage.worldId, order: { lt: stage.order } },
+    select: { id: true, premium: true },
+  });
+  const required = prevStages.filter((s) => !isStagePremiumLocked(plan, s.premium));
+  if (required.length === 0) return true;
+  const done = await prisma.userProgress.count({
+    where: { userId, status: 'COMPLETED', stageId: { in: required.map((s) => s.id) } },
+  });
+  return done >= required.length;
+}
+
 /** Garante que a fase pode ser jogada; lança erro caso contrário. */
 async function assertStageAccessible(
   userId: string,
@@ -284,33 +303,22 @@ async function assertStageAccessible(
       'PREMIUM_REQUIRED',
     );
   }
-  if (await isWorldLockedByProgression(userId, stage.world.order, plan)) {
+  // As duas checagens são independentes — em paralelo (latência do Neon).
+  const [worldLocked, prevOk] = await Promise.all([
+    isWorldLockedByProgression(userId, stage.world.order, plan),
+    prevStagesDone(userId, stage, plan),
+  ]);
+  if (worldLocked) {
     throw new ForbiddenError(
       'Complete o mundo anterior para desbloquear este.',
       'WORLD_LOCKED',
     );
   }
-  // Fases anteriores do mesmo mundo precisam estar completas (fases premium
-  // não contam para o usuário FREE — elas não travam a corrente).
-  if (stage.order > 1) {
-    const prevStages = await prisma.stage.findMany({
-      where: { worldId: stage.worldId, order: { lt: stage.order } },
-      select: { id: true, premium: true },
-    });
-    const required = prevStages.filter((s) => !isStagePremiumLocked(plan, s.premium));
-    const done = await prisma.userProgress.count({
-      where: {
-        userId,
-        status: 'COMPLETED',
-        stageId: { in: required.map((s) => s.id) },
-      },
-    });
-    if (done < required.length) {
-      throw new ForbiddenError(
-        'Complete a fase anterior primeiro.',
-        'STAGE_LOCKED',
-      );
-    }
+  if (!prevOk) {
+    throw new ForbiddenError(
+      'Complete a fase anterior primeiro.',
+      'STAGE_LOCKED',
+    );
   }
 }
 
@@ -383,34 +391,45 @@ export async function submitAnswer(
   userId: string,
   input: AnswerInput,
 ): Promise<AnswerResult> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { streak: true },
-  });
+  // Fase 1 de leitura — usuário e exercício em paralelo (latência do Neon).
+  const [user, exercise] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, include: { streak: true } }),
+    prisma.exercise.findUnique({
+      where: { id: input.exerciseId },
+      include: { stage: { include: { world: true } } },
+    }),
+  ]);
   if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
-
-  const exercise = await prisma.exercise.findUnique({
-    where: { id: input.exerciseId },
-    include: { stage: { include: { world: true } } },
-  });
   if (!exercise) {
     throw new NotFoundError('Exercício não encontrado', 'EXERCISE_NOT_FOUND');
   }
 
   const godmode = isGodmodeEmail(user.email);
-  await assertStageAccessible(userId, effectivePlan(user), exercise.stage, godmode);
+  const stage = exercise.stage;
+  const isFree = effectivePlan(user) === 'FREE' && !godmode;
+
+  // Fase 2 de leitura — acesso, limite diário, progresso e tamanho da sessão
+  // são independentes entre si: tudo em paralelo (assertStageAccessible lança
+  // se a fase estiver travada, antes de qualquer escrita).
+  const [, todayCount, existing, sessionTarget] = await Promise.all([
+    assertStageAccessible(userId, effectivePlan(user), stage, godmode),
+    isFree
+      ? prisma.userAnswer.count({ where: { userId, createdAt: { gte: startOfToday() } } })
+      : Promise.resolve(0),
+    prisma.userProgress.findUnique({
+      where: { userId_stageId: { userId, stageId: stage.id } },
+    }),
+    stage.minExercises > 0
+      ? Promise.resolve(stage.minExercises)
+      : prisma.exercise.count({ where: { stageId: stage.id } }),
+  ]);
 
   // Limite diário no plano FREE (PRD 13.2). Contas DEV = premium.
-  if (effectivePlan(user) === 'FREE' && !godmode) {
-    const todayCount = await prisma.userAnswer.count({
-      where: { userId, createdAt: { gte: startOfToday() } },
-    });
-    if (todayCount >= FREE_DAILY_EXERCISE_LIMIT) {
-      throw new ForbiddenError(
-        `Limite diário de ${FREE_DAILY_EXERCISE_LIMIT} exercícios atingido. Assine o Premium para jogar sem limites.`,
-        DAILY_LIMIT_CODE,
-      );
-    }
+  if (isFree && todayCount >= FREE_DAILY_EXERCISE_LIMIT) {
+    throw new ForbiddenError(
+      `Limite diário de ${FREE_DAILY_EXERCISE_LIMIT} exercícios atingido. Assine o Premium para jogar sem limites.`,
+      DAILY_LIMIT_CODE,
+    );
   }
 
   // ── Validação server-side da resposta (a correta nunca vai ao cliente). ──
@@ -418,27 +437,13 @@ export async function submitAnswer(
   const correct = input.selectedAction === correctAction;
   const xpGained = correct ? exercise.xpValue : 0;
 
-  await prisma.userAnswer.create({
-    data: {
-      userId,
-      exerciseId: exercise.id,
-      selectedAction: input.selectedAction,
-      isCorrect: correct,
-    },
-  });
-
   // ── Atualiza o progresso da fase. ──
-  const stage = exercise.stage;
-  const existing = await prisma.userProgress.findUnique({
-    where: { userId_stageId: { userId, stageId: stage.id } },
-  });
   const wasCompleted = existing?.status === 'COMPLETED';
 
   // Reinício de tentativa: se a tentativa anterior percorreu todos os exercícios,
   // zera os contadores para medir só a tentativa atual (evita que a precisão
   // vire "vitalícia"). Vale também para REPLAYS de fase concluída — assim cada
   // rejogo é uma sessão própria e pode conquistar a estrela de sessão perfeita.
-  const sessionTarget = stage.minExercises > 0 ? stage.minExercises : await prisma.exercise.count({ where: { stageId: stage.id } });
   const freshAttempt = (existing?.exercisesDone ?? 0) >= sessionTarget;
   const baseDone = freshAttempt ? 0 : existing?.exercisesDone ?? 0;
   const baseCorrect = freshAttempt ? 0 : existing?.correctAnswers ?? 0;
@@ -468,45 +473,18 @@ export async function submitAnswer(
     sessionTarget > 0 && exercisesDone >= sessionTarget && correctAnswers === exercisesDone;
   const perfectAt = existing?.perfectAt ?? (perfectRun ? new Date() : null);
 
-  await prisma.userProgress.upsert({
-    where: { userId_stageId: { userId, stageId: stage.id } },
-    update: {
-      status,
-      exercisesDone,
-      correctAnswers,
-      accuracy,
-      xpEarned,
-      completedAt: stageCompleted ? new Date() : existing?.completedAt ?? null,
-      perfectAt,
-    },
-    create: {
-      userId,
-      stageId: stage.id,
-      status,
-      exercisesDone,
-      correctAnswers,
-      accuracy,
-      xpEarned,
-      completedAt: stageCompleted ? new Date() : null,
-      perfectAt,
-    },
-  });
-
-  // ── Conclusão do mundo: todas as fases completas (PRD 4.5). ──
+  // ── Conclusão do mundo (PRD 4.5): checada ANTES das escritas, em 1 consulta —
+  // "existe alguma OUTRA fase deste mundo ainda não completa?".
   let worldCompleted = false;
   if (stageCompleted) {
-    const worldStages = await prisma.stage.findMany({
-      where: { worldId: stage.worldId },
-      select: { id: true },
-    });
-    const completedInWorld = await prisma.userProgress.count({
+    const remaining = await prisma.stage.count({
       where: {
-        userId,
-        status: 'COMPLETED',
-        stageId: { in: worldStages.map((s) => s.id) },
+        worldId: stage.worldId,
+        id: { not: stage.id },
+        NOT: { progress: { some: { userId, status: 'COMPLETED' } } },
       },
     });
-    if (completedInWorld === worldStages.length) {
+    if (remaining === 0) {
       worldCompleted = true;
       totalXpDelta += XP_PER_WORLD_COMPLETE;
     }
@@ -519,36 +497,73 @@ export async function submitAnswer(
   const levelAfter = resolveLevel(totalXp);
   const leveledUp = levelAfter.level > levelBefore.level;
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { totalXp },
-  });
-
   // ── Streak (PRD 9.3): conta um novo dia de atividade. ──
   const streakNow = computeStreak({
     currentStreak: user.streak?.currentStreak ?? 0,
     maxStreak: user.streak?.maxStreak ?? 0,
     lastActiveAt: user.streak?.lastActiveAt ?? null,
   });
-  await prisma.streak.upsert({
-    where: { userId },
-    update: {
-      currentStreak: streakNow.currentStreak,
-      maxStreak: streakNow.maxStreak,
-      lastActiveAt: streakNow.lastActiveAt,
-    },
-    create: {
-      userId,
-      currentStreak: streakNow.currentStreak,
-      maxStreak: streakNow.maxStreak,
-      lastActiveAt: streakNow.lastActiveAt,
-    },
-  });
 
-  // ── Conquistas. ──
+  // ── Escritas: linhas independentes → tudo em paralelo (1 ida ao banco de
+  // latência total, em vez de 4 em sequência).
+  await Promise.all([
+    prisma.userAnswer.create({
+      data: {
+        userId,
+        exerciseId: exercise.id,
+        selectedAction: input.selectedAction,
+        isCorrect: correct,
+      },
+    }),
+    prisma.userProgress.upsert({
+      where: { userId_stageId: { userId, stageId: stage.id } },
+      update: {
+        status,
+        exercisesDone,
+        correctAnswers,
+        accuracy,
+        xpEarned,
+        completedAt: stageCompleted ? new Date() : existing?.completedAt ?? null,
+        perfectAt,
+      },
+      create: {
+        userId,
+        stageId: stage.id,
+        status,
+        exercisesDone,
+        correctAnswers,
+        accuracy,
+        xpEarned,
+        completedAt: stageCompleted ? new Date() : null,
+        perfectAt,
+      },
+    }),
+    prisma.user.update({ where: { id: userId }, data: { totalXp } }),
+    prisma.streak.upsert({
+      where: { userId },
+      update: {
+        currentStreak: streakNow.currentStreak,
+        maxStreak: streakNow.maxStreak,
+        lastActiveAt: streakNow.lastActiveAt,
+      },
+      create: {
+        userId,
+        currentStreak: streakNow.currentStreak,
+        maxStreak: streakNow.maxStreak,
+        lastActiveAt: streakNow.lastActiveAt,
+      },
+    }),
+  ]);
+
+  // ── Conquistas — só reavalia o que esta resposta pode ter mudado. ──
   const newAchievements = await evaluateAchievements({
     userId,
     currentStreak: streakNow.currentStreak,
+    answered: true,
+    correct,
+    category: exercise.category,
+    stageCompleted,
+    worldCompleted,
   });
 
   return {
@@ -582,13 +597,16 @@ export async function submitAnswer(
 
 // ─── Concluir uma AULA (fase sem exercícios) ───────────────────
 export async function completeLesson(userId: string, stageId: string, perfect = false): Promise<LessonResult> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, include: { streak: true } });
+  // Leituras independentes em paralelo (latência do Neon em produção).
+  const [user, stage, existing] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, include: { streak: true } }),
+    prisma.stage.findUnique({
+      where: { id: stageId },
+      include: { world: true, _count: { select: { exercises: true } } },
+    }),
+    prisma.userProgress.findUnique({ where: { userId_stageId: { userId, stageId } } }),
+  ]);
   if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
-
-  const stage = await prisma.stage.findUnique({
-    where: { id: stageId },
-    include: { world: true, _count: { select: { exercises: true } } },
-  });
   if (!stage) throw new NotFoundError('Fase não encontrada', 'STAGE_NOT_FOUND');
   if (stage._count.exercises > 0) {
     throw new ForbiddenError('Esta fase é de prática, não uma aula.', 'NOT_A_LESSON');
@@ -597,42 +615,54 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
   const godmode = isGodmodeEmail(user.email);
   await assertStageAccessible(userId, effectivePlan(user), stage, godmode);
 
-  const existing = await prisma.userProgress.findUnique({
-    where: { userId_stageId: { userId, stageId } },
-  });
   const wasCompleted = existing?.status === 'COMPLETED';
   const xpGained = wasCompleted ? 0 : stage.xpReward;
-
-  // Aula perfeita (todos os quizzes certos de primeira) ganha a ficha dourada.
-  const perfectAt = existing?.perfectAt ?? (perfect ? new Date() : null);
-  await prisma.userProgress.upsert({
-    where: { userId_stageId: { userId, stageId } },
-    update: {
-      status: 'COMPLETED',
-      xpEarned: wasCompleted ? existing?.xpEarned ?? 0 : stage.xpReward,
-      completedAt: existing?.completedAt ?? new Date(),
-      perfectAt,
-    },
-    create: { userId, stageId, status: 'COMPLETED', xpEarned: stage.xpReward, completedAt: new Date(), perfectAt },
-  });
 
   const totalXp = user.totalXp + xpGained;
   const before = resolveLevel(user.totalXp);
   const after = resolveLevel(totalXp);
-  if (xpGained > 0) await prisma.user.update({ where: { id: userId }, data: { totalXp } });
-
   const streakNow = computeStreak({
     currentStreak: user.streak?.currentStreak ?? 0,
     maxStreak: user.streak?.maxStreak ?? 0,
     lastActiveAt: user.streak?.lastActiveAt ?? null,
   });
-  await prisma.streak.upsert({
-    where: { userId },
-    update: { currentStreak: streakNow.currentStreak, maxStreak: streakNow.maxStreak, lastActiveAt: streakNow.lastActiveAt },
-    create: { userId, currentStreak: streakNow.currentStreak, maxStreak: streakNow.maxStreak, lastActiveAt: streakNow.lastActiveAt },
-  });
 
-  const newAchievements = await evaluateAchievements({ userId, currentStreak: streakNow.currentStreak });
+  // Aula perfeita (todos os quizzes certos de primeira) ganha a ficha dourada.
+  const perfectAt = existing?.perfectAt ?? (perfect ? new Date() : null);
+
+  // Escritas independentes → em paralelo.
+  await Promise.all([
+    prisma.userProgress.upsert({
+      where: { userId_stageId: { userId, stageId } },
+      update: {
+        status: 'COMPLETED',
+        xpEarned: wasCompleted ? existing?.xpEarned ?? 0 : stage.xpReward,
+        completedAt: existing?.completedAt ?? new Date(),
+        perfectAt,
+      },
+      create: { userId, stageId, status: 'COMPLETED', xpEarned: stage.xpReward, completedAt: new Date(), perfectAt },
+    }),
+    xpGained > 0
+      ? prisma.user.update({ where: { id: userId }, data: { totalXp } })
+      : Promise.resolve(),
+    prisma.streak.upsert({
+      where: { userId },
+      update: { currentStreak: streakNow.currentStreak, maxStreak: streakNow.maxStreak, lastActiveAt: streakNow.lastActiveAt },
+      create: { userId, currentStreak: streakNow.currentStreak, maxStreak: streakNow.maxStreak, lastActiveAt: streakNow.lastActiveAt },
+    }),
+  ]);
+
+  // Aula não registra resposta nem conclui prática com nota — só conquistas
+  // de streak/exploração podem mudar aqui.
+  const newAchievements = await evaluateAchievements({
+    userId,
+    currentStreak: streakNow.currentStreak,
+    answered: false,
+    correct: false,
+    stageCompleted: !wasCompleted,
+    // Uma aula pode ser a última fase de um mundo — deixa o FULL_GAME checar.
+    worldCompleted: !wasCompleted,
+  });
 
   return {
     xpGained,
