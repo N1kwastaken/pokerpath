@@ -11,7 +11,11 @@ const SIZE_LABEL: Record<string, string> = { SIX_MAX: '6-max', NINE_MAX: '9-max'
 
 /** Posições com chart em cada tipo de jogada; no 3-bet, contra quais opens. */
 const RFI_POSITIONS = ['UTG', 'MP', 'CO', 'BTN', 'SB'];
-const VS_MATRIX: Record<string, string[]> = { BTN: ['UTG', 'MP', 'CO'], BB: ['BTN'] };
+const VS_MATRIX: Record<string, string[]> = {
+  BTN: ['UTG', 'MP', 'CO'],
+  SB: ['CO', 'BTN'],
+  BB: ['UTG', 'MP', 'CO', 'BTN', 'SB'],
+};
 
 export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
   const [gameType, setGameType] = useState<string>('CASH');
@@ -112,6 +116,13 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
             return <Chip key={p} on={villain === p} disabled={!ok} onClick={() => setVillain(p)}>{p}</Chip>;
           })}
         </FilterCard>
+      )}
+
+      {mode === 'RFI' && (
+        <p className="mb-1 rounded-xl bg-card2 p-3 text-xs text-subtle">
+          Na <b>abertura</b> você é o primeiro a entrar no pote: não existe <b>call</b> — só <b>raise</b> ou <b>fold</b>.
+          Para ver quando <b>pagar</b>, escolha <b>3-Bet / Defesa</b> acima.
+        </p>
       )}
 
       <div className="mt-6">

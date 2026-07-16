@@ -1476,6 +1476,57 @@ const VS_DEFS: { position: string; scenario: string; label: string; raise: strin
       'AJo', 'ATo', 'A9o', 'A8o', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
     ],
   },
+  // SB vs CO — fora de posição: 3-bet ou fold, com um call mínimo (set-mine).
+  // Ancorado nos 28 exercícios da seção SB vs CO (0 divergências conferidas).
+  {
+    position: 'SB', scenario: 'VS_CO', label: 'SB vs open de CO · 3-Bet / Call / Fold',
+    raise: ['JJ+', 'AQs+', 'AKo', 'A5s', 'A4s'],
+    call: ['88', '77', '66', '55'],
+  },
+  // SB vs BTN — BTN abre muito largo; SB responde 3-bet-ou-fold com call OOP curto.
+  {
+    position: 'SB', scenario: 'VS_BTN', label: 'SB vs open do BTN · 3-Bet / Call / Fold',
+    raise: ['77+', 'ATs+', 'KQs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s'],
+    call: ['66', '55', '44', 'A9s', 'A8s', 'A7s', 'A6s', 'KJs', 'KTs', 'QJs', 'JTs', 'T9s', 'ATo', 'KJo'],
+  },
+  // BB fecha a ação com desconto — defende largo. Contra opens mais cedo (range
+  // mais forte do vilão) defende mais apertado e blefa menos no 3-bet.
+  {
+    position: 'BB', scenario: 'VS_UTG', label: 'BB vs open de UTG · Defesa',
+    raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'A5s'],
+    call: [
+      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
+      'AJs', 'ATs', 'A9s', 'KQs', 'KJs', 'KTs', 'QJs', 'QTs', 'JTs', 'T9s', '98s', '87s', '76s', '65s',
+      'AQo', 'AJo', 'KQo',
+    ],
+  },
+  {
+    position: 'BB', scenario: 'VS_MP', label: 'BB vs open de MP · Defesa',
+    raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'AJs', 'A5s', 'A4s'],
+    call: [
+      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
+      'ATs', 'A9s', 'A8s', 'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', '98s', '87s', '76s', '65s', '54s',
+      'AQo', 'AJo', 'ATo', 'KQo', 'KJo', 'QJo',
+    ],
+  },
+  {
+    position: 'BB', scenario: 'VS_CO', label: 'BB vs open de CO · Defesa',
+    raise: ['JJ+', 'AQs+', 'AKo', 'KQs', 'A5s', 'A4s', 'A3s'],
+    call: [
+      'TT', '99', '88', '77', '66', '55', '44', '33', '22',
+      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s', '98s', '87s', '76s', '65s', '54s',
+      'AJo', 'ATo', 'KQo', 'KJo', 'QJo', 'JTo',
+    ],
+  },
+  {
+    position: 'BB', scenario: 'VS_SB', label: 'BB vs open da SB · Defesa',
+    raise: ['99+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s', 'A2s', 'K9s'],
+    call: [
+      '88', '77', '66', '55', '44', '33', '22',
+      'A9s', 'A8s', 'A7s', 'A6s', 'KTs', 'K8s', 'QTs', 'Q9s', 'Q8s', 'J9s', 'J8s', 'T9s', 'T8s', '98s', '97s', '87s', '76s', '65s', '54s',
+      'A9o', 'A8o', 'ATo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
+    ],
+  },
 ];
 
 const RANGE_DEFS: { position: string; label: string; tokens: string[] }[] = [
