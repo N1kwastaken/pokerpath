@@ -345,6 +345,31 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Top pair no river, o vilão aposta e muitos projetos falharam. Ideia?`, ['Fold', 'Pagar (bluff-catch)'], 1,
       `Contra projetos que erraram, top pair paga.`),
   ],
+  // ── Avançado: postflop por textura ─────────────────────────
+  // O Intermediário já ensinou "seco x molhado". Aqui o degrau é FREQUÊNCIA:
+  // de quem é a vantagem de range e, por isso, quanto se aposta.
+  'Textura vantagem': [
+    t(`Você já sabe ler a textura. Agora o passo seguinte: de quem o board é?`),
+    t(`Quem ABRE tem mais mãos fortes no range (AA, KK, AK). Quem paga no BB tem mais mãos médias e conectadas — ele foldaria as premium? Não: ele 3-betaria.`),
+    t(`Então um board de cartas ALTAS (K♠7♦2♣, A♦8♣3♥) acerta MUITO mais o range de quem abriu. Isso é VANTAGEM DE RANGE.`),
+    quiz(`No flop K♠7♦2♣, quem tem mais reis no range?`, ['O BB, que pagou', 'Você, que abriu'], 1,
+      `Quem abre tem KK, AK, KQ, KJ… O BB defende poucos reis. O board é seu.`),
+    t(`Com vantagem de range, a jogada é apostar PEQUENO e QUASE SEMPRE — até com ar. Você não precisa acertar: o vilão é que não consegue continuar.`),
+    quiz(`Board seco onde você tem vantagem. Com que frequência apostar?`, ['Só quando acertar', 'Quase sempre, com aposta pequena'], 1,
+      `Aposta pequena e frequente: barata quando falha, eficaz porque o range dele é fraco ali.`),
+  ],
+  'Textura molhada': [
+    t(`Vire a mesa: board 9♥8♥6♣. De quem é esse flop?`),
+    t(`É do BB. Ele defende 98s, 87s, 76s, T9s, 66… Você, que abriu, tem AK e AQ — que ali não valem nada.`),
+    quiz(`No flop 9♥8♥6♣, quem tem mais sequências e dois pares?`, ['Você, que abriu', 'O BB, que pagou'], 1,
+      `O BB. Sem vantagem de range, apostar sempre vira queimar fichas.`),
+    t(`Sem vantagem, inverta a regra: aposte POUCAS vezes e MAIOR — só com valor de verdade ou projeto forte (semi-blefe).`),
+    t(`Ar puro (A♦K♠ nesse board) dá CHECK. Você não tem equity nem fold equity: o vilão continua com metade do range dele.`),
+    quiz(`Você abriu A♦K♠, flop 9♥8♥6♣, BB deu check. E aí?`, ['Bet — ele pode foldar', 'Check — sem equity e sem vantagem'], 1,
+      `Check. Nesse board o BB quase nunca desiste, e sua mão não melhora bem.`),
+    t(`Resumo: board ALTO e seco = aposta pequena quase sempre. Board BAIXO e conectado = aposte pouco, e maior.`),
+  ],
+
   // ── Ruas pós-flop (em breve) ───────────────────────────────
   'Flop — intro': [
     t(`O flop traz 3 cartas na mesa. Aqui você aprende a continuation bet (c-bet) e a ler texturas de board. Em breve!`),

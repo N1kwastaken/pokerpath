@@ -1299,7 +1299,65 @@ const WORLDS: WorldSeed[] = [
           { heroPosition: 'SB', villainPosition: 'CO', villainAction: 'Raise 2.5x', callerPosition: 'BTN', potSize: 6.5, heroHand: 'J♥9♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'THREE_BET', explanation: 'J9s: fold OOP contra dois.' },
         ],
       },
+      // ── Postflop do Avançado: TEXTURA ────────────────────────
+      // O Intermediário ensina "seco x molhado"; aqui o degrau é a frequência:
+      // de quem é a vantagem de range e, por isso, quanto/quando apostar.
+      // Spots de agressor (vilão deu check) ⇒ botões Bet/Check.
+      { title: 'Vantagem de range', concept: 'Textura vantagem', description: 'De quem é o board — e por que isso define a frequência.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
       {
+        title: 'C-bet em board seco', concept: 'Textura seco', description: 'Com vantagem de range: aposta pequena, quase sempre.',
+        minExercises: 6, passRate: 0.7, xpReward: 80,
+        exercises: [
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠7♦2♣', heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'AA em board seco: aposte por valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠7♦2♣', heroHand: 'A♥Q♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Ar em board seco ainda aposta: o range dele quase não tem rei.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠7♦2♣', heroHand: '5♥4♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Blefe barato: K72 raramente acertou o BB.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♦8♣3♥', heroHand: 'K♠Q♠', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'O ás é seu: aposte pequeno com KQ.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♦8♣3♥', heroHand: 'A♣J♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair: valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♠6♦2♥', heroHand: 'Q♥J♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair em board seco: aposte.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♠6♦2♥', heroHand: '9♣8♣', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Board seco, vantagem sua: blefe pequeno.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♠6♦2♥', heroHand: '6♣5♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Par do meio: tem showdown, não precisa apostar. Check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♣8♠3♦', heroHand: 'K♦T♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Top pair: aposte por valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♣8♠3♦', heroHand: '7♥6♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Ar num board que é seu: aposte pequeno.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠7♦2♣', heroHand: '7♣6♣', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Par do meio: showdown vale mais que a aposta. Check.' },
+        ],
+      },
+      { title: 'Board molhado: freie', concept: 'Textura molhada', description: 'Sem vantagem de range, aposte menos — e maior.', minExercises: 0, passRate: 0, xpReward: 25, exercises: [] },
+      {
+        title: 'C-bet em board molhado', concept: 'Textura molhado', description: 'Quando o board é dele: valor e projeto apostam; ar dá check.',
+        minExercises: 6, passRate: 0.7, xpReward: 80,
+        exercises: [
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥6♣', heroHand: 'A♠A♣', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Overpair: aposte por valor e proteção.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥6♣', heroHand: 'A♦K♠', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Ar sem equity num board que é dele: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥6♣', heroHand: 'A♥K♥', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Projeto de flush máximo: semi-blefe.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥6♣', heroHand: '7♦7♣', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Par + sequência aberta: semi-blefe forte.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'J♥T♥9♣', heroHand: 'K♠Q♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Sequência feita (KQJT9): aposte grande por valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'J♥T♥9♣', heroHand: 'A♣2♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Board conectadíssimo e você tem ar: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '7♠6♠5♦', heroHand: '9♠8♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Sequência feita + projeto de flush: valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '7♠6♠5♦', heroHand: 'A♥K♦', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'AK aqui é ar: o board é do BB. Check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♦J♦T♣', heroHand: 'A♦K♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Sequência máxima (AKQJT): aposte por valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♦J♦T♣', heroHand: '8♥7♥', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Ar num board que acerta o BB em cheio: check.' },
+        ],
+      },
+      {
+        title: 'Textura: teste', concept: 'Textura teste', description: 'Seco ou molhado? Decida a frequência.',
+        minExercises: 8, passRate: 0.75, xpReward: 100,
+        exercises: [
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♠7♦2♣', heroHand: 'J♣9♦', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Board seco é seu: blefe pequeno.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥6♣', heroHand: 'K♦Q♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Ar em board dele: check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♦8♣3♥', heroHand: 'Q♥Q♠', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'QQ em board de ás seco: aposte pequeno.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'J♥T♥9♣', heroHand: 'A♠A♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overpair em board perigoso: aposte por proteção.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♠6♦2♥', heroHand: 'A♥T♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Seco e alto: aposte mesmo sem par.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '7♠6♠5♦', heroHand: 'K♣K♦', correctAction: 'RAISE', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Overpair: aposte por valor e proteção.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'K♣8♠3♦', heroHand: '4♥3♣', correctAction: 'CALL', difficulty: 'MEDIUM', category: 'C_BET', explanation: 'Par de baixo: tem algum showdown. Check.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'Q♦J♦T♣', heroHand: '9♥8♦', correctAction: 'RAISE', difficulty: 'EASY', category: 'C_BET', explanation: 'Sequência feita (89TJQ): valor.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: 'A♦8♣3♥', heroHand: '6♥5♥', correctAction: 'RAISE', difficulty: 'HARD', category: 'C_BET', explanation: 'Board de ás é seu: blefe barato funciona.' },
+          { heroPosition: 'BTN', villainPosition: 'BB', villainAction: 'Check', potSize: 5.5, board: '9♥8♥6♣', heroHand: 'Q♠J♠', correctAction: 'CALL', difficulty: 'HARD', category: 'C_BET', explanation: 'Duas overcards não bastam nesse board: check.' },
+        ],
+      },
+      {
+        // Fica PRÉ-FLOP de propósito: "todo o preflop é grátis" — um exercício
+        // com board aqui tornaria a fase premium (regra em main()) e trancaria
+        // o capstone do pré-flop. O pós-flop do nível vive na seção Textura.
         title: 'Desafio final', concept: 'Desafio final', description: 'O teste definitivo do pré-flop.',
         minExercises: 8, passRate: 0.8, xpReward: 120,
         exercises: [

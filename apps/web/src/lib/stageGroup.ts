@@ -5,6 +5,8 @@ export function stageGroup(concept: string): string {
   if (/vsutg/i.test(concept)) return 'vs UTG';
   if (/vsmp|vsco/i.test(concept)) return 'vs MP/CO';
   if (/squeeze/i.test(concept)) return 'Squeeze';
+  // Antes de /teste/ e /board/: a seção de textura do Avançado tem teste próprio.
+  if (/^textura/i.test(concept)) return 'Textura';
   if (/^cbet/i.test(concept)) return 'C-Bet';
   if (/^barrel/i.test(concept)) return 'Barrel';
   if (/^valuebet/i.test(concept)) return 'Value Bet';
@@ -37,6 +39,7 @@ const CAT: Record<string, { color: string; desc: string }> = {
   'vs MP/CO': { color: '#5C6BC0', desc: 'Defesa vs opens mais largos' },
   'Squeeze': { color: '#7CB342', desc: 'Aperte open + caller' },
   'C-Bet': { color: '#8D6E63', desc: 'Apostar ou dar check' },
+  'Textura': { color: '#B8860B', desc: 'Vantagem de range e frequência' },
   'Barrel': { color: '#607D8B', desc: 'Segunda bala no turn' },
   'Value Bet': { color: '#9E9D24', desc: 'O river do agressor' },
   'Flop': { color: '#E4572E', desc: 'Decisões no flop' },
