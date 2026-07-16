@@ -77,6 +77,9 @@ export function IntroPage({ review = false }: { review?: boolean }) {
             <button className="btn-primary w-full text-lg" onClick={() => finish('/setup')}>Começar grátis →</button>
             <button className="btn-soft w-full" onClick={() => finish('/g')}>Explorar sem conta 👀</button>
             <button className="btn-ghost w-full" onClick={() => finish('/login')}>Já tenho conta</button>
+            <p className="text-center text-xs text-subtle">
+              🎓 Já joga poker? Ao criar a conta você faz a <b>prova de nivelamento</b> e pula direto pro seu nível.
+            </p>
           </div>
         )
       ) : (

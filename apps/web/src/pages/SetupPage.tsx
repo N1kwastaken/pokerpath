@@ -119,6 +119,11 @@ export function SetupPage() {
                 </button>
               ))}
             </div>
+            {experience && experience !== 'beginner' && (
+              <p className="mt-4 rounded-2xl border border-gold/40 bg-gold/10 p-3 text-sm text-text">
+                🎓 Boa! Então logo após criar a conta você fará a <b>prova de nivelamento</b> — 12 perguntas rápidas pra pular direto pro seu nível.
+              </p>
+            )}
           </div>
         )}
 

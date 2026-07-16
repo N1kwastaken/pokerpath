@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
 import { useStats, useEnergy, useTrail } from '../hooks/useGame.js';
@@ -13,6 +14,15 @@ export function DashboardPage() {
   const { data: trail } = useTrail();
   const { data: stats } = useStats();
   const { data: energy } = useEnergy();
+
+  // Cadastro de quem JÁ JOGA marca a prova de nivelamento como pendente —
+  // o redirect acontece aqui porque o RegisterPage é desmontado pelo guard.
+  useEffect(() => {
+    if (localStorage.getItem('pp.placementPending')) {
+      localStorage.removeItem('pp.placementPending');
+      navigate('/placement', { replace: true });
+    }
+  }, [navigate]);
 
   if (!user) return null;
   const accuracy = stats && stats.totalAnswered > 0 ? Math.round(stats.overallAccuracy * 100) : null;

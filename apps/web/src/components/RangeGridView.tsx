@@ -4,7 +4,7 @@ import type { RangeGrid, RangeCell, CellAction } from '@pokerpath/shared';
 export const CELL_BG: Record<CellAction, string> = {
   RAISE: '#1B8A4C',
   CALL: '#4878A8', // azul suavizado (o token 'call' é forte demais em área grande)
-  FOLD: 'rgb(var(--card2))',
+  FOLD: '#B04A50', // vermelho suavizado — mesma linguagem dos botões (fold = vermelho)
   MIXED: '#1B8A4C',
 };
 
@@ -38,7 +38,7 @@ export function RangeGridView({ grid, legend = true, highlight, diffWith }: {
               <div
                 key={`${r}-${c}`}
                 style={{ background: cellBackground(cell) }}
-                className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none sm:text-[9px] ${cell.action === 'FOLD' && !cell.mix ? 'text-subtle' : 'text-white'} ${on ? 'z-10 scale-110 outline outline-2 outline-gold ring-2 ring-gold/40' : ''} ${changed ? 'outline outline-2 outline-gold' : ''}`}
+                className={`flex aspect-square items-center justify-center rounded-[3px] text-[7px] font-bold leading-none text-white sm:text-[9px] ${cell.action === 'FOLD' && !cell.mix ? 'opacity-90' : ''} ${on ? 'z-10 scale-110 outline outline-2 outline-gold ring-2 ring-gold/40' : ''} ${changed ? 'outline outline-2 outline-gold' : ''}`}
                 title={`${cellTitle(cell)}${changed ? ' · muda aqui' : ''}`}
               >
                 {cell.hand}

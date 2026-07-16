@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { registerSchema, type OnboardingInput } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { ApiError } from '../lib/api.js';
@@ -28,7 +28,6 @@ function setupToOnboarding(s: SetupData): OnboardingInput {
 /** Tela de cadastro (repaginada). */
 export function RegisterPage() {
   const { register, setUser } = useAuth();
-  const navigate = useNavigate();
   const [setup] = useState(() => loadSetup());
   const [name, setName] = useState(setup?.name ?? '');
   const [email, setEmail] = useState('');
@@ -53,14 +52,14 @@ export function RegisterPage() {
       }
       // Quem montou o app no /setup já respondeu tudo: pula o onboarding.
       if (setup) {
+        // Já jogou poker antes? Marca a prova de nivelamento como pendente —
+        // o Dashboard redireciona (navigate daqui é descartado: o guard
+        // desmonta esta tela assim que o usuário loga).
+        if (setup.experience !== 'beginner') localStorage.setItem('pp.placementPending', '1');
         try {
           const updated = await userApi.onboarding(setupToOnboarding(setup));
           setUser(updated);
           localStorage.removeItem(SETUP_KEY);
-          // Já jogou poker antes? Oferece a prova de nivelamento na entrada.
-          if (updated.onboardingCompleted && setup.experience !== 'beginner') {
-            navigate('/placement', { replace: true });
-          }
         } catch { /* sem drama: cai no onboarding normal */ }
       }
     } catch (err) {
