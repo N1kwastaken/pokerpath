@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="PokerPath">
+  <title>PokerPath</title>
+  <defs>
+    <!-- Mesmo gradiente do app: brand -> brand-dark, sentido "to bottom right". -->
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B8A4C"/>
+      <stop offset="1" stop-color="#145C34"/>
+    </linearGradient>
+  </defs>
+  <!-- rounded-2xl proporcional (1.25rem num tile de 40px ≈ 31%) -->
+  <rect width="128" height="128" rx="40" fill="url(#tile)"/>
+  <!-- Espada como path: não depende de fonte, renderiza igual em todo lugar. -->
+  <g transform="translate(64 61) scale(2.05)">
+    <path d="M0 -9 C6 -3 12 1 12 6 C12 11 7 12 3 9 C4 13 6 15 8 17 L-8 17 C-6 15 -4 13 -3 9 C-7 12 -12 11 -12 6 C-12 1 -6 -3 0 -9 Z" fill="#fff"/>
+  </g>
+</svg>
