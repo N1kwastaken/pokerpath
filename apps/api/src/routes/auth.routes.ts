@@ -16,7 +16,8 @@ import {
   NotFoundError,
 } from '../lib/errors.js';
 import { toPublicUser } from '../services/user.serializer.js';
-import { sendMail } from '../services/mail.service.js';
+import { sendMail, passwordResetMail, welcomeMail } from '../services/mail.service.js';
+import { env } from '../config/env.js';
 
 /** Recuperação de senha: validade do link e limite anti-abuso. */
 const RESET_TTL_MIN = 30;
@@ -69,6 +70,13 @@ export async function authRoutes(app: FastifyInstance) {
       user.id,
       user.email,
     );
+
+    // Boas-vindas: nunca pode derrubar o cadastro — falha vira log.
+    try {
+      await sendMail({ to: user.email, ...welcomeMail(user.name) });
+    } catch (err) {
+      request.log.error({ err }, 'Falha ao enviar e-mail de boas-vindas');
+    }
 
     return reply.status(201).send({
       user: toPublicUser(user, user.streak),
@@ -175,17 +183,10 @@ export async function authRoutes(app: FastifyInstance) {
             expiresAt: new Date(Date.now() + RESET_TTL_MIN * 60_000),
           },
         });
-        const base = process.env.WEB_APP_URL ?? 'http://localhost:5173';
+        const base = process.env.WEB_APP_URL ?? env.WEB_ORIGIN;
         const link = `${base}/reset-password?token=${token}`;
         try {
-          await sendMail({
-            to: email,
-            subject: 'PokerPath — redefinir sua senha',
-            html: `<p>Olá, ${user.name}!</p>
-<p>Recebemos um pedido para redefinir sua senha no PokerPath. Clique no link abaixo (vale por ${RESET_TTL_MIN} minutos):</p>
-<p><a href="${link}">${link}</a></p>
-<p>Se não foi você, ignore este e-mail — sua senha continua a mesma.</p>`,
-          });
+          await sendMail({ to: email, ...passwordResetMail(user.name, link, RESET_TTL_MIN) });
         } catch (err) {
           request.log.error({ err }, 'Falha ao enviar e-mail de recuperação');
         }

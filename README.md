@@ -91,6 +91,34 @@ o site (`@fastify/static` + fallback SPA) — um serviço só, sem CORS.
 Variáveis no Render: `DATABASE_URL` (Neon, conexão direta), `NODE_ENV`,
 `NODE_VERSION=22` e segredos JWT gerados pelo painel.
 
+## E-mail
+
+Driver plugável por env (`MAIL_DRIVER`), sem mudar código:
+
+- **`console`** (padrão, dev): o e-mail é impresso no log da API — é assim que
+  se copia o link de redefinir senha localmente. **Nada é enviado.**
+- **`resend`**: envia de verdade (exige `RESEND_API_KEY` e `MAIL_FROM`).
+
+Três e-mails: **boas-vindas** (no cadastro), **redefinir senha** (30 min, uso
+único) e o **lembrete diário de streak**.
+
+O lembrete é disparado por HTTP, para funcionar com qualquer agendador:
+
+```bash
+curl -X POST -H "x-cron-secret: $CRON_SECRET" \
+  https://pokerpath.onrender.com/api/jobs/streak-reminder
+# -> {"candidates":1,"sent":1,"skipped":11,"failed":0}
+```
+
+Só recebe quem **jogou ontem e ainda não hoje** (mesma regra do banner no app),
+não optou por sair e ainda não foi lembrado hoje — a rota é idempotente. Sem
+`CRON_SECRET` definido, ela fica desligada. Cada e-mail traz um link de
+descadastro de um clique (token assinado, sem login), e a preferência também
+fica no perfil.
+
+> **Resend precisa de domínio verificado** para enviar a qualquer endereço. Sem
+> domínio, a chave de teste só entrega no e-mail dono da conta Resend.
+
 ## API (visão geral)
 
 Rotas autenticadas (`Authorization: Bearer <accessToken>`): `/worlds`, `/trail`,

@@ -28,3 +28,17 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
+      # ─── E-mail (opcional) ───────────────────────────────────
+      # Sem MAIL_DRIVER=resend nada é enviado: o driver 'console' só loga.
+      # Resend exige domínio verificado para enviar a qualquer endereço; sem
+      # domínio, a chave de teste só entrega no e-mail dono da conta Resend.
+      - key: MAIL_DRIVER # 'console' (padrão) ou 'resend'
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM # ex.: "PokerPath <ola@seudominio.com>"
+        sync: false
+      # Segredo do lembrete diário (POST /api/jobs/streak-reminder).
+      # Sem ele a rota fica desligada. Use um agendador externo para chamar.
+      - key: CRON_SECRET
+        generateValue: true

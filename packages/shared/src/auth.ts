@@ -69,6 +69,8 @@ export interface PublicUser {
   streakAtRisk: boolean;
   /** Já garantiu o dia de hoje. */
   streakPlayedToday: boolean;
+  /** Recebe o lembrete diário de streak por e-mail. */
+  emailReminders: boolean;
   onboardingCompleted: boolean;
   createdAt: string;
 }

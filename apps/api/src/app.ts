@@ -9,6 +9,7 @@ import { env } from './config/env.js';
 import { authPlugin } from './plugins/auth.plugin.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { guestRoutes } from './routes/guest.routes.js';
+import { jobsRoutes } from './routes/jobs.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
 import { gameRoutes } from './routes/game.routes.js';
 import { userRoutes } from './routes/user.routes.js';
@@ -61,6 +62,7 @@ export async function buildApp() {
       await healthRoutes(api);
       await authRoutes(api);
       await guestRoutes(api); // públicas: Mundo 0 sem login
+      await jobsRoutes(api); // cron (segredo) + descadastro de e-mail
       await api.register(userRoutes);
       await api.register(gameRoutes);
     },

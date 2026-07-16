@@ -45,4 +45,6 @@ export const gameApi = {
 export const userApi = {
   onboarding: (input: OnboardingInput) =>
     apiRequest<{ user: PublicUser }>('/onboarding', { method: 'POST', body: input }).then((r) => r.user),
+  setEmailReminders: (emailReminders: boolean) =>
+    apiRequest<{ user: PublicUser }>('/preferences', { method: 'PATCH', body: { emailReminders } }).then((r) => r.user),
 };

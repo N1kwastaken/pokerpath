@@ -38,6 +38,8 @@ model User {
   onboardingCompleted Boolean  @default(false)
   // Código curto para adicionar amigos (gerado sob demanda no 1º acesso).
   friendCode          String?  @unique
+  // Opt-out do lembrete diário de streak (e-mail sem descadastro é spam).
+  emailReminders      Boolean  @default(true)
 
   // Respostas do onboarding (PRD 4.1) -- opcionais ate completar.
   experienceLevel     String?
@@ -263,6 +265,8 @@ model Streak {
   currentStreak Int       @default(0)
   maxStreak     Int       @default(0)
   lastActiveAt  DateTime?
+  // Último lembrete enviado — garante no máximo 1 e-mail por dia por pessoa.
+  remindedAt    DateTime?
   updatedAt     DateTime  @updatedAt
 
   @@map("streaks")

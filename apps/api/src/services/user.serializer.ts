@@ -26,6 +26,7 @@ export function toPublicUser(
     currentStreak: sv.current,
     streakAtRisk: sv.atRisk,
     streakPlayedToday: sv.playedToday,
+    emailReminders: user.emailReminders,
     onboardingCompleted: user.onboardingCompleted,
     createdAt: user.createdAt.toISOString(),
   };

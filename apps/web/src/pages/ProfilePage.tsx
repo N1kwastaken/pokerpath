@@ -5,12 +5,12 @@ import { useAuth } from '../auth/AuthContext.js';
 import { useTheme } from '../lib/theme.js';
 import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
-import { gameApi } from '../api/game.js';
+import { gameApi, userApi } from '../api/game.js';
 import { IconUser, IconLogout, IconChevron } from '../components/Icons.js';
 
 /** Perfil — dados do usuário, preferências, logout e painel de debug. */
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const { theme, toggle } = useTheme();
   const [accent, setAccent] = useState(currentAccent());
   const queryClient = useQueryClient();
@@ -24,6 +24,12 @@ export function ProfilePage() {
     mutationFn: (fn: () => Promise<unknown>) => fn(),
     onSuccess: () => { queryClient.clear(); window.location.reload(); },
     onError: (e: unknown) => { window.alert('Falha no debug: ' + (e instanceof Error ? e.message : 'erro')); },
+  });
+
+  // Lembrete por e-mail: atualiza só o usuário, sem recarregar a página.
+  const remindersMut = useMutation({
+    mutationFn: (on: boolean) => userApi.setEmailReminders(on),
+    onSuccess: (u) => { sound.click(); setUser(u); },
   });
 
   function run(fn: () => Promise<unknown>) { debugMut.mutate(fn); }
@@ -65,6 +71,11 @@ export function ProfilePage() {
       <div className="card divide-y divide-line">
         <Row label="Tema escuro" onClick={toggle} value={theme === 'dark' ? 'Ligado' : 'Desligado'} />
         <Row label="Som" onClick={() => setMuted(sound.toggleMute())} value={muted ? 'Mudo' : 'Ligado'} />
+        <Row
+          label="Lembrete de streak por e-mail"
+          onClick={() => remindersMut.mutate(!user.emailReminders)}
+          value={remindersMut.isPending ? '...' : user.emailReminders ? 'Ligado' : 'Desligado'}
+        />
         <div className="p-4">
           <div className="flex items-center justify-between">
             <span className="font-medium text-title">Cor do app</span>
