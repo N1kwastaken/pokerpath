@@ -62,3 +62,33 @@ export function computeStreak(
 }
 
 export type StreakWhere = Prisma.StreakWhereUniqueInput;
+
+/** Estado do streak para EXIBIÇÃO (o banco só é atualizado quando se joga). */
+export interface StreakView {
+  /** Streak real de hoje: 0 se o elo já foi quebrado. */
+  current: number;
+  /** Jogou hoje? (dia já garantido) */
+  playedToday: boolean;
+  /** Jogou ONTEM e ainda não hoje: joga hoje ou perde. */
+  atRisk: boolean;
+}
+
+/**
+ * Streak EFETIVO no instante da leitura.
+ *
+ * O valor gravado só muda quando o usuário responde algo — então quem tem
+ * streak 10 e some por uma semana continuaria vendo "10🔥" até jogar de novo.
+ * Aqui o tempo decorrido é levado em conta: se o elo quebrou, o streak é 0.
+ */
+export function viewStreak(
+  streak: { currentStreak: number; lastActiveAt: Date | null } | null | undefined,
+  now: Date = new Date(),
+): StreakView {
+  if (!streak?.lastActiveAt || streak.currentStreak <= 0) {
+    return { current: 0, playedToday: false, atRisk: false };
+  }
+  const days = diffInDays(now, streak.lastActiveAt);
+  if (days <= 0) return { current: streak.currentStreak, playedToday: true, atRisk: false };
+  if (days === 1) return { current: streak.currentStreak, playedToday: false, atRisk: true };
+  return { current: 0, playedToday: false, atRisk: false }; // elo quebrado
+}

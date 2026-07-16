@@ -1,6 +1,7 @@
 import { resolveLevel, type FriendView, type FriendsResponse } from '@pokerpath/shared';
 import type { Streak, User } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
+import { viewStreak } from './streak.service.js';
 import { BadRequestError, NotFoundError } from '../lib/errors.js';
 
 /**
@@ -24,7 +25,8 @@ function toFriendView(u: User & { streak: Streak | null }): FriendView {
     totalXp: u.totalXp,
     level: lv.level,
     levelName: lv.name,
-    currentStreak: u.streak?.currentStreak ?? 0,
+    // Streak efetivo: um amigo que sumiu não pode aparecer com o elo antigo.
+    currentStreak: viewStreak(u.streak).current,
     isDev: u.isDev,
   };
 }

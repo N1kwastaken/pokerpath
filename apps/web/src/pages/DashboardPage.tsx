@@ -45,11 +45,33 @@ export function DashboardPage() {
       </header>
 
       {/* Faixa de status compacta */}
-      <div className="mb-5 grid grid-cols-3 gap-2">
-        <Pill value={`${user.currentStreak}🔥`} label="Streak" />
+      <div className="mb-3 grid grid-cols-3 gap-2">
+        <Pill value={`${user.currentStreak}🔥`} label="Streak" alert={user.streakAtRisk} />
         <Pill value={user.totalXp.toLocaleString('pt-BR')} label="XP" />
         <Pill value={accuracy != null ? `${accuracy}%` : '—'} label="Precisão" />
       </div>
+
+      {/* Streak em risco: a única mensagem que precisa furar a tela. */}
+      {user.streakAtRisk && (
+        <button
+          onClick={() => navigate('/worlds')}
+          className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 p-3.5 text-left active:scale-[0.99]"
+        >
+          <span className="animate-flame text-2xl">🔥</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold text-title">
+              Seu streak de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'} acaba hoje
+            </span>
+            <span className="block text-xs text-subtle">Uma mão salva ele. Leva menos de um minuto.</span>
+          </span>
+          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-xs font-extrabold text-white">Salvar</span>
+        </button>
+      )}
+      {!user.streakAtRisk && user.streakPlayedToday && user.currentStreak > 0 && (
+        <p className="mb-5 text-center text-xs font-semibold text-primary">
+          🔥 Dia garantido — streak de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'}
+        </p>
+      )}
 
       {/* CTA principal — voltar à mão */}
       {curWorld ? (
@@ -71,10 +93,16 @@ export function DashboardPage() {
           </div>
         </button>
       ) : (
-        <div className="card p-6 text-center">
-          <h2 className="text-xl font-bold text-title">Tudo em dia 🎉</h2>
-          <p className="mt-1 text-sm text-subtle">Você concluiu o conteúdo disponível.</p>
-        </div>
+        // Sem fase pendente: NÃO pode ser um beco sem saída — quem terminou
+        // tudo é justamente quem mais volta. Manda para a revisão.
+        <button onClick={() => navigate('/review')} className="btn3d w-full rounded-2xl bg-primary p-5 text-left text-white">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-white/80">Tudo em dia 🎉</p>
+          <h2 className="mt-1 text-2xl font-extrabold">Afie o que já aprendeu</h2>
+          <p className="mt-0.5 text-sm text-white/85">Revise suas mãos erradas e mantenha o streak vivo.</p>
+          <span className="mt-4 inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-extrabold text-primary">
+            Revisar <IconChevron size={15} />
+          </span>
+        </button>
       )}
 
       {/* Nível */}
@@ -93,10 +121,10 @@ export function DashboardPage() {
   );
 }
 
-function Pill({ value, label }: { value: string; label: string }) {
+function Pill({ value, label, alert }: { value: string; label: string; alert?: boolean }) {
   return (
-    <div className="rounded-xl border border-line bg-card2 px-3 py-2.5 text-center">
-      <p className="text-base font-extrabold tabular-nums text-title">{value}</p>
+    <div className={`rounded-xl border px-3 py-2.5 text-center ${alert ? 'border-gold/60 bg-gold/10' : 'border-line bg-card2'}`}>
+      <p className={`text-base font-extrabold tabular-nums ${alert ? 'text-gold' : 'text-title'}`}>{value}</p>
       <p className="text-[10px] uppercase tracking-wide text-subtle">{label}</p>
     </div>
   );

@@ -59,6 +59,9 @@ export function StagePlayPage() {
   const { setUser, user } = useAuth();
   const [saved] = useState(() => loadSession(stageId));
   const [resume, setResume] = useState(!!saved && saved.answers.length > 0);
+  // Streak ANTES da sessão: se subir, esta sessão garantiu um novo dia — e é
+  // isso que o resumo celebra (a recompensa que fecha o hábito diário).
+  const [streakBefore] = useState(() => user?.currentStreak ?? 0);
   const { data, isLoading, error } = useStage(stageId, resume);
   const { data: energy } = useEnergy();
 
@@ -94,7 +97,7 @@ export function StagePlayPage() {
     onSuccess: (res) => {
       sound.correct();
       if (stageId) localStorage.setItem('pp.justCompleted', stageId);
-      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak });
+      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
       backToWorld();
     },
   });
@@ -189,7 +192,7 @@ export function StagePlayPage() {
       if (res.worldCompleted) setWorldDone(true);
       res.correct ? sound.correct() : sound.wrong();
       if (res.leveledUp) setTimeout(() => sound.levelUp(), 250);
-      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak });
+      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
       queryClient.invalidateQueries({ queryKey: ['energy'] });
       setPhase('feedback');
     },
@@ -239,6 +242,7 @@ export function StagePlayPage() {
     const correct = answers.filter(Boolean).length;
     const accuracy = answers.length ? Math.round((correct / answers.length) * 100) : 0;
     const passed = answers.length > 0 && correct / answers.length >= data.stage.passRate;
+    const streakAdvanced = !!user && user.currentStreak > streakBefore;
     return (
       <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
         {passed && <Confetti count={50} />}
@@ -247,6 +251,22 @@ export function StagePlayPage() {
         {worldDone && <p className="mt-1 font-bold text-primary">Mundo completo! 🏆</p>}
         {!passed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
         {passed && <div className="mt-4 animate-deal-in text-5xl">🎁</div>}
+
+        {/* Streak conquistado nesta sessão — a recompensa que fecha o dia. */}
+        {streakAdvanced && (
+          <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 px-4 py-3">
+            <span className="animate-flame text-3xl">🔥</span>
+            <div className="text-left">
+              <p className="text-lg font-extrabold text-gold">
+                {user!.currentStreak} {user!.currentStreak === 1 ? 'dia seguido' : 'dias seguidos'}
+              </p>
+              <p className="text-xs text-subtle">
+                {user!.currentStreak === 1 ? 'Começou. Volte amanhã para somar 2.' : 'Dia garantido — volte amanhã para não perder.'}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
           <Stat label="Acerto" value={`${accuracy}%`} />
           <Stat label="Acertos" value={`${correct}/${answers.length}`} />

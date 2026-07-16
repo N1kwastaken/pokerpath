@@ -63,7 +63,12 @@ export interface PublicUser {
   totalXp: number;
   level: number;
   levelName: string;
+  /** Streak EFETIVO: já considera dias sem jogar (0 = elo quebrado). */
   currentStreak: number;
+  /** Jogou ontem e ainda não hoje — joga hoje ou perde o streak. */
+  streakAtRisk: boolean;
+  /** Já garantiu o dia de hoje. */
+  streakPlayedToday: boolean;
   onboardingCompleted: boolean;
   createdAt: string;
 }
