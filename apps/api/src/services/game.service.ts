@@ -382,6 +382,7 @@ export async function getStagePlay(
     stage: toStageSummary(stage, status, stage.exercises.length === 0, progress),
     worldId: stage.worldId,
     worldName: stage.world.name,
+    worldOrder: stage.world.order,
     exercises,
   };
 }
@@ -736,6 +737,7 @@ export async function getGuestStage(stageId: string): Promise<GuestStagePlay> {
     stage: toStageSummary(stage, 'IN_PROGRESS', stage.exercises.length === 0),
     worldId: stage.worldId,
     worldName: stage.world.name,
+    worldOrder: stage.world.order,
     exercises: stage.exercises.map((ex) => ({
       id: ex.id,
       order: ex.order,

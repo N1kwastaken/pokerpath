@@ -131,6 +131,8 @@ export interface StagePlay {
   stage: StageSummary;
   worldId: string;
   worldName: string;
+  /** Nível do mundo (0 = Primeiros Passos) — o cliente simplifica a mesa nele. */
+  worldOrder: number;
   exercises: PublicExercise[];
 }
 
@@ -159,6 +161,7 @@ export interface GuestStagePlay {
   stage: StageSummary;
   worldId: string;
   worldName: string;
+  worldOrder: number;
   exercises: GuestExercise[];
 }
 

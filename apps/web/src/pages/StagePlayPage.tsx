@@ -302,7 +302,7 @@ export function StagePlayPage() {
       </div>
 
       <div className="flex flex-1 flex-col justify-center">
-        <div className={`w-full ${fb && result && !result.correct ? 'animate-shake' : ''}`}><PokerTable ex={current} /></div>
+        <div className={`w-full ${fb && result && !result.correct ? 'animate-shake' : ''}`}><PokerTable ex={current} simple={data.worldOrder === 0} /></div>
       </div>
 
       {fb && result ? (

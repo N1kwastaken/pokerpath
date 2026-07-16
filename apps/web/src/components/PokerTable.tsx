@@ -24,6 +24,16 @@ function Dealer() {
   return <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-black text-black">D</span>;
 }
 
+/** Nome em português da posição — no modo simples a sigla sozinha não diz nada. */
+const POS_NAME: Record<Position, string> = {
+  UTG: 'primeiro a falar',
+  MP: 'no meio',
+  CO: 'antes do botão',
+  BTN: 'no botão',
+  SB: 'small blind',
+  BB: 'big blind',
+};
+
 /** Estado do assento: na mão (verde), foldou (escuro dessaturado) ou ainda não agiu (escuro). */
 type SeatState = 'in' | 'folded' | 'pending';
 
@@ -42,7 +52,15 @@ function SeatCards({ state }: { state: SeatState }) {
   );
 }
 
-export function PokerTable({ ex }: { ex: PublicExercise }) {
+export function PokerTable({ ex, simple = false }: {
+  ex: PublicExercise;
+  /**
+   * Mesa de INICIANTE (Mundo 0): esconde as siglas dos outros assentos e os
+   * stacks — ruído puro para quem nunca jogou (teste com 3 iniciantes). Sobra
+   * o essencial: suas cartas, onde você está (com o nome por extenso) e o pote.
+   */
+  simple?: boolean;
+}) {
   const heroIdx = RING.indexOf(ex.heroPosition);
   const cards = tokens(ex.heroHand);
 
@@ -87,10 +105,20 @@ export function PokerTable({ ex }: { ex: PublicExercise }) {
           <div key={pos} className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-500 ease-out" style={{ left: `${x}%`, top: `${y}%` }}>
             <div className="flex flex-col items-center gap-0.5">
               <SeatCards state={seat} />
-              <span className={`flex items-center gap-1 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-extrabold tracking-wide ${seat === 'folded' ? 'text-white/35' : 'text-white/80'}`}>
-                {pos}{pos === 'BTN' && <Dealer />}
-              </span>
-              <span className={`text-[10px] font-semibold tabular-nums ${seat === 'folded' ? 'text-white/25' : 'text-white/50'}`}>{ex.stackBb} BB</span>
+              {simple ? (
+                // Iniciante: os outros são só "jogadores" — a sigla viria antes
+                // da hora e rouba a atenção da única pergunta que importa aqui.
+                <span className={`rounded-lg bg-black/55 px-2 py-0.5 text-[10px] font-bold ${seat === 'folded' ? 'text-white/30' : 'text-white/60'}`}>
+                  {seat === 'folded' ? 'saiu' : 'jogador'}
+                </span>
+              ) : (
+                <>
+                  <span className={`flex items-center gap-1 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-extrabold tracking-wide ${seat === 'folded' ? 'text-white/35' : 'text-white/80'}`}>
+                    {pos}{pos === 'BTN' && <Dealer />}
+                  </span>
+                  <span className={`text-[10px] font-semibold tabular-nums ${seat === 'folded' ? 'text-white/25' : 'text-white/50'}`}>{ex.stackBb} BB</span>
+                </>
+              )}
               {isVillain && ex.villainAction && (
                 <span className="rounded bg-call/25 px-1.5 py-0.5 text-[9px] font-bold text-call">{ex.villainAction}</span>
               )}
@@ -115,7 +143,11 @@ export function PokerTable({ ex }: { ex: PublicExercise }) {
           <span className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1 text-xs font-extrabold tracking-wide text-white ring-2 ring-white/30">
             VOCÊ · {ex.heroPosition}{ex.heroPosition === 'BTN' && <Dealer />}
           </span>
-          <span className="text-[10px] font-semibold tabular-nums text-white/60">{ex.stackBb} BB</span>
+          {simple ? (
+            <span className="rounded bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-white/70">{POS_NAME[ex.heroPosition]}</span>
+          ) : (
+            <span className="text-[10px] font-semibold tabular-nums text-white/60">{ex.stackBb} BB</span>
+          )}
         </div>
       </div>
     </div>
