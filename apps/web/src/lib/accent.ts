@@ -49,6 +49,24 @@ export function unlockLabel(a: (typeof ACCENTS)[number]): string {
   }
 }
 
+/**
+ * Nome da cor do app EM PORTUGUÊS, para o texto das aulas.
+ * O destaque é customizável, então frases como "a cadeira marcada em verde"
+ * mentem para quem escolheu roxo. Use o placeholder {cor} no texto.
+ */
+const ACCENT_WORD: Record<string, string> = {
+  green: 'verde', blue: 'azul', purple: 'roxo', orange: 'laranja',
+  pink: 'rosa', silver: 'prata', gold: 'dourado',
+};
+export function accentWord(): string {
+  return ACCENT_WORD[currentAccent()] ?? 'verde';
+}
+
+/** Troca {cor} pelo nome da cor de destaque atual. */
+export function withAccentWord(text: string): string {
+  return text.includes('{cor}') ? text.replaceAll('{cor}', accentWord()) : text;
+}
+
 const KEY = 'pp.accent';
 
 export function applyAccent(key: string): void {

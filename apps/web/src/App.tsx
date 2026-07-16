@@ -18,6 +18,7 @@ import { StatsPage } from './pages/StatsPage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { AchievementsPage } from './pages/AchievementsPage.js';
 import { FriendsPage } from './pages/FriendsPage.js';
+import { LevelsPage } from './pages/LevelsPage.js';
 import { GlossaryPage } from './pages/GlossaryPage.js';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './pages/ResetPasswordPage.js';
@@ -67,6 +68,7 @@ export function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/friends" element={<FriendsPage />} />
+              <Route path="/levels" element={<LevelsPage />} />
               <Route path="/glossary" element={<GlossaryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
             </Route>

@@ -53,6 +53,22 @@
   [data-accent='gold'] { --primary: 201 168 76; --primary2: 161 130 47; --primary-soft: 46 37 14; }
   [data-theme='light'][data-accent='gold'] { --primary: 180 142 42; --primary2: 140 108 26; --primary-soft: 249 236 200; }
 
+  /* ── Mascote ──
+     No DARK (padrão) o contorno preto do sprite se perde no fundo escuro, e o
+     Ace some. A solução é um OUTLINE branco — não um glow: drop-shadows
+     ortogonais empilhados com blur 0 recortam a silhueta com borda nítida
+     (glow = borrão que suja o desenho).
+     No LIGHT o sprite já tem contorno preto próprio; só a sombra de apoio. */
+  .mascot-sprite {
+    filter:
+      drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff)
+      drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff)
+      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
+  }
+  [data-theme='light'] .mascot-sprite {
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
+  }
+
   /* Rolagem horizontal sem barra: touch no celular; roda do mouse já rola de lado. */
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }

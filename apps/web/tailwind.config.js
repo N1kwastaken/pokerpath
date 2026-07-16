@@ -56,7 +56,15 @@ export default {
         'slide-up': { from: { opacity: '0', transform: 'translateY(40px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         'logo-glow': { '0%,100%': { filter: 'drop-shadow(0 0 0 rgba(22,163,74,0))', transform: 'scale(1)' }, '50%': { filter: 'drop-shadow(0 0 18px rgba(22,163,74,0.55))', transform: 'scale(1.05)' } },
         'spin-in': { from: { transform: 'rotate(-180deg) scale(0.3)', opacity: '0' }, to: { transform: 'rotate(0) scale(1)', opacity: '1' } },
-        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+        // Idle do mascote: subir/descer puro parecia peça de máquina. Com um
+        // balanço leve e fora de fase (o giro vira nos quartos, não no meio) o
+        // movimento fica orgânico — o Ace parece respirar, não oscilar.
+        float: {
+          '0%, 100%': { transform: 'translateY(0) rotate(-1.5deg)' },
+          '25%': { transform: 'translateY(-4px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-8px) rotate(1.5deg)' },
+          '75%': { transform: 'translateY(-4px) rotate(0deg)' },
+        },
         'float-slow': { '0%,100%': { transform: 'translateY(0) rotate(0)' }, '50%': { transform: 'translateY(-16px) rotate(5deg)' } },
         'deal-in': { from: { transform: 'translateY(-40px) rotate(-8deg)', opacity: '0' }, to: { transform: 'translateY(0) rotate(0)', opacity: '1' } },
         'bubble-in': { from: { opacity: '0', transform: 'translateY(10px) scale(0.97)' }, to: { opacity: '1', transform: 'translateY(0) scale(1)' } },
@@ -77,7 +85,7 @@ export default {
         'slide-up': 'slide-up 0.4s cubic-bezier(0.22,1,0.36,1) both',
         'logo-glow': 'logo-glow 2.4s ease-in-out infinite',
         'spin-in': 'spin-in 0.7s cubic-bezier(0.22,1,0.36,1)',
-        float: 'float 3s ease-in-out infinite',
+        float: 'float 4.5s ease-in-out infinite',
         'float-slow': 'float-slow 7s ease-in-out infinite',
         'deal-in': 'deal-in 0.45s ease-out both',
         'bubble-in': 'bubble-in 0.35s ease-out both',

@@ -63,7 +63,7 @@ export function FriendsPage() {
       <div className="card mt-5 p-5 text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-subtle">Seu código de amigo</p>
         <p className="mt-2 font-display text-4xl font-black tracking-[0.3em] text-primary">{data.code}</p>
-        <button onClick={copy} className="btn-soft mt-3 w-full">{copied ? 'Copiado! ✓' : 'Copiar código'}</button>
+        <button onClick={copy} className="btn-primary mt-3 w-full">{copied ? 'Copiado! ✓' : 'Copiar código'}</button>
         <p className="mt-2 text-xs text-subtle">Passe esse código para um amigo te adicionar (ou adicione pelo código dele abaixo).</p>
       </div>
 

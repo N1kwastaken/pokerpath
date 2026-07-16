@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Mascot } from './Mascot.js';
+import { withAccentWord } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
 
 /**
@@ -10,7 +11,8 @@ import { sound } from '../lib/sound.js';
 const STEPS: { title: string; text: string }[] = [
   { title: 'Bem-vindo à mesa!', text: 'Aqui você treina decisões reais de poker, uma mão de cada vez. Vou te mostrar tudo rapidinho.' },
   { title: 'Suas cartas', text: 'As duas cartas grandes embaixo são a SUA mão. Só você as vê.' },
-  { title: 'Você na mesa', text: 'O selo verde diz onde VOCÊ está sentado (ex.: BTN = botão, a melhor cadeira). Os outros jogadores aparecem ao redor.' },
+  // {cor} = cor de destaque escolhida pelo usuário (ver lib/accent.ts).
+  { title: 'Você na mesa', text: 'O selo {cor} diz onde VOCÊ está sentado (ex.: BTN = botão, a melhor cadeira). Os outros jogadores aparecem ao redor.' },
   { title: 'O pote', text: 'No centro fica o POTE: as fichas em disputa. É isso que você quer ganhar.' },
   { title: 'Os botões', text: 'FOLD = desistir da mão. CALL = pagar uma aposta. RAISE = aumentar. Nas primeiras fases só existem duas respostas certas: Raise (mão forte) ou Fold (mão fraca).' },
   { title: 'Colou? Sem problema', text: 'No topo da fase, o botão 📊 abre o GRÁFICO da sua posição — pode consultar sempre. E qualquer termo sublinhado (tipo range) abre o glossário ao tocar.' },
@@ -45,7 +47,7 @@ export function TableTutorial({ onDone }: { onDone: () => void }) {
           <Mascot mood={last ? 'excited' : 'teaching'} size={92} float={false} />
           <div className="min-w-0 flex-1">
             <p className="font-extrabold text-title">{step.title}</p>
-            <p className="mt-1 text-sm leading-snug text-text">{step.text}</p>
+            <p className="mt-1 text-sm leading-snug text-text">{withAccentWord(step.text)}</p>
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between">

@@ -78,6 +78,31 @@ export function resolveLevel(totalXp: number): UserLevel {
   return current;
 }
 
+/** Progresso dentro do nível atual — quanto falta para o próximo. */
+export interface LevelProgress {
+  current: UserLevel;
+  /** null no último nível (não há para onde subir). */
+  next: UserLevel | null;
+  /** 0–100 dentro da faixa do nível atual (100 quando não há próximo). */
+  pct: number;
+  /** XP que ainda falta para o próximo nível (0 quando não há próximo). */
+  xpToNext: number;
+}
+
+export function levelProgress(totalXp: number): LevelProgress {
+  const current = resolveLevel(totalXp);
+  const next = USER_LEVELS[current.level] ?? null; // level é 1-based
+  if (!next) return { current, next: null, pct: 100, xpToNext: 0 };
+  const span = next.xpRequired - current.xpRequired;
+  const done = totalXp - current.xpRequired;
+  return {
+    current,
+    next,
+    pct: Math.max(0, Math.min(100, Math.round((done / span) * 100))),
+    xpToNext: Math.max(0, next.xpRequired - totalXp),
+  };
+}
+
 /** Status de progresso de uma fase para um usuário (PRD seção 10.3). */
 export const PROGRESS_STATUS = ['LOCKED', 'IN_PROGRESS', 'COMPLETED'] as const;
 export type ProgressStatus = (typeof PROGRESS_STATUS)[number];

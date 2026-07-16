@@ -30,31 +30,72 @@ const GRID = { cols: 5, rows: 4 };
 // razão espreme/estica o Ace — `size` é a ALTURA; a largura deriva daqui.
 const CELL_ASPECT = 422 / 324;
 
+/**
+ * Estado do sheet compartilhado por TODAS as instâncias do mascote.
+ *
+ * Antes cada Mascot começava com sheetOk=false e só ligava no onload — o que
+ * fazia o Ace antigo (SVG) piscar por alguns ms antes do novo aparecer, em toda
+ * montagem. Agora o resultado fica em módulo: quando o sheet já carregou uma
+ * vez, o próximo Mascot já nasce certo, sem piscar. E o navegador entrega do
+ * cache, então na 1ª vez a espera é de um frame.
+ */
+type SheetState = 'loading' | 'ok' | 'fail';
+let sheetState: SheetState = 'loading';
+const waiting = new Set<(s: SheetState) => void>();
+
+function loadSheet(): void {
+  if (sheetState !== 'loading') return;
+  const im = new Image();
+  const settle = (s: SheetState) => {
+    sheetState = s;
+    for (const fn of waiting) fn(s);
+    waiting.clear();
+  };
+  im.onload = () => settle('ok');
+  im.onerror = () => settle('fail');
+  im.src = '/mascot-sheet.png';
+}
+// Dispara já na importação do módulo: o sheet começa a baixar antes mesmo do
+// primeiro mascote entrar em tela.
+if (typeof window !== 'undefined') loadSheet();
+
 export function Mascot({ mood = 'happy', size = 120, float = true }: { mood?: MascotMood; size?: number; float?: boolean }) {
-  const [sheetOk, setSheetOk] = useState(false);
+  const [state, setState] = useState<SheetState>(sheetState);
   useEffect(() => {
-    const im = new Image();
-    im.onload = () => setSheetOk(true);
-    im.onerror = () => setSheetOk(false);
-    im.src = '/mascot-sheet.png';
+    if (sheetState !== 'loading') return setState(sheetState);
+    waiting.add(setState);
+    loadSheet();
+    return () => { waiting.delete(setState); };
   }, []);
+
   const [col, row] = SPRITE[mood];
   const w = Math.round(size * CELL_ASPECT);
+
+  // Enquanto carrega, reserva o espaço em branco em vez de mostrar o Ace antigo
+  // (o SVG só entra se o sheet REALMENTE falhar).
+  if (state === 'loading') {
+    return <div style={{ width: w, height: size }} aria-hidden />;
+  }
+  if (state === 'fail') {
+    return (
+      <div className={float ? 'animate-float' : ''} style={{ width: size, height: size }} role="img" aria-label={`Ace, o mascote (${mood})`}>
+        <AceSvg mood={mood} size={size} />
+      </div>
+    );
+  }
+
   return (
-    <div className={float ? 'animate-float' : ''} style={{ width: sheetOk ? w : size, height: size }} role="img" aria-label={`Ace, o mascote (${mood})`}>
-      {sheetOk ? (
-        <div style={{
+    <div className={float ? 'animate-float' : ''} style={{ width: w, height: size }} role="img" aria-label={`Ace, o mascote (${mood})`}>
+      <div
+        className="mascot-sprite"
+        style={{
           width: w, height: size,
           backgroundImage: 'url(/mascot-sheet.png)',
           backgroundSize: `${GRID.cols * 100}% ${GRID.rows * 100}%`,
           backgroundPosition: `${(col * 100) / (GRID.cols - 1)}% ${(row * 100) / (GRID.rows - 1)}%`,
           backgroundRepeat: 'no-repeat',
-          // Halo claro: braços/detalhes pretos do Ace somem no fundo escuro sem isso.
-          filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.35)) drop-shadow(0 3px 8px rgba(0,0,0,0.45))',
-        }} />
-      ) : (
-        <AceSvg mood={mood} size={size} />
-      )}
+        }}
+      />
     </div>
   );
 }

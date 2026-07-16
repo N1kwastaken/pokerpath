@@ -115,7 +115,8 @@ export const LESSONS: Record<string, LessonStep[]> = {
   'Mesa e posições': [
     t(`Na mesa de 6 jogadores, cada cadeira tem um nome. O disco branco (D) marca o "dealer" e gira a cada mão:`),
     v('positions'),
-    t(`Nos treinos, VOCÊ é sempre a cadeira de baixo, marcada em verde. Os nomes (UTG, MP, CO, BTN, SB, BB) você vai decorar com o tempo — sem pressa.`),
+    // {cor} = cor de destaque escolhida pelo usuário (ver lib/accent.ts).
+    t(`Nos treinos, VOCÊ é sempre a cadeira de baixo, marcada em {cor}. Os nomes (UTG, MP, CO, BTN, SB, BB) você vai decorar com o tempo — sem pressa.`),
     t(`Do flop em diante, o BTN é SEMPRE o último a agir — por isso é a melhor cadeira: decide vendo o que todos fizeram.`),
     quiz(`Quem age por último vê o que todos fizeram antes. Qual é a melhor cadeira?`, ['UTG (a primeira a falar)', 'BTN (o botão)'], 1,
       `O botão (BTN): depois do flop, decide por último, com o máximo de informação.`),

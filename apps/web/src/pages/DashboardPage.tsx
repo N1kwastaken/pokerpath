@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { levelProgress } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { useStats, useEnergy, useTrail } from '../hooks/useGame.js';
 import { stageGroup } from '../lib/stageGroup.js';
@@ -25,6 +26,7 @@ export function DashboardPage() {
   }, [navigate]);
 
   if (!user) return null;
+  const prog = levelProgress(user.totalXp);
   const accuracy = stats && stats.totalAnswered > 0 ? Math.round(stats.overallAccuracy * 100) : null;
   const curWorld = trail?.find((w) => w.stages.some((s) => s.status === 'IN_PROGRESS')) ?? null;
   const curStage = curWorld?.stages.find((s) => s.status === 'IN_PROGRESS') ?? null;
@@ -105,16 +107,30 @@ export function DashboardPage() {
         </button>
       )}
 
-      {/* Nível */}
-      <div className="mt-4 flex items-center justify-between rounded-2xl border border-line bg-card p-4">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-subtle">Nível {user.level}</p>
-          <p className="mt-0.5 text-lg font-bold text-title">{user.levelName}</p>
+      {/* Nível — com barra até o próximo; toca para ver a escada e as recompensas. */}
+      <button
+        onClick={() => navigate('/levels')}
+        className="mt-4 w-full rounded-2xl border border-line bg-card p-4 text-left active:scale-[0.99]"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-subtle">Nível {user.level}</p>
+            <p className="mt-0.5 text-lg font-bold text-title">{user.levelName}</p>
+          </div>
+          <span className="rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
+            {user.plan === 'PREMIUM' ? '⭐ Premium' : 'Free'}
+          </span>
         </div>
-        <span className="rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
-          {user.plan === 'PREMIUM' ? '⭐ Premium' : 'Free'}
-        </span>
-      </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-card2">
+          <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${prog.pct}%` }} />
+        </div>
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-subtle">
+          {prog.next
+            ? <>Faltam <b className="text-title">{prog.xpToNext.toLocaleString('pt-BR')} XP</b> para {prog.next.name}</>
+            : <>Nível máximo 👑</>}
+          <IconChevron size={13} className="ml-auto" />
+        </p>
+      </button>
 
       <div className="mt-4"><MissionsCard /></div>
     </div>

@@ -91,7 +91,7 @@ export function LessonVisual({ visual }: { visual: 'suits' | 'order' | 'ranking'
       <div className="card divide-y divide-line">
         {RANKING.map((name, i) => (
           <div key={name} className="flex items-center gap-3 p-3">
-            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${i >= 7 ? 'bg-gradient-to-br from-gold to-primary text-white' : 'bg-card2 text-subtle'}`}>{i + 1}</span>
+            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${i >= 7 ? 'bg-primary text-white' : 'bg-card2 text-subtle'}`}>{i + 1}</span>
             <span className="font-medium text-title">{name}</span>
             {i === RANKING.length - 1 && <span className="ml-auto text-xs font-bold text-gold">imbatível</span>}
           </div>
@@ -107,7 +107,7 @@ export function LessonVisual({ visual }: { visual: 'suits' | 'order' | 'ranking'
           return (
             <div key={d.name} className="card p-3">
               <div className="mb-2 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-gold to-primary text-[11px] font-bold text-white">{i + 1}</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">{i + 1}</span>
                 <span className="font-bold text-title">{d.name}</span>
                 <span className="ml-auto text-right text-[11px] leading-tight text-subtle">{d.note}</span>
               </div>

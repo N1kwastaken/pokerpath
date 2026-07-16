@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { highlightSegments, type GlossaryEntry } from '../lib/glossary.js';
+import { withAccentWord } from '../lib/accent.js';
 
 // Só um balão aberto por vez (fecha o anterior ao abrir outro).
 let activeClose: (() => void) | null = null;
@@ -50,8 +51,12 @@ function TermTip({ entry, children }: { entry: GlossaryEntry; children: React.Re
   );
 }
 
-/** Renderiza um texto realçando termos do glossário (clicáveis). */
+/**
+ * Renderiza um texto realçando termos do glossário (clicáveis).
+ * Também resolve o placeholder {cor} — a cor de destaque é escolhida pelo
+ * usuário, então o texto não pode cravar "verde".
+ */
 export function Glossarized({ text }: { text: string }) {
-  const segs = useMemo(() => highlightSegments(text), [text]);
+  const segs = useMemo(() => highlightSegments(withAccentWord(text)), [text]);
   return <>{segs.map((s, i) => (s.entry ? <TermTip key={i} entry={s.entry}>{s.text}</TermTip> : <span key={i}>{s.text}</span>))}</>;
 }
