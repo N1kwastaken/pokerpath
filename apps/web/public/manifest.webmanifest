@@ -1,0 +1,16 @@
+{
+  "name": "PokerPath — Aprenda poker como um jogo",
+  "short_name": "PokerPath",
+  "description": "Aprenda poker como um jogo: aulas curtas, mãos reais e o porquê de cada decisão.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A0D0B",
+  "theme_color": "#1B8A4C",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/logo-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

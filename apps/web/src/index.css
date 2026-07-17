@@ -75,6 +75,11 @@
 
   html {
     height: 100%;
+    /* O fundo do tema TEM que estar no html: no overscroll do celular (efeito
+       elástico) a área além do body mostra o fundo do html — sem isto, aparece
+       um flash branco no modo escuro. `data-theme` fica no próprio html, então
+       o --bg já vem certo por tema. */
+    background: rgb(var(--bg));
     /* App-like no celular: sem double-tap-zoom e sem auto-inflar texto. */
     touch-action: manipulation;
     -webkit-text-size-adjust: 100%;
