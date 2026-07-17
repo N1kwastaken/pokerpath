@@ -1,0 +1,17 @@
+{
+  // Os testes cruzam os três workspaces, então não cabem em nenhum tsconfig
+  // deles. Sem este arquivo, tests/ não seria checado por ninguém: o vitest
+  // transpila sem checar tipo, e um teste quebrado passaria como verde.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts", "vitest.config.ts"]
+}

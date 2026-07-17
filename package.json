@@ -15,7 +15,10 @@
     "build": "npm run build -w @pokerpath/shared && npm run build -w @pokerpath/api && npm run build -w @pokerpath/web",
     "build:shared": "npm run build -w @pokerpath/shared",
     "lint": "npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "npm run typecheck --workspaces --if-present && npm run typecheck:tests",
+    "typecheck:tests": "tsc -p tsconfig.tests.json",
     "db:generate": "npm run db:generate -w @pokerpath/api",
     "db:migrate": "npm run db:migrate -w @pokerpath/api",
     "db:seed": "npm run db:seed -w @pokerpath/api",
@@ -25,7 +28,8 @@
   "devDependencies": {
     "concurrently": "^9.1.0",
     "prisma": "^7.8.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=20.0.0"

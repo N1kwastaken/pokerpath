@@ -14,10 +14,15 @@ import { PrismaClient } from '@prisma/client';
  *
  * Notação de mãos: cada carta é Valor+naipe (♠ ♥ ♦ ♣). Naipes iguais = suited,
  * naipes diferentes = offsuit. Ex.: "A♠Q♠" = AQs, "A♠Q♥" = AQo.
+ *
+ * Este módulo só DECLARA o conteúdo e exporta `main()`; quem executa é o
+ * `seed.main.ts`. Importar aqui não toca o banco — é o que deixa os testes
+ * lerem o conteúdo direto, sem o antigo hack de transpilar o arquivo e rodar
+ * num `vm`.
  */
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient();
 
-type ExerciseSeed = {
+export type ExerciseSeed = {
   heroPosition: string;
   villainPosition?: string;
   callerPosition?: string;
@@ -32,7 +37,7 @@ type ExerciseSeed = {
   category: string;
 };
 
-type StageSeed = {
+export type StageSeed = {
   title: string;
   concept: string;
   description: string;
@@ -42,7 +47,7 @@ type StageSeed = {
   exercises: ExerciseSeed[];
 };
 
-type WorldSeed = {
+export type WorldSeed = {
   order: number;
   name: string;
   description: string;
@@ -57,7 +62,7 @@ const XP: Record<ExerciseSeed['difficulty'], number> = {
   HARD: 15,
 };
 
-const WORLDS: WorldSeed[] = [
+export const WORLDS: WorldSeed[] = [
   {
     order: 0,
     name: 'Primeiros Passos',
@@ -1407,7 +1412,7 @@ const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
 const RI: Record<string, number> = Object.fromEntries(RANKS.map((r, i) => [r, i]));
 
 /** Expande tokens tipo "TT+", "AQs+", "ATo+", "KQs", "76s" em rótulos de mão. */
-function expand(token: string): string[] {
+export function expand(token: string): string[] {
   const pair = /^([AKQJT2-9])\1(\+)?$/.exec(token);
   if (pair) {
     const out: string[] = [];
@@ -1427,13 +1432,13 @@ function expand(token: string): string[] {
   return labels;
 }
 
-function raiseSet(tokens: string[]): Set<string> {
+export function raiseSet(tokens: string[]): Set<string> {
   const set = new Set<string>();
   for (const t of tokens) for (const h of expand(t)) set.add(h);
   return set;
 }
 
-function handLabel(row: number, col: number): string {
+export function handLabel(row: number, col: number): string {
   if (row === col) return RANKS[row] + RANKS[col];
   if (row < col) return RANKS[row] + RANKS[col] + 's';
   return RANKS[col] + RANKS[row] + 'o';
@@ -1442,7 +1447,7 @@ function handLabel(row: number, col: number): string {
 type Cell = { hand: string; action: string; mix?: { alt: string; pct: number } };
 
 /** Rótulo 13x13 de uma mão concreta ("A♠Q♥" → "AQo"). */
-function labelOfHand(hand: string): string {
+export function labelOfHand(hand: string): string {
   const r1 = hand[0], r2 = hand[2];
   if (r1 === r2) return r1 + r2;
   const hi = RI[r1] < RI[r2] ? r1 : r2;
@@ -1473,7 +1478,7 @@ function toCell(hand: string, action: string, freq?: Map<string, number>): Cell 
   return { hand, action, mix: { alt, pct } };
 }
 
-function buildCells(tokens: string[], freq?: Map<string, number>): Cell[][] {
+export function buildCells(tokens: string[], freq?: Map<string, number>): Cell[][] {
   const set = raiseSet(tokens);
   const grid: Cell[][] = [];
   for (let r = 0; r < 13; r++) {
@@ -1488,7 +1493,7 @@ function buildCells(tokens: string[], freq?: Map<string, number>): Cell[][] {
 }
 
 /** Chart de 3 ações (defesa vs open): raise set + call set; o resto é fold. */
-function buildCells3(raiseTokens: string[], callTokens: string[], freq?: Map<string, number>): Cell[][] {
+export function buildCells3(raiseTokens: string[], callTokens: string[], freq?: Map<string, number>): Cell[][] {
   const r = raiseSet(raiseTokens);
   const c = raiseSet(callTokens);
   const grid: Cell[][] = [];
@@ -1507,7 +1512,7 @@ function buildCells3(raiseTokens: string[], callTokens: string[], freq?: Map<str
  * Charts de defesa vs open (3-bet/call/fold) — derivados dos exercícios das
  * seções vs UTG / vs MP-CO / 3-Bet / BB (0 contradições, conferido por script).
  */
-const VS_DEFS: { position: string; scenario: string; label: string; raise: string[]; call: string[] }[] = [
+export const VS_DEFS: { position: string; scenario: string; label: string; raise: string[]; call: string[] }[] = [
   {
     position: 'BTN', scenario: 'VS_UTG', label: 'BTN vs open de UTG · 3-Bet / Call / Fold',
     raise: ['JJ+', 'AKs', 'AKo'],
@@ -1587,7 +1592,7 @@ const VS_DEFS: { position: string; scenario: string; label: string; raise: strin
   },
 ];
 
-const RANGE_DEFS: { position: string; label: string; tokens: string[] }[] = [
+export const RANGE_DEFS: { position: string; label: string; tokens: string[] }[] = [
   { position: 'UTG', label: 'UTG · Open Raise', tokens: ['TT+', 'AQs+', 'KQs', 'AQo+'] },
   { position: 'MP', label: 'MP · Open Raise', tokens: ['99+', 'AJs+', 'KQs', 'QJs', 'AQo+'] },
   { position: 'CO', label: 'CO · Open Raise', tokens: ['77+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo'] },
@@ -1615,7 +1620,7 @@ function mixedFreq(correct: 'FOLD' | 'CALL' | 'RAISE', difficulty: 'EASY' | 'MED
   return JSON.stringify(f);
 }
 
-async function main() {
+export async function main() {
   console.log('🌱 Iniciando seed...');
 
   for (const a of ACHIEVEMENTS) {
@@ -1725,11 +1730,3 @@ async function main() {
   console.log(`✅ Seed concluído: ${WORLDS.length} mundos, ${stageCount} fases, ${exerciseCount} exercícios.`);
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Erro no seed:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });

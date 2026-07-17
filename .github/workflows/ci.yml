@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22' # mesma do Render (render.yaml)
+          cache: npm
+
+      # --include=dev: o CI exporta NODE_ENV=production em alguns contextos e
+      # sem as devDependencies não há tsc, vite nem vitest.
+      - run: npm ci --include=dev
+
+      # O client Prisma precisa existir antes do tsc (o postinstall do npm
+      # workspaces não acha o schema sozinho) — mesma ordem do build do Render.
+      - run: npm run db:generate
+
+      # build:shared antes do typecheck: o web resolve @pokerpath/shared por
+      # ./dist, que só existe depois deste passo.
+      - run: npm run build:shared
+
+      - run: npm run typecheck
+      - run: npm test

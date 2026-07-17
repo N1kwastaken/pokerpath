@@ -78,21 +78,26 @@ Produção é Postgres, com o schema **gerado no build** a partir do principal
 
 ## Validação antes de concluir
 
-O seed é grande (~1.6k linhas) e Edit/Write às vezes truncam. **Preferir editar
+**`npm test`** (Vitest, na raiz) — os testes em `tests/` cobrem exatamente as
+invariantes desta página. `npm run typecheck` checa os 3 workspaces **e** os
+testes. O CI (`.github/workflows/ci.yml`) roda os dois em todo push/PR.
+
+O seed é grande (~1.7k linhas) e Edit/Write às vezes truncam. **Preferir editar
 por script** (node/python) e **validar sempre**.
 
-Os scripts de validação transpilam o `seed.ts` com `ts.transpileModule` + `vm`,
-stubando o `PrismaClient` e removendo o `main()`. O `typescript` está no
-`node_modules` da **raiz** do monorepo, não em `apps/api`.
+> `seed.ts` só **declara** o conteúdo e exporta `main()`; quem executa é o
+> `seed.main.ts` (é para lá que `prisma.seed` e `deploy:db` apontam). Por isso
+> um teste pode `import { WORLDS } from '../apps/api/prisma/seed.js'` sem tocar
+> o banco. Não recolocar a chamada de `main()` no seed.ts.
 
 O que checar conforme o que você mexeu:
 
-| Mexeu em          | Checar                                                       |
+| Mexeu em          | Já coberto por teste                                          |
 | ----------------- | ------------------------------------------------------------ |
-| exercício preflop | RFI × `RANGE_DEFS` → 0 divergências                          |
-| chart             | chart × exercício → 0 divergências; 0 overlaps raise/call     |
-| exercício postflop| 0 cartas duplicadas (`heroHand` + `board`); 0 fold em spot de agressor |
-| fase nova         | nenhum preflop atrás do paywall; aula tem lição e grupo roteado |
+| exercício preflop | RFI × `RANGE_DEFS` → 0 divergências (`tests/charts.test.ts`)  |
+| chart             | chart × exercício; 0 overlaps raise/call (`tests/charts.test.ts`) |
+| exercício postflop| 0 cartas duplicadas; 0 fold em spot de agressor (`tests/content.test.ts`) |
+| fase nova         | nenhum preflop atrás do paywall (`tests/content.test.ts`); aula tem lição e grupo roteado (`tests/lessons.test.ts`) |
 
 Convenções do domínio que não são óbvias:
 
