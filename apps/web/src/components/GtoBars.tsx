@@ -2,11 +2,12 @@ import { useState } from 'react';
 import type { Frequencies, Action } from '@pokerpath/shared';
 
 /** Frequências GTO (estilo GTO Wizard): barras + a ação que VOCÊ escolheu. */
+// Mesmas cores fixas dos botões: raise roxo, call azul, fold vermelho.
 const ROWS: { key: keyof Frequencies; label: string; bar: string }[] = [
-  { key: 'RAISE', label: 'Raise', bar: 'bg-primary' },
+  { key: 'RAISE', label: 'Raise', bar: 'bg-accent' },
   { key: 'CALL', label: 'Call', bar: 'bg-call' },
   { key: 'FOLD', label: 'Fold', bar: 'bg-error' },
-  { key: 'ALLIN', label: 'All In', bar: 'bg-accent' },
+  { key: 'ALLIN', label: 'All In', bar: 'bg-gold' },
 ];
 
 export function GtoBars({ freq, chosen, correct, aggressor = false }: {

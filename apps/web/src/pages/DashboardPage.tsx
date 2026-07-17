@@ -44,13 +44,13 @@ export function DashboardPage() {
             tone="energy"
           />
         )}
+        {/* O nome do nível (não "Nível 2") — mais humano e continua clicável. */}
         <button
           onClick={() => navigate('/levels')}
-          className="ml-auto flex items-center gap-1.5 rounded-2xl border border-line bg-card px-3.5 py-2.5 active:scale-95"
+          className="ml-auto flex items-center gap-1 rounded-2xl bg-card px-3.5 py-2.5 active:scale-95"
         >
-          <span className="text-[10px] font-black uppercase tracking-wide text-subtle">Nível</span>
-          <span className="text-xl font-black text-title">{user.level}</span>
-          <IconChevron size={15} className="text-subtle" />
+          <span className="text-base font-black text-title">{user.levelName}</span>
+          <IconChevron size={16} className="text-subtle" />
         </button>
       </header>
 
@@ -137,8 +137,9 @@ function StatChip({ icon, iconNode, value, label, alert, tone }: {
   alert?: boolean; tone?: 'energy';
 }) {
   const valueColor = alert ? 'text-gold' : tone === 'energy' ? 'text-call' : 'text-title';
+  // Sem outline: só um fundo suave (destaque em risco vira tom dourado no fundo).
   return (
-    <div className={`flex items-center gap-2 rounded-2xl border px-3.5 py-2 ${alert ? 'border-gold/60 bg-gold/10' : 'border-line bg-card'}`}>
+    <div className={`flex items-center gap-2 rounded-2xl px-3.5 py-2 ${alert ? 'bg-gold/15' : 'bg-card'}`}>
       <span className={tone === 'energy' ? 'text-call' : ''}>
         {iconNode ?? <span className="text-xl leading-none">{icon}</span>}
       </span>

@@ -2,9 +2,10 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.js';
 import { IconHome, IconTarget, IconGrid, IconChart, IconUser, IconLogin } from './Icons.js';
 
+// Sem aba "Treino": o botão grande da Início já leva à trilha — a aba era
+// redundante e roubava espaço da barra.
 const TABS = [
   { to: '/', label: 'Início', Icon: IconHome, end: true },
-  { to: '/worlds', label: 'Treino', Icon: IconTarget, end: false },
   { to: '/review', label: 'Revisão', Icon: IconGrid, end: false },
   { to: '/stats', label: 'Stats', Icon: IconChart, end: false },
   { to: '/profile', label: 'Perfil', Icon: IconUser, end: false },

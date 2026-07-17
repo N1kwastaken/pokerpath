@@ -23,10 +23,13 @@ import { TableTutorial, tableTutorialPending } from '../components/TableTutorial
 import { sound } from '../lib/sound.js';
 
 // Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
+// Cores FIXAS e distintas por ação: fold vermelho, call azul, raise roxo.
+// Raise usa `bg-accent` (roxo) e não `bg-primary` — senão colide com o azul do
+// call quando o usuário escolhe a cor azul do app.
 const ACT: { key: Action; label: string; color: string }[] = [
   { key: 'FOLD', label: 'Fold', color: 'bg-error' },
   { key: 'CALL', label: 'Call', color: 'bg-call' },
-  { key: 'RAISE', label: 'Raise', color: 'bg-primary' },
+  { key: 'RAISE', label: 'Raise', color: 'bg-accent' },
 ];
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
 function xpProgress(totalXp: number, level: number): { pct: number; hasNext: boolean } {
@@ -314,7 +317,7 @@ export function StagePlayPage() {
   // porque dar check é grátis). Internamente Bet=RAISE e Check=CALL.
   const aggressor = current.villainAction === 'Check';
   const buttons: { key: Action; label: string; color: string }[] = aggressor
-    ? [{ key: 'CALL', label: 'Check', color: 'bg-call' }, { key: 'RAISE', label: 'Bet', color: 'bg-primary' }]
+    ? [{ key: 'CALL', label: 'Check', color: 'bg-call' }, { key: 'RAISE', label: 'Bet', color: 'bg-accent' }]
     : ACT;
   const actionLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
   return (
