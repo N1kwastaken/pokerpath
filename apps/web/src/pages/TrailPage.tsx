@@ -58,6 +58,16 @@ export function TrailPage() {
     return v;
   });
 
+  // Acabou de concluir uma fase? Trava a entrada em QUALQUER fase enquanto a
+  // animação de conclusão + desbloqueio roda — senão um toque rápido "bufferizado"
+  // reentra na mesma fase sem querer.
+  const [entryLocked, setEntryLocked] = useState(!!completedId);
+  useEffect(() => {
+    if (!completedId) return;
+    const t = setTimeout(() => setEntryLocked(false), 850);
+    return () => clearTimeout(t);
+  }, [completedId]);
+
   // Mundo atual = primeiro com fase IN_PROGRESS (senão o último).
   const currentWorld = trail?.find((w) => w.stages.some((s) => s.status === 'IN_PROGRESS')) ?? trail?.[trail.length - 1];
   const [selId, setSelId] = useState<string | null>(null);
@@ -141,7 +151,7 @@ export function TrailPage() {
 
           {/* Trilha do mundo (ascendente, agrupada por categoria) */}
           <WorldTrail world={selected} currentId={currentStageId} completedId={completedId} currentRef={currentRef} isFree={isFree}
-            onOpen={(id, locked, premium) => { if (premium) return navigate('/premium'); if (locked) return; navigate(`/stages/${id}`); }} />
+            onOpen={(id, locked, premium) => { if (entryLocked) return; if (premium) return navigate('/premium'); if (locked) return; navigate(`/stages/${id}`); }} />
 
           {offscreen && (
             <button
