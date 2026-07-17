@@ -1,7 +1,8 @@
 /**
  * Logo do PokerPath com animação.
- * O naipe de espadas pulsa com um brilho verde (logo-glow); o wordmark
- * aparece ao lado. `animated` liga/desliga o brilho contínuo.
+ * A marca (espada com a seta do "path" subindo) fica num tile verde chapado e
+ * pulsa com um brilho verde (logo-glow); o wordmark aparece ao lado.
+ * `animated` liga/desliga o brilho contínuo.
  */
 export function Logo({
   size = 'md',
@@ -28,15 +29,14 @@ export function Logo({
 
   return (
     <div className="flex items-center gap-3">
-      {/* Tile quase chapado: o gradiente antigo (brand -> brand-dark) sujava o
-          símbolo. Fica só um respiro de profundidade. */}
+      {/* Tile verde chapado com a marca branca (espada + seta). */}
       <div
-        className={`flex ${spade} items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-[#177A44] font-black leading-none text-white ${
+        className={`flex ${spade} items-center justify-center overflow-hidden rounded-2xl bg-brand ${
           animated ? 'animate-logo-glow' : ''
         }`}
         aria-hidden
       >
-        <span className="-mt-[0.06em]">♠</span>
+        <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
       </div>
       {withWordmark && (
         <span className={`font-display font-bold tracking-tight text-ink ${word}`}>
