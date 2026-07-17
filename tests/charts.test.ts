@@ -56,9 +56,22 @@ describe('freqForHand', () => {
     expect(freqForHand(utg, 'KQs')).toEqual({ FOLD: 0, CALL: 0, RAISE: 100 });
   });
 
-  // Este era pior: inventava "RAISE 15%" para uma mão que é fold puro.
-  it('KQo no UTG é fold puro, sem raise inventado', () => {
-    expect(freqForHand(utg, 'KQo')).toEqual({ FOLD: 100, CALL: 0, RAISE: 0 });
+  // A outra metade do mesmo bug: para uma mão de fold, as barras inventavam um
+  // "RAISE 15%" que não existe em estratégia nenhuma.
+  it('mão de fold no UTG não ganha raise inventado', () => {
+    expect(freqForHand(utg, 'K9s')).toEqual({ FOLD: 100, CALL: 0, RAISE: 0 });
+    expect(freqForHand(utg, '72o')).toEqual({ FOLD: 100, CALL: 0, RAISE: 0 });
+  });
+
+  it('o range de UTG abre o que tem que abrir', () => {
+    // Estas eram fold no range antigo (5% de VPIP), o que ensinava poker errado.
+    for (const mao of ['99', '77', 'AJs', 'ATs', 'QJs', 'JTs', 'KQo']) {
+      expect(freqForHand(utg, mao).RAISE, `${mao} deveria abrir de UTG`).toBe(100);
+    }
+    // E segue foldando o que é fold de verdade.
+    for (const mao of ['AJo', 'KJo', 'A9s', 'K9s', '65s']) {
+      expect(freqForHand(utg, mao).FOLD, `${mao} deveria foldar de UTG`).toBe(100);
+    }
   });
 
   it('abertura nunca tem call (é raise-ou-fold)', () => {

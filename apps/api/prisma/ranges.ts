@@ -174,7 +174,13 @@ function legacyMix(freq: Freq, action: CellAction): { mix?: { alt: CellAction; p
  * dar call, por isso não há `call` aqui.
  */
 const RFI_DEFS: RangeDef[] = [
-  { position: 'UTG', scenario: 'RFI', label: 'UTG · Open Raise', raise: ['TT+', 'AQs+', 'KQs', 'AQo+'] },
+  // Ases suited polarizados: ATs+ entra por valor; A5s-A2s entram como blefe
+  // (bloqueiam AA/AK do vilão e fazem o nut flush). A6s-A9s ficam de fora — não
+  // têm nem o valor de cima nem o blocker de baixo.
+  {
+    position: 'UTG', scenario: 'RFI', label: 'UTG · Open Raise',
+    raise: ['22+', 'ATs+', 'A5s', 'A4s', 'A3s', 'A2s', 'KTs+', 'QTs+', 'JTs', 'T9s', '98s', '87s', '76s', 'AQo+', 'KQo'],
+  },
   { position: 'MP', scenario: 'RFI', label: 'MP · Open Raise', raise: ['99+', 'AJs+', 'KQs', 'QJs', 'AQo+'] },
   { position: 'CO', scenario: 'RFI', label: 'CO · Open Raise', raise: ['77+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo'] },
   { position: 'BTN', scenario: 'RFI', label: 'BTN · Open Raise', raise: ['22+', 'A2s+', 'K9s+', 'Q9s+', 'J9s+', 'T9s', '98s', '87s', '76s', '65s', 'A8o+', 'KTo+', 'QJo'] },

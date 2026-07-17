@@ -166,8 +166,9 @@ export const LESSONS: Record<string, LessonStep[]> = {
       `Agindo primeiro, só vale abrir mãos fortes.`),
   ],
   'Range de UTG': [
-    t(`Abertura de UTG: TT+, AQ+ e KQ do mesmo naipe (veja o gráfico).`),
-    h('UTG', 'A♥T♥', 'FOLD', `ATs ainda é fold de UTG (Ax suited só a partir de AQs).`),
+    t(`Abertura de UTG: todos os pares, os ases do mesmo naipe, as broadway suited (KTs+, QTs+, JTs), alguns conectores e AQ+ / KQo. Dá umas 14 mãos em cada 100 — o range mais apertado da mesa (veja o gráfico).`),
+    h('UTG', 'A♥T♥', 'RAISE', `ATs abre: mesmo naipe, e o ás dá o nut flush.`),
+    h('UTG', 'A♠T♦', 'FOLD', `ATo é a MESMA mão sem o naipe — e aí não abre. O naipe muda tudo aqui.`),
   ],
   'MP explicado': [
     t(`No MP, com menos gente atrás, dá pra abrir um pouco mais que no UTG.`),
