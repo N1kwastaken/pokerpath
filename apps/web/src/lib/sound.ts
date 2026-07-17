@@ -13,9 +13,16 @@ export const sound = {
     localStorage.setItem(MUTE_KEY, next ? '1' : '0');
     return next;
   },
-  correct() { tones([660, 880], 0.12); },
+  /** Acerto: o tom SOBE a cada acerto seguido (combo) — recompensa a sequência. */
+  correct(combo = 0) {
+    const step = Math.min(combo, 8) * 45;
+    tones([660 + step, 880 + step], 0.12);
+    if (combo >= 3) tones([1320 + step, 1760 + step], 0.09); // brilho extra no combo
+  },
   wrong() { tones([200, 150], 0.16, 'sawtooth'); },
-  levelUp() { tones([523, 659, 784, 1046], 0.12); },
+  levelUp() { tones([523, 659, 784, 1046, 1319], 0.13); },
+  /** Fanfarra de fim de fase — mais cheia que o level-up. */
+  fanfare() { tones([523, 659, 784, 1046], 0.14); tones([392, 523, 659, 784], 0.14); },
   click() { tones([440], 0.05); },
 };
 

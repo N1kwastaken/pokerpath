@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
@@ -72,6 +73,10 @@ export function StagePlayPage() {
   const [tutorialOpen, setTutorialOpen] = useState(() => tableTutorialPending());
   const [result, setResult] = useState<AnswerResult | null>(null);
   const [lastChoice, setLastChoice] = useState<Action | null>(null);
+  // Combo = acertos seguidos na sessão. O ref evita closure velho no onSuccess;
+  // o estado alimenta o selo. Zera ao errar.
+  const comboRef = useRef(0);
+  const [combo, setCombo] = useState(0);
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [sessionXp, setSessionXp] = useState(0);
   const [completed, setCompleted] = useState(false);
@@ -190,7 +195,10 @@ export function StagePlayPage() {
       setSessionXp((x) => x + res.xpGained);
       if (res.stageCompleted) { setCompleted(true); if (stageId) localStorage.setItem('pp.justCompleted', stageId); }
       if (res.worldCompleted) setWorldDone(true);
-      res.correct ? sound.correct() : sound.wrong();
+      const newCombo = res.correct ? comboRef.current + 1 : 0;
+      comboRef.current = newCombo;
+      setCombo(newCombo);
+      res.correct ? sound.correct(newCombo) : sound.wrong();
       if (res.leveledUp) setTimeout(() => sound.levelUp(), 250);
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
       queryClient.invalidateQueries({ queryKey: ['energy'] });
@@ -202,6 +210,13 @@ export function StagePlayPage() {
   useEffect(() => {
     if (error instanceof ApiError) navigate(error.code === 'PREMIUM_REQUIRED' ? '/premium' : '/worlds', { replace: true, state: { fromExercise: true } });
   }, [error, navigate]);
+
+  // Fanfarra ao entrar no resumo aprovado — o clímax da sessão.
+  useEffect(() => {
+    if (phase !== 'summary' || answers.length === 0 || !data) return;
+    const acc = answers.filter(Boolean).length / answers.length;
+    if (acc >= data.stage.passRate) sound.fanfare();
+  }, [phase, answers, data]);
 
   if (error) return null;
   if (isLoading) return <LogoLoader label="Preparando exercícios..." />;
@@ -230,6 +245,7 @@ export function StagePlayPage() {
   function retry() {
     if (stageId) localStorage.removeItem(sessionKey(stageId));
     setIdx(0); setAnswers([]); setSessionXp(0); setResult(null); setLastChoice(null);
+    comboRef.current = 0; setCombo(0);
     setCompleted(false); setWorldDone(false); setPhase('playing'); scrollTop();
   }
   function choose(action: Action) {
@@ -303,7 +319,8 @@ export function StagePlayPage() {
   const actionLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
   return (
     <div className="fixed inset-0 z-30 bg-bg">
-      {fb && result?.correct && <Confetti key={idx} count={20} />}
+      {/* Confete cresce com o combo: acertar em sequência explode mais. */}
+      {fb && result?.correct && <Confetti key={idx} count={Math.min(18 + combo * 8, 72)} />}
       <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3 lg:max-w-5xl lg:flex-row lg:items-stretch lg:gap-6 lg:px-8 lg:py-6">
       <div className="flex min-h-0 flex-1 flex-col">
 
@@ -328,17 +345,43 @@ export function StagePlayPage() {
       {fb && result ? (
         <div className="animate-slide-up space-y-3 rounded-2xl border border-line bg-card p-4">
           <div className="flex items-center gap-3">
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${result.correct ? 'bg-primary' : 'bg-error'}`}>
+            <motion.span
+              initial={{ scale: 0, rotate: result.correct ? -30 : 0 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 600, damping: 15 }}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${result.correct ? 'bg-primary' : 'bg-error'}`}
+            >
               {result.correct ? <IconCheck size={20} /> : <span className="text-lg font-black">✕</span>}
-            </span>
+            </motion.span>
             <div className="min-w-0 flex-1">
               <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
                 {result.correct ? 'Correto' : `Incorreto — era ${actionLabel(result.correctAction)}`}
               </p>
               {result.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={result.explanation} /></p>}
             </div>
-            {result.correct && <span className="shrink-0 text-sm font-black text-primary">+{result.xpGained} XP</span>}
+            {result.correct && (
+              <motion.span
+                initial={{ scale: 0, y: 8 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 12, delay: 0.05 }}
+                className="shrink-0 text-sm font-black text-primary"
+              >
+                +{result.xpGained} XP
+              </motion.span>
+            )}
           </div>
+
+          {/* Selo de combo: acertos em sequência (3+) ganham um destaque pulsante. */}
+          {result.correct && combo >= 3 && (
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-gold/15 py-1.5 text-sm font-black text-gold"
+            >
+              <span className="animate-flame">🔥</span> {combo} seguidas — combo!
+            </motion.div>
+          )}
 
           {(() => {
             const xp = xpProgress(result.totalXp, result.level);
