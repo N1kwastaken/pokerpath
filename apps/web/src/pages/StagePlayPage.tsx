@@ -408,10 +408,16 @@ export function StagePlayPage() {
         </div>
         <div className="card flex-1 p-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia</p>
-          {fb && result ? (
+          {!fb || !result ? (
+            <p className="mt-3 text-sm text-subtle">Responda a mão para ver as frequências GTO.</p>
+          ) : result.frequencies ? (
             <div className="mt-3"><GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} /></div>
           ) : (
-            <p className="mt-3 text-sm text-subtle">Responda a mão para ver as frequências GTO.</p>
+            // Sem chart por trás (postflop/4-bet/squeeze). Dizer isso é melhor
+            // do que deixar o card vazio — ou do que inventar uma frequência.
+            <p className="mt-3 text-sm text-subtle">
+              Este spot ainda não tem chart de referência — a explicação da mão é o guia aqui.
+            </p>
           )}
         </div>
       </aside>

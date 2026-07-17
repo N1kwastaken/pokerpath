@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { RANGE_DEFS, buildCells, freqForExercise } from './ranges.js';
 
 /**
  * Seed inicial (PRD 5, 6, 7, 9.4, 9.5).
@@ -1407,219 +1408,6 @@ const MISSIONS = [
 ];
 
 
-// ─── Geração de ranges 13x13 (RFI por posição) ─────────────────
-const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
-const RI: Record<string, number> = Object.fromEntries(RANKS.map((r, i) => [r, i]));
-
-/** Expande tokens tipo "TT+", "AQs+", "ATo+", "KQs", "76s" em rótulos de mão. */
-export function expand(token: string): string[] {
-  const pair = /^([AKQJT2-9])\1(\+)?$/.exec(token);
-  if (pair) {
-    const out: string[] = [];
-    for (let i = 0; i <= RI[pair[1]]; i++) out.push(RANKS[i] + RANKS[i]);
-    return pair[2] ? out : [pair[1] + pair[1]];
-  }
-  const m = /^([AKQJT2-9])([AKQJT2-9])(s|o)(\+)?$/.exec(token);
-  if (!m) return [];
-  const hi = m[1], suit = m[3], plus = m[4];
-  const loStart = RI[m[2]];
-  const labels: string[] = [];
-  if (plus) {
-    for (let lo = loStart; lo > RI[hi]; lo--) labels.push(hi + RANKS[lo] + suit);
-  } else {
-    labels.push(hi + m[2] + suit);
-  }
-  return labels;
-}
-
-export function raiseSet(tokens: string[]): Set<string> {
-  const set = new Set<string>();
-  for (const t of tokens) for (const h of expand(t)) set.add(h);
-  return set;
-}
-
-export function handLabel(row: number, col: number): string {
-  if (row === col) return RANKS[row] + RANKS[col];
-  if (row < col) return RANKS[row] + RANKS[col] + 's';
-  return RANKS[col] + RANKS[row] + 'o';
-}
-
-type Cell = { hand: string; action: string; mix?: { alt: string; pct: number } };
-
-/** Rótulo 13x13 de uma mão concreta ("A♠Q♥" → "AQo"). */
-export function labelOfHand(hand: string): string {
-  const r1 = hand[0], r2 = hand[2];
-  if (r1 === r2) return r1 + r2;
-  const hi = RI[r1] < RI[r2] ? r1 : r2;
-  const lo = RI[r1] < RI[r2] ? r2 : r1;
-  return hi + lo + (hand[1] === hand[3] ? 's' : 'o');
-}
-
-/**
- * Mão→% da ação principal, tirado dos exercícios do cenário. Só as mãos HARD
- * (65/35) viram células mistas — são as fronteiras reais do range. MEDIUM fica
- * sólido no chart (a dificuldade média existe por ritmo, não por fronteira:
- * KK "MEDIUM" não pode virar um KK que folda 15%).
- */
-function freqMapFor(filter: (ex: ExerciseSeed) => boolean): Map<string, number> {
-  const map = new Map<string, number>();
-  for (const w of WORLDS) for (const s of w.stages) for (const ex of s.exercises) {
-    if (!filter(ex) || ex.difficulty !== 'HARD') continue;
-    map.set(labelOfHand(ex.heroHand), FREQ_MAIN.HARD);
-  }
-  return map;
-}
-
-function toCell(hand: string, action: string, freq?: Map<string, number>): Cell {
-  const pct = freq?.get(hand) ?? 100;
-  if (pct >= 100) return { hand, action };
-  // Alternativa da mão mista: mesma regra do mixedFreq (RAISE↔FOLD; CALL→RAISE).
-  const alt = action === 'RAISE' ? 'FOLD' : 'RAISE';
-  return { hand, action, mix: { alt, pct } };
-}
-
-export function buildCells(tokens: string[], freq?: Map<string, number>): Cell[][] {
-  const set = raiseSet(tokens);
-  const grid: Cell[][] = [];
-  for (let r = 0; r < 13; r++) {
-    const rowCells: Cell[] = [];
-    for (let c = 0; c < 13; c++) {
-      const hand = handLabel(r, c);
-      rowCells.push(toCell(hand, set.has(hand) ? 'RAISE' : 'FOLD', freq));
-    }
-    grid.push(rowCells);
-  }
-  return grid;
-}
-
-/** Chart de 3 ações (defesa vs open): raise set + call set; o resto é fold. */
-export function buildCells3(raiseTokens: string[], callTokens: string[], freq?: Map<string, number>): Cell[][] {
-  const r = raiseSet(raiseTokens);
-  const c = raiseSet(callTokens);
-  const grid: Cell[][] = [];
-  for (let row = 0; row < 13; row++) {
-    const rowCells: Cell[] = [];
-    for (let col = 0; col < 13; col++) {
-      const hand = handLabel(row, col);
-      rowCells.push(toCell(hand, r.has(hand) ? 'RAISE' : c.has(hand) ? 'CALL' : 'FOLD', freq));
-    }
-    grid.push(rowCells);
-  }
-  return grid;
-}
-
-/**
- * Charts de defesa vs open (3-bet/call/fold) — derivados dos exercícios das
- * seções vs UTG / vs MP-CO / 3-Bet / BB (0 contradições, conferido por script).
- */
-export const VS_DEFS: { position: string; scenario: string; label: string; raise: string[]; call: string[] }[] = [
-  {
-    position: 'BTN', scenario: 'VS_UTG', label: 'BTN vs open de UTG · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AKs', 'AKo'],
-    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs'],
-  },
-  {
-    position: 'BTN', scenario: 'VS_MP', label: 'BTN vs open de MP · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AKs', 'AKo'],
-    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs', 'JTs', 'AQo'],
-  },
-  {
-    position: 'BTN', scenario: 'VS_CO', label: 'BTN vs open de CO · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AQs+', 'AKo', 'A5s', 'A4s', 'A3s', 'A2s'],
-    call: ['TT', '99', '88', '77', '66', 'AJs', 'ATs', 'KQs', 'KJs', 'QJs', 'JTs', 'T9s', '98s', '87s', 'AQo'],
-  },
-  {
-    position: 'BB', scenario: 'VS_BTN', label: 'BB vs open do BTN · Defesa',
-    raise: ['QQ+', 'AQs+', 'AQo+'],
-    call: [
-      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s',
-      'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s',
-      '98s', '87s', '76s', '65s', '54s',
-      'AJo', 'ATo', 'A9o', 'A8o', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
-    ],
-  },
-  // SB vs CO — fora de posição: 3-bet ou fold, com um call mínimo (set-mine).
-  // Ancorado nos 28 exercícios da seção SB vs CO (0 divergências conferidas).
-  {
-    position: 'SB', scenario: 'VS_CO', label: 'SB vs open de CO · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AQs+', 'AKo', 'A5s', 'A4s'],
-    call: ['88', '77', '66', '55'],
-  },
-  // SB vs BTN — BTN abre muito largo; SB responde 3-bet-ou-fold com call OOP curto.
-  {
-    position: 'SB', scenario: 'VS_BTN', label: 'SB vs open do BTN · 3-Bet / Call / Fold',
-    raise: ['77+', 'ATs+', 'KQs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s'],
-    call: ['66', '55', '44', 'A9s', 'A8s', 'A7s', 'A6s', 'KJs', 'KTs', 'QJs', 'JTs', 'T9s', 'ATo', 'KJo'],
-  },
-  // BB fecha a ação com desconto — defende largo. Contra opens mais cedo (range
-  // mais forte do vilão) defende mais apertado e blefa menos no 3-bet.
-  {
-    position: 'BB', scenario: 'VS_UTG', label: 'BB vs open de UTG · Defesa',
-    raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'A5s'],
-    call: [
-      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'AJs', 'ATs', 'A9s', 'KQs', 'KJs', 'KTs', 'QJs', 'QTs', 'JTs', 'T9s', '98s', '87s', '76s', '65s',
-      'AQo', 'AJo', 'KQo',
-    ],
-  },
-  {
-    position: 'BB', scenario: 'VS_MP', label: 'BB vs open de MP · Defesa',
-    raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'AJs', 'A5s', 'A4s'],
-    call: [
-      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'ATs', 'A9s', 'A8s', 'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', '98s', '87s', '76s', '65s', '54s',
-      'AQo', 'AJo', 'ATo', 'KQo', 'KJo', 'QJo',
-    ],
-  },
-  {
-    position: 'BB', scenario: 'VS_CO', label: 'BB vs open de CO · Defesa',
-    raise: ['JJ+', 'AQs+', 'AKo', 'KQs', 'A5s', 'A4s', 'A3s'],
-    call: [
-      'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s', '98s', '87s', '76s', '65s', '54s',
-      'AJo', 'ATo', 'KQo', 'KJo', 'QJo', 'JTo',
-    ],
-  },
-  {
-    position: 'BB', scenario: 'VS_SB', label: 'BB vs open da SB · Defesa',
-    raise: ['99+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s', 'A2s', 'K9s'],
-    call: [
-      '88', '77', '66', '55', '44', '33', '22',
-      'A9s', 'A8s', 'A7s', 'A6s', 'KTs', 'K8s', 'QTs', 'Q9s', 'Q8s', 'J9s', 'J8s', 'T9s', 'T8s', '98s', '97s', '87s', '76s', '65s', '54s',
-      'A9o', 'A8o', 'ATo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
-    ],
-  },
-];
-
-export const RANGE_DEFS: { position: string; label: string; tokens: string[] }[] = [
-  { position: 'UTG', label: 'UTG · Open Raise', tokens: ['TT+', 'AQs+', 'KQs', 'AQo+'] },
-  { position: 'MP', label: 'MP · Open Raise', tokens: ['99+', 'AJs+', 'KQs', 'QJs', 'AQo+'] },
-  { position: 'CO', label: 'CO · Open Raise', tokens: ['77+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo'] },
-  { position: 'BTN', label: 'BTN · Open Raise', tokens: ['22+', 'A2s+', 'K9s+', 'Q9s+', 'J9s+', 'T9s', '98s', '87s', '76s', '65s', 'A8o+', 'KTo+', 'QJo'] },
-  { position: 'SB', label: 'SB · Open Raise', tokens: ['22+', 'A2s+', 'K8s+', 'Q9s+', 'J9s+', 'T8s+', '98s', '87s', '76s', '65s', '54s', 'A7o+', 'KTo+', 'QJo'] },
-];
-
-/**
- * Frequências GTO (simplificadas). A dificuldade reflete a marginalidade da
- * mão: EASY = decisão pura (100%); MEDIUM e HARD = mãos de fronteira, com uma
- * frequência secundária real — é assim que os charts GTO mostram spots mistos.
- * Pré-flop RFI: a alternativa à ação certa é sempre o oposto (RAISE ↔ FOLD).
- */
-const FREQ_MAIN: Record<'EASY' | 'MEDIUM' | 'HARD', number> = { EASY: 100, MEDIUM: 85, HARD: 65 };
-function mixedFreq(correct: 'FOLD' | 'CALL' | 'RAISE', difficulty: 'EASY' | 'MEDIUM' | 'HARD', aggressor = false): string {
-  const main = FREQ_MAIN[difficulty];
-  // Spot de agressor (vilão deu check): a alternativa é Bet↔Check (RAISE↔CALL),
-  // nunca FOLD — dar check é grátis.
-  const alt = aggressor
-    ? (correct === 'RAISE' ? 'CALL' : 'RAISE')
-    : (correct === 'RAISE' ? 'FOLD' : 'RAISE');
-  const f: { FOLD: number; CALL: number; RAISE: number } = { FOLD: 0, CALL: 0, RAISE: 0 };
-  f[correct] = main;
-  f[alt] = 100 - main;
-  return JSON.stringify(f);
-}
-
 export async function main() {
   console.log('🌱 Iniciando seed...');
 
@@ -1666,6 +1454,7 @@ export async function main() {
 
       for (const [ei, ex] of s.exercises.entries()) {
         const exOrder = ei + 1;
+        const freq = freqForExercise(ex);
         const data = {
           order: exOrder,
           heroPosition: ex.heroPosition,
@@ -1681,7 +1470,10 @@ export async function main() {
           difficulty: ex.difficulty,
           category: ex.category,
           xpValue: XP[ex.difficulty],
-          frequencies: mixedFreq(ex.correctAction, ex.difficulty, ex.villainAction === 'Check'),
+          // Sai do range, nunca da `difficulty` (que é ritmo, não poker).
+          // `null` = não há chart por trás (postflop/4-bet/squeeze): sem dado,
+          // o app não mostra barra em vez de inventar uma.
+          frequencies: freq ? JSON.stringify(freq) : null,
         };
         await prisma.exercise.upsert({
           where: { stageId_order: { stageId: stage.id, order: exOrder } },
@@ -1701,31 +1493,18 @@ export async function main() {
   await prisma.world.deleteMany({ where: { order: { gte: WORLDS.length } } });
 
 
-  let rangeCount = 0;
-  for (const rd of RANGE_DEFS) {
-    const freq = freqMapFor((ex) => ex.category === 'OPEN_RAISE' && !ex.villainAction && ex.heroPosition === rd.position);
-    const cells = JSON.stringify(buildCells(rd.tokens, freq));
+  // Um loop só: RFI e defesa têm o mesmo formato (RFI é o caso sem `call`),
+  // e as células saem do mesmo `freqForHand` que alimenta os exercícios.
+  for (const def of RANGE_DEFS) {
+    const key = { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: def.position, scenario: def.scenario };
+    const cells = JSON.stringify(buildCells(def));
     await prisma.range.upsert({
-      where: { gameType_tableSize_stackBb_position_scenario: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position, scenario: 'RFI' } },
-      update: { label: rd.label, cells },
-      create: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: rd.position, scenario: 'RFI', label: rd.label, cells },
+      where: { gameType_tableSize_stackBb_position_scenario: key },
+      update: { label: def.label, cells },
+      create: { ...key, label: def.label, cells },
     });
-    rangeCount++;
   }
-  for (const vd of VS_DEFS) {
-    const villain = vd.scenario.slice(3); // 'VS_CO' → 'CO'
-    const freq = freqMapFor((ex) =>
-      !ex.board && !ex.callerPosition && ex.villainAction === 'Raise 2.5x'
-      && ex.heroPosition === vd.position && ex.villainPosition === villain);
-    const cells = JSON.stringify(buildCells3(vd.raise, vd.call, freq));
-    await prisma.range.upsert({
-      where: { gameType_tableSize_stackBb_position_scenario: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: vd.position, scenario: vd.scenario } },
-      update: { label: vd.label, cells },
-      create: { gameType: 'CASH', tableSize: 'SIX_MAX', stackBb: 100, position: vd.position, scenario: vd.scenario, label: vd.label, cells },
-    });
-    rangeCount++;
-  }
-  console.log(`✓ ${rangeCount} ranges (13x13)`);
+  console.log(`✓ ${RANGE_DEFS.length} ranges (13x13)`);
 
   console.log(`✅ Seed concluído: ${WORLDS.length} mundos, ${stageCount} fases, ${exerciseCount} exercícios.`);
 }

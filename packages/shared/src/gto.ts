@@ -31,8 +31,18 @@ export type CellAction = (typeof CELL_ACTIONS)[number];
 export interface RangeCell {
   /** Rótulo da mão, ex.: "AKs", "QQ", "T9o". */
   hand: string;
+  /** Derivado de `freq`: a ação mais frequente. É a cor da célula. */
   action: CellAction;
-  /** Mão de fronteira (estratégia mista): `action` em pct%, `alt` no restante. */
+  /**
+   * A estratégia da mão — a fonte de verdade. É o MESMO objeto que o app
+   * mostra nas barras depois que o aluno responde, o que faz chart e barras
+   * concordarem por construção.
+   *
+   * Opcional só por compatibilidade: o seed nunca apaga linha de `Range`, então
+   * uma linha antiga (gravada antes deste campo existir) pode chegar sem ele.
+   */
+  freq?: Frequencies;
+  /** @deprecated Use `freq`. Só representa 2 ações; existe para linhas antigas. */
   mix?: { alt: CellAction; pct: number };
 }
 

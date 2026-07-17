@@ -144,7 +144,8 @@ export interface StagePlay {
 export interface GuestExercise extends PublicExercise {
   correctAction: Action;
   explanation: string | null;
-  frequencies: Frequencies;
+  /** `null` quando não há chart por trás — ver AnswerResult.frequencies. */
+  frequencies: Frequencies | null;
 }
 
 export interface GuestWorld {
@@ -214,8 +215,15 @@ export interface AnswerResult {
   stageCompleted: boolean;
   /** Verdadeiro quando esta resposta concluiu o mundo inteiro. */
   worldCompleted: boolean;
-  /** Frequências GTO da decisão (reveladas só após responder). */
-  frequencies: Frequencies;
+  /**
+   * Frequências GTO da decisão (reveladas só após responder).
+   *
+   * `null` quando não existe chart por trás do spot (postflop, 4-bet, squeeze):
+   * aí o app não mostra as barras. Inventar um número para preencher a tela é
+   * exatamente o bug que derrubou a confiança nos gráficos — sem dado, a
+   * explicação carrega o feedback sozinha.
+   */
+  frequencies: Frequencies | null;
 }
 
 /** Resultado ao concluir uma AULA (fase sem exercícios). */
@@ -246,7 +254,8 @@ export interface ReviewItem {
   correctAction: Action;
   yourAction: Action;
   explanation: string;
-  frequencies: Frequencies;
+  /** `null` quando não há chart por trás — ver AnswerResult.frequencies. */
+  frequencies: Frequencies | null;
   category: Category;
 }
 

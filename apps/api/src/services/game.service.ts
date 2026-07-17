@@ -84,22 +84,27 @@ function toStageSummary(
 }
 
 
-/** Frequências GTO do exercício: usa o JSON salvo ou deriva 100% na ação certa. */
-function parseFrequencies(json: string | null, correct: Action): Frequencies {
-  if (json) {
-    try {
-      const f = JSON.parse(json) as Partial<Frequencies>;
-      return {
-        FOLD: f.FOLD ?? 0,
-        CALL: f.CALL ?? 0,
-        RAISE: f.RAISE ?? 0,
-        ...(f.ALLIN != null ? { ALLIN: f.ALLIN } : {}),
-      };
-    } catch {
-      /* JSON inválido — cai no default */
-    }
+/**
+ * Frequências GTO do exercício, ou `null` quando não há chart por trás do spot
+ * (postflop, 4-bet, squeeze) — o seed grava a coluna vazia nesse caso.
+ *
+ * Sem default de propósito: o antigo "100% na ação certa" transformava a
+ * ausência de dado numa afirmação de estratégia, e o cliente não tinha como
+ * distinguir uma da outra. `null` faz o app esconder as barras.
+ */
+function parseFrequencies(json: string | null): Frequencies | null {
+  if (!json) return null;
+  try {
+    const f = JSON.parse(json) as Partial<Frequencies>;
+    return {
+      FOLD: f.FOLD ?? 0,
+      CALL: f.CALL ?? 0,
+      RAISE: f.RAISE ?? 0,
+      ...(f.ALLIN != null ? { ALLIN: f.ALLIN } : {}),
+    };
+  } catch {
+    return null; // JSON corrompido não vira estratégia inventada
   }
-  return { FOLD: correct === 'FOLD' ? 100 : 0, CALL: correct === 'CALL' ? 100 : 0, RAISE: correct === 'RAISE' ? 100 : 0 };
 }
 
 // ─── Mapa de Mundos (PRD 8.5) ──────────────────────────────────
@@ -590,7 +595,7 @@ export async function submitAnswer(
     },
     stageCompleted,
     worldCompleted,
-    frequencies: parseFrequencies(exercise.frequencies, correctAction),
+    frequencies: parseFrequencies(exercise.frequencies),
   };
 }
 
@@ -754,7 +759,7 @@ export async function getGuestStage(stageId: string): Promise<GuestStagePlay> {
       options: ACTIONS,
       correctAction: ex.correctAction as Action,
       explanation: ex.explanation,
-      frequencies: parseFrequencies(ex.frequencies, ex.correctAction as Action),
+      frequencies: parseFrequencies(ex.frequencies),
     })),
   };
 }
@@ -914,7 +919,7 @@ export async function getReview(userId: string): Promise<ReviewItem[]> {
       correctAction: correct,
       yourAction: a.selectedAction as Action,
       explanation: ex.explanation,
-      frequencies: parseFrequencies(ex.frequencies, correct),
+      frequencies: parseFrequencies(ex.frequencies),
       category: ex.category as Category,
     });
     if (out.length >= 40) break;

@@ -1,19 +1,21 @@
 import { describe, it, expect } from 'vitest';
+import { WORLDS } from '../apps/api/prisma/seed.js';
 import {
-  WORLDS, RANGE_DEFS, VS_DEFS, buildCells, buildCells3, labelOfHand, raiseSet, expand,
-} from '../apps/api/prisma/seed.js';
+  RANGE_DEFS, buildCells, expand, raiseSet, labelOfHand,
+  freqForHand, freqForExercise, rangeDefFor, mainAction, actionMargin,
+  type Cell, type Freq,
+} from '../apps/api/prisma/ranges.js';
 
 /**
  * Charts × exercícios. O chart é a referência que o app mostra ao aluno; se um
- * exercício discorda dele, o aluno vê duas verdades e uma delas está errada.
+ * exercício discorda dele, o aluno vê duas verdades e uma está errada.
  */
 
 const allExercises = WORLDS.flatMap((w) => w.stages.flatMap((s) => s.exercises));
 
-/** Ação da célula de uma mão no grid 13x13. */
-function cellAction(grid: { hand: string; action: string }[][], hand: string): string | null {
-  for (const row of grid) for (const cell of row) if (cell.hand === hand) return cell.action;
-  return null;
+function cellFor(grid: Cell[][], hand: string): Cell {
+  for (const row of grid) for (const cell of row) if (cell.hand === hand) return cell;
+  throw new Error(`mão ${hand} não existe no grid`);
 }
 
 describe('expand', () => {
@@ -36,66 +38,134 @@ describe('expand', () => {
   });
 });
 
-describe('RFI', () => {
-  it.each(RANGE_DEFS.map((rd) => [rd.position, rd] as const))(
-    '%s: todo exercício de abertura bate com o chart',
-    (_pos, rd) => {
-      const grid = buildCells(rd.tokens);
-      const divergencias = allExercises
-        .filter((e) => e.category === 'OPEN_RAISE' && !e.villainAction && e.heroPosition === rd.position)
-        .filter((e) => cellAction(grid, labelOfHand(e.heroHand)) !== e.correctAction)
-        .map((e) => `${labelOfHand(e.heroHand)}: exercício=${e.correctAction} chart=${cellAction(grid, labelOfHand(e.heroHand))}`);
-
-      expect(divergencias).toEqual([]);
-    },
-  );
-
-  it('KQs abre no UTG e KQo não (o caso que o usuário reportou)', () => {
-    const utg = buildCells(RANGE_DEFS.find((r) => r.position === 'UTG')!.tokens);
-    expect(cellAction(utg, 'KQs')).toBe('RAISE');
-    expect(cellAction(utg, 'KQo')).toBe('FOLD');
+describe('mainAction', () => {
+  it('escolhe a ação mais frequente', () => {
+    expect(mainAction({ FOLD: 0, CALL: 0, RAISE: 100 })).toBe('RAISE');
+    expect(mainAction({ FOLD: 30, CALL: 0, RAISE: 70 })).toBe('RAISE');
+    expect(mainAction({ FOLD: 70, CALL: 30, RAISE: 0 })).toBe('FOLD');
+    expect(mainAction({ FOLD: 20, CALL: 50, RAISE: 30 })).toBe('CALL');
   });
 });
 
-describe('defesa vs open', () => {
-  it.each(VS_DEFS.map((vd) => [`${vd.position} ${vd.scenario}`, vd] as const))(
-    '%s: todo exercício bate com o chart',
-    (_nome, vd) => {
-      const grid = buildCells3(vd.raise, vd.call);
-      const villain = vd.scenario.replace('VS_', '');
+describe('freqForHand', () => {
+  const utg = RANGE_DEFS.find((d) => d.scenario === 'RFI' && d.position === 'UTG')!;
+
+  // O caso que o usuário reportou. As barras diziam RAISE 85 / FOLD 15 porque
+  // saíam de `difficulty: MEDIUM`, enquanto o chart pintava verde sólido.
+  it('KQs no UTG é raise puro — chart e barras batem', () => {
+    expect(freqForHand(utg, 'KQs')).toEqual({ FOLD: 0, CALL: 0, RAISE: 100 });
+  });
+
+  // Este era pior: inventava "RAISE 15%" para uma mão que é fold puro.
+  it('KQo no UTG é fold puro, sem raise inventado', () => {
+    expect(freqForHand(utg, 'KQo')).toEqual({ FOLD: 100, CALL: 0, RAISE: 0 });
+  });
+
+  it('abertura nunca tem call (é raise-ou-fold)', () => {
+    for (const def of RANGE_DEFS.filter((d) => d.scenario === 'RFI')) {
+      for (const row of buildCells(def)) for (const cell of row) {
+        expect(cell.freq.CALL).toBe(0);
+      }
+    }
+  });
+});
+
+describe('a fonte é única', () => {
+  // A regressão do KQs: chart e barras têm que sair do MESMO lugar. Se alguém
+  // reintroduzir um segundo caminho para a frequência, este teste cai.
+  it.each(RANGE_DEFS.map((d) => [`${d.position} ${d.scenario}`, d] as const))(
+    '%s: a célula do chart é idêntica à frequência do exercício',
+    (_nome, def) => {
+      const grid = buildCells(def);
       const divergencias = allExercises
-        .filter((e) => e.heroPosition === vd.position && e.villainPosition === villain
-          && !e.board && e.villainAction === 'Raise 2.5x')
-        .filter((e) => cellAction(grid, labelOfHand(e.heroHand)) !== e.correctAction)
-        .map((e) => `${labelOfHand(e.heroHand)}: exercício=${e.correctAction} chart=${cellAction(grid, labelOfHand(e.heroHand))}`);
+        .filter((ex) => rangeDefFor(ex) === def)
+        .filter((ex) => {
+          const cell = cellFor(grid, labelOfHand(ex.heroHand));
+          return JSON.stringify(cell.freq) !== JSON.stringify(freqForExercise(ex));
+        })
+        .map((ex) => labelOfHand(ex.heroHand));
 
       expect(divergencias).toEqual([]);
     },
   );
 
-  it.each(VS_DEFS.map((vd) => [`${vd.position} ${vd.scenario}`, vd] as const))(
-    '%s: nenhuma mão está em raise E call ao mesmo tempo',
-    (_nome, vd) => {
-      const call = raiseSet(vd.call);
-      const overlap = [...raiseSet(vd.raise)].filter((h) => call.has(h));
-      expect(overlap).toEqual([]);
+  it.each(RANGE_DEFS.map((d) => [`${d.position} ${d.scenario}`, d] as const))(
+    '%s: a resposta certa do exercício é a ação mais frequente do chart',
+    (_nome, def) => {
+      const divergencias = allExercises
+        .filter((ex) => rangeDefFor(ex) === def)
+        .filter((ex) => mainAction(freqForExercise(ex)!) !== ex.correctAction)
+        .map((ex) => `${labelOfHand(ex.heroHand)}: exercício=${ex.correctAction} chart=${mainAction(freqForExercise(ex)!)}`);
+
+      expect(divergencias).toEqual([]);
     },
   );
+
+  it('exercício sem chart (postflop/4-bet/squeeze) não recebe frequência inventada', () => {
+    const semChart = allExercises.filter((ex) => rangeDefFor(ex) === null);
+    // Existem de verdade — se este número virar 0, o rangeDefFor casou demais.
+    expect(semChart.length).toBeGreaterThan(0);
+    for (const ex of semChart) expect(freqForExercise(ex)).toBeNull();
+  });
+
+  it('todo postflop cai no caso sem chart', () => {
+    for (const ex of allExercises.filter((e) => e.board)) {
+      expect(rangeDefFor(ex)).toBeNull();
+    }
+  });
 });
 
 describe('grid', () => {
-  it('é 13x13 e sem mão repetida com ações diferentes', () => {
-    for (const rd of RANGE_DEFS) {
-      const grid = buildCells(rd.tokens);
+  it.each(RANGE_DEFS.map((d) => [`${d.position} ${d.scenario}`, d] as const))(
+    '%s: 13x13, 169 mãos, freq somando 100 e action = argmax',
+    (_nome, def) => {
+      const grid = buildCells(def);
       expect(grid).toHaveLength(13);
-      for (const row of grid) expect(row).toHaveLength(13);
 
-      const seen = new Map<string, string>();
-      for (const row of grid) for (const cell of row) {
-        if (seen.has(cell.hand)) expect(seen.get(cell.hand)).toBe(cell.action);
-        seen.set(cell.hand, cell.action);
+      const hands = new Set<string>();
+      for (const row of grid) {
+        expect(row).toHaveLength(13);
+        for (const cell of row) {
+          hands.add(cell.hand);
+          const soma = cell.freq.FOLD + cell.freq.CALL + cell.freq.RAISE;
+          expect(soma, `${cell.hand} soma ${soma}`).toBe(100);
+          expect(cell.action).toBe(mainAction(cell.freq));
+        }
       }
-      expect(seen.size).toBe(169); // 13 pares + 78 suited + 78 offsuit
+      expect(hands.size).toBe(169); // 13 pares + 78 suited + 78 offsuit
+    },
+  );
+
+  it.each(RANGE_DEFS.map((d) => [`${d.position} ${d.scenario}`, d] as const))(
+    '%s: nenhuma mão está em raise E call ao mesmo tempo',
+    (_nome, def) => {
+      const call = raiseSet(def.call ?? []);
+      expect([...raiseSet(def.raise)].filter((h) => call.has(h))).toEqual([]);
+    },
+  );
+
+  it('todo cenário é RFI ou VS_<posição> de uma posição real', () => {
+    const posicoes = ['UTG', 'MP', 'CO', 'BTN', 'SB', 'BB'];
+    for (const def of RANGE_DEFS) {
+      expect(posicoes).toContain(def.position);
+      if (def.scenario !== 'RFI') {
+        expect(posicoes).toContain(def.scenario.replace('VS_', ''));
+        expect(def.call, `${def.scenario} sem call`).toBeDefined();
+      }
     }
+  });
+});
+
+describe('cara-ou-coroa', () => {
+  // Com frequências reais (vindas de solver), uma mão 52/48 reprovaria o aluno
+  // num lance indiferente. Hoje nada é misto, então a margem é sempre 100.
+  it('nenhum exercício cobra resposta numa decisão quase indiferente', () => {
+    const apertados = allExercises
+      .map((ex) => ({ ex, freq: freqForExercise(ex) }))
+      .filter((x): x is { ex: typeof x.ex; freq: Freq } => x.freq !== null)
+      .filter((x) => actionMargin(x.freq) < 10)
+      .map((x) => `${labelOfHand(x.ex.heroHand)} (${x.ex.heroPosition}): margem ${actionMargin(x.freq)}`);
+
+    expect(apertados).toEqual([]);
   });
 });

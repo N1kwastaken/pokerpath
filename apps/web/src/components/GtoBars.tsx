@@ -10,12 +10,20 @@ const ROWS: { key: keyof Frequencies; label: string; bar: string }[] = [
 ];
 
 export function GtoBars({ freq, chosen, correct, aggressor = false }: {
-  freq: Frequencies; chosen?: Action; correct?: Action;
+  /**
+   * `null` = não existe chart por trás deste spot (postflop, 4-bet, squeeze).
+   * Aí não renderiza nada: a explicação carrega o feedback sozinha. Preencher
+   * a tela com uma frequência inventada foi o que derrubou a confiança nos
+   * gráficos — sem dado, o certo é não afirmar.
+   */
+  freq: Frequencies | null; chosen?: Action; correct?: Action;
   /** Spot de agressor (vilão deu check): Raise vira Bet e Call vira Check. */
   aggressor?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const AGG_LABEL: Partial<Record<keyof Frequencies, string>> = { RAISE: 'Bet', CALL: 'Check' };
+  if (!freq) return null;
+
   const rows = ROWS
     .filter((r) => (freq[r.key] ?? 0) > 0)
     .map((r) => (aggressor && AGG_LABEL[r.key] ? { ...r, label: AGG_LABEL[r.key] as string } : r));
