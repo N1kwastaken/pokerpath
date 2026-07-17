@@ -424,7 +424,7 @@ export function StagePlayPage() {
             const chosen = pending && lastChoice === b.key;
             return (
               <button key={b.key} onClick={() => choose(b.key)} disabled={pending}
-                className={`btn3d rounded-2xl py-5 text-base font-extrabold text-white transition ${b.color} ${
+                className={`btn3d rounded-2xl py-6 text-lg font-black text-white transition ${b.color} ${
                   chosen ? 'scale-[0.97] animate-pulse' : pending ? 'opacity-40' : 'hover:brightness-110'
                 }`}>
                 {chosen ? (

@@ -65,16 +65,16 @@ export function PokerTable({ ex, simple = false }: {
   const cards = tokens(ex.heroHand);
 
   return (
-    <div className="relative mx-auto aspect-[10/9] w-full max-w-sm">
-      {/* Rail + feltro */}
+    <div className="relative mx-auto aspect-[6/5] w-full max-w-md">
+      {/* Rail + feltro — racetrack: mais longo e menos "bola" que antes. */}
       <div
-        className="absolute inset-1 rounded-[47%]"
+        className="absolute inset-1 rounded-[42%]"
         style={{
           background: 'radial-gradient(ellipse at 50% 36%, #1c8454 0%, #14613b 52%, #0c3d27 100%)',
           boxShadow: 'inset 0 0 0 7px rgba(0,0,0,0.5), inset 0 0 0 9px rgba(255,255,255,0.06), inset 0 0 55px rgba(0,0,0,0.55), 0 10px 30px -12px rgba(0,0,0,0.7)',
         }}
       />
-      <div className="absolute inset-7 rounded-[47%] border border-white/10" />
+      <div className="absolute inset-7 rounded-[42%] border border-white/10" />
 
       {/* Pot */}
       <div className="absolute left-1/2 top-[40%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
