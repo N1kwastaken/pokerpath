@@ -10,7 +10,7 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
 
 - **4 níveis em espiral** — Primeiros Passos (Mundo 0), Iniciante, Intermediário
   e Avançado; cada nível cobre do preflop ao river, com jargão crescendo aos poucos.
-  ~110 fases e ~760 exercícios validados contra os ranges.
+  ~111 fases e ~790 exercícios validados contra os ranges.
 - **Modo visitante** — o Mundo 0 é jogável **sem conta** (`/g`); ao criar a
   conta, o progresso "gradua" automaticamente.
 - **Prova de nivelamento** — quem já jogou pode pular níveis (`/placement`).
@@ -137,6 +137,8 @@ com gabarito no payload porque a validação é local e sem XP).
 
 ## Próximos passos
 
-Ranges postflop refinados por textura (solver), postflop no nível Avançado,
-tradução EN (`pp.lang`), e-mail de recuperação em produção (Resend + domínio),
-pagamento (Stripe) e app mobile.
+Ranges postflop refinados por solver, ranking semanal entre amigos, tradução EN
+(`pp.lang`), domínio próprio no Resend (sem ele, boas-vindas e lembrete não
+chegam a outros usuários), pagamento (Stripe) e app mobile.
+
+> Convenções e armadilhas do projeto: [CLAUDE.md](CLAUDE.md).
