@@ -97,15 +97,20 @@ export function DashboardPage() {
           className="btn3d w-full rounded-2xl p-5 text-left text-white"
           style={{ backgroundColor: curWorld.color }}
         >
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/80">Continuar treino</p>
-          <h2 className="mt-1 text-2xl font-extrabold">{curWorld.icon} {category ?? curWorld.name}</h2>
-          {curStage && <p className="mt-0.5 truncate text-sm text-white/85">{curStage.title}</p>}
+          {/* A AÇÃO é o texto gigante ("Continuar"), não o nome do mundo — é o
+              que deixa óbvio que o botão retoma o treino. O mundo/fase vira o
+              rótulo pequeno em cima. */}
+          <p className="text-xs font-bold uppercase tracking-widest text-white/80">{curWorld.icon} {category ?? curWorld.name}</p>
+          <h2 className="mt-1 flex items-center gap-2 text-4xl font-black leading-none">
+            Continuar <IconChevron size={30} className="mt-0.5" />
+          </h2>
+          {curStage && <p className="mt-2 truncate text-sm font-semibold text-white/85">{curStage.title}</p>}
           <div className="mt-4 flex items-center gap-3">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/25">
+            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-black/25">
               <div className="h-full rounded-full bg-white/90" style={{ width: `${pct}%` }} />
             </div>
-            <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-extrabold" style={{ color: curWorld.color }}>
-              Jogar <IconChevron size={15} />
+            <span className="shrink-0 rounded-full bg-white/95 px-2.5 py-0.5 text-xs font-black tabular-nums" style={{ color: curWorld.color }}>
+              {pct}%
             </span>
           </div>
         </button>
@@ -113,12 +118,11 @@ export function DashboardPage() {
         // Sem fase pendente: NÃO pode ser um beco sem saída — quem terminou
         // tudo é justamente quem mais volta. Manda para a revisão.
         <button onClick={() => navigate('/review')} className="btn3d w-full rounded-2xl bg-primary p-5 text-left text-white">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/80">Tudo em dia 🎉</p>
-          <h2 className="mt-1 text-2xl font-extrabold">Afie o que já aprendeu</h2>
-          <p className="mt-0.5 text-sm text-white/85">Revise suas mãos erradas e mantenha o streak vivo.</p>
-          <span className="mt-4 inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm font-extrabold text-primary">
-            Revisar <IconChevron size={15} />
-          </span>
+          <p className="text-xs font-bold uppercase tracking-widest text-white/80">Tudo em dia 🎉</p>
+          <h2 className="mt-1 flex items-center gap-2 text-4xl font-black leading-none">
+            Revisar <IconChevron size={30} className="mt-0.5" />
+          </h2>
+          <p className="mt-2 text-sm font-semibold text-white/85">Afie suas mãos erradas e mantenha o streak vivo.</p>
         </button>
       )}
 
