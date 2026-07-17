@@ -2,10 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { levelProgress } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
-import { useStats, useEnergy, useTrail } from '../hooks/useGame.js';
+import { useEnergy, useTrail } from '../hooks/useGame.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { MissionsCard } from '../components/MissionsCard.js';
-import { ThemeToggle } from '../components/ThemeToggle.js';
 import { IconChevron, IconBolt } from '../components/Icons.js';
 
 /** Home — enxuta e game-like: um CTA grande para voltar à mão, sem cards corporativos. */
@@ -13,7 +12,6 @@ export function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: trail } = useTrail();
-  const { data: stats } = useStats();
   const { data: energy } = useEnergy();
 
   // Cadastro de quem JÁ JOGA marca a prova de nivelamento como pendente —
@@ -27,7 +25,6 @@ export function DashboardPage() {
 
   if (!user) return null;
   const prog = levelProgress(user.totalXp);
-  const accuracy = stats && stats.totalAnswered > 0 ? Math.round(stats.overallAccuracy * 100) : null;
   const curWorld = trail?.find((w) => w.stages.some((s) => s.status === 'IN_PROGRESS')) ?? null;
   const curStage = curWorld?.stages.find((s) => s.status === 'IN_PROGRESS') ?? null;
   const category = curStage ? stageGroup(curStage.concept) : null;
@@ -35,23 +32,41 @@ export function DashboardPage() {
 
   return (
     <div className="px-5 py-7">
-      <header className="mb-5 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-subtle">Bom jogo,</p>
-          <h1 className="text-2xl font-bold text-title">{user.name}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {energy && <span className="flex items-center gap-0.5 rounded-full bg-card2 px-2.5 py-1 text-xs font-bold text-call"><IconBolt size={14} />{energy.infinite ? '∞' : energy.remaining}</span>}
-          <ThemeToggle />
-        </div>
+      {/* Barra de recursos — streak e energia no lugar do nome; nível à direita.
+          Energia em destaque (é o que trava/libera o jogo). */}
+      <header className="mb-4 flex items-center gap-2.5">
+        <StatChip icon="🔥" value={`${user.currentStreak}`} label="ofensiva" alert={user.streakAtRisk} />
+        {energy && (
+          <StatChip
+            iconNode={<IconBolt size={22} />}
+            value={energy.infinite ? '∞' : `${energy.remaining}`}
+            label="energia"
+            tone="energy"
+          />
+        )}
+        <button
+          onClick={() => navigate('/levels')}
+          className="ml-auto flex items-center gap-1.5 rounded-2xl border border-line bg-card px-3.5 py-2.5 active:scale-95"
+        >
+          <span className="text-[10px] font-black uppercase tracking-wide text-subtle">Nível</span>
+          <span className="text-xl font-black text-title">{user.level}</span>
+          <IconChevron size={15} className="text-subtle" />
+        </button>
       </header>
 
-      {/* Faixa de status compacta */}
-      <div className="mb-3 grid grid-cols-3 gap-2">
-        <Pill value={`${user.currentStreak}🔥`} label="Streak" alert={user.streakAtRisk} />
-        <Pill value={user.totalXp.toLocaleString('pt-BR')} label="XP" />
-        <Pill value={accuracy != null ? `${accuracy}%` : '—'} label="Precisão" />
-      </div>
+      {/* Nível + XP fundidos: uma barra fina até o próximo nível (ocupa o lugar
+          do antigo card grande + pill de XP). Toca para ver a escada. */}
+      <button onClick={() => navigate('/levels')} className="mb-5 block w-full text-left active:opacity-90">
+        <div className="mb-1.5 flex items-baseline justify-between">
+          <span className="text-base font-extrabold text-title">{user.levelName}</span>
+          <span className="text-[11px] font-bold text-subtle">
+            {prog.next ? <>{prog.xpToNext.toLocaleString('pt-BR')} XP p/ {prog.next.name}</> : <>Nível máximo 👑</>}
+          </span>
+        </div>
+        <div className="h-2.5 overflow-hidden rounded-full bg-card2">
+          <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${prog.pct}%` }} />
+        </div>
+      </button>
 
       {/* Streak em risco: a única mensagem que precisa furar a tela. */}
       {user.streakAtRisk && (
@@ -107,41 +122,26 @@ export function DashboardPage() {
         </button>
       )}
 
-      {/* Nível — com barra até o próximo; toca para ver a escada e as recompensas. */}
-      <button
-        onClick={() => navigate('/levels')}
-        className="mt-4 w-full rounded-2xl border border-line bg-card p-4 text-left active:scale-[0.99]"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-subtle">Nível {user.level}</p>
-            <p className="mt-0.5 text-lg font-bold text-title">{user.levelName}</p>
-          </div>
-          <span className="rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
-            {user.plan === 'PREMIUM' ? '⭐ Premium' : 'Free'}
-          </span>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-card2">
-          <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${prog.pct}%` }} />
-        </div>
-        <p className="mt-1.5 flex items-center gap-1 text-xs text-subtle">
-          {prog.next
-            ? <>Faltam <b className="text-title">{prog.xpToNext.toLocaleString('pt-BR')} XP</b> para {prog.next.name}</>
-            : <>Nível máximo 👑</>}
-          <IconChevron size={13} className="ml-auto" />
-        </p>
-      </button>
-
       <div className="mt-4"><MissionsCard /></div>
     </div>
   );
 }
 
-function Pill({ value, label, alert }: { value: string; label: string; alert?: boolean }) {
+/** Chip de recurso do topo: ícone grande + número em destaque + rótulo. */
+function StatChip({ icon, iconNode, value, label, alert, tone }: {
+  icon?: string; iconNode?: React.ReactNode; value: string; label: string;
+  alert?: boolean; tone?: 'energy';
+}) {
+  const valueColor = alert ? 'text-gold' : tone === 'energy' ? 'text-call' : 'text-title';
   return (
-    <div className={`rounded-xl border px-3 py-2.5 text-center ${alert ? 'border-gold/60 bg-gold/10' : 'border-line bg-card2'}`}>
-      <p className={`text-base font-extrabold tabular-nums ${alert ? 'text-gold' : 'text-title'}`}>{value}</p>
-      <p className="text-[10px] uppercase tracking-wide text-subtle">{label}</p>
+    <div className={`flex items-center gap-2 rounded-2xl border px-3.5 py-2 ${alert ? 'border-gold/60 bg-gold/10' : 'border-line bg-card'}`}>
+      <span className={tone === 'energy' ? 'text-call' : ''}>
+        {iconNode ?? <span className="text-xl leading-none">{icon}</span>}
+      </span>
+      <div className="leading-none">
+        <p className={`text-2xl font-black tabular-nums ${valueColor}`}>{value}</p>
+        <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-subtle">{label}</p>
+      </div>
     </div>
   );
 }

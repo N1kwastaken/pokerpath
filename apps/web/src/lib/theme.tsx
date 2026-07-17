@@ -1,12 +1,22 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 const KEY = 'pp.theme';
 
 const ThemeCtx = createContext<{ theme: Theme; toggle: () => void; set: (t: Theme) => void } | null>(null);
 
-function apply(theme: Theme) {
-  document.documentElement.dataset.theme = theme;
+let animTimer: ReturnType<typeof setTimeout> | undefined;
+
+function apply(theme: Theme, animate = false) {
+  const root = document.documentElement;
+  // Fade ao trocar: liga uma transição global por ~300ms e desliga depois, para
+  // não deixar tudo com transição no uso normal (rolagem, hover ficariam moles).
+  if (animate) {
+    root.classList.add('theme-anim');
+    clearTimeout(animTimer);
+    animTimer = setTimeout(() => root.classList.remove('theme-anim'), 320);
+  }
+  root.dataset.theme = theme;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -14,7 +24,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem(KEY) as Theme | null;
     return saved ?? 'dark';
   });
-  useEffect(() => { apply(theme); localStorage.setItem(KEY, theme); }, [theme]);
+  // Aplica sem animar no 1º render (evita flash ao abrir); anima nas trocas.
+  const first = useRef(true);
+  useEffect(() => {
+    apply(theme, !first.current);
+    first.current = false;
+    localStorage.setItem(KEY, theme);
+  }, [theme]);
   return (
     <ThemeCtx.Provider value={{ theme, toggle: () => setTheme((t) => (t === 'light' ? 'dark' : 'light')), set: setTheme }}>
       {children}
