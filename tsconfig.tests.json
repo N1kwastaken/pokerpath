@@ -8,6 +8,9 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "noEmit": true,
+    // Alguns testes importam funções puras que moram em componentes .tsx
+    // (ex.: cellBackground em RangeGridView).
+    "jsx": "react-jsx",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
