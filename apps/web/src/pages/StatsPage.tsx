@@ -37,6 +37,12 @@ export function StatsPage() {
             <Bar value={data.overallAccuracy} />
           </div>
 
+          {/* Recordes — dão o que perseguir (ofensiva de dias e combo de acertos). */}
+          <div className="mb-5 grid grid-cols-2 gap-3">
+            <Record icon="🔥" value={data.maxDayStreak} label="Maior ofensiva" unit={data.maxDayStreak === 1 ? 'dia' : 'dias'} />
+            <Record icon="🎯" value={data.bestAnswerStreak} label="Melhor sequência" unit="acertos" />
+          </div>
+
           {/* Por categoria */}
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-subtle">Por categoria</h2>
           <div className="card divide-y divide-line">
@@ -44,6 +50,18 @@ export function StatsPage() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function Record({ icon, value, label, unit }: { icon: string; value: number; label: string; unit: string }) {
+  return (
+    <div className="card flex items-center gap-3 p-4">
+      <span className="text-3xl leading-none">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-2xl font-black tabular-nums text-title">{value} <span className="text-sm font-bold text-subtle">{unit}</span></p>
+        <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-subtle">{label}</p>
+      </div>
     </div>
   );
 }

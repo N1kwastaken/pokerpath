@@ -862,19 +862,26 @@ export async function getEnergy(userId: string): Promise<EnergyState> {
 
 // ─── Estatísticas por categoria (PRD 9) ────────────────────────
 export async function getStats(userId: string): Promise<StatsResult> {
-  const rows = await prisma.userAnswer.findMany({
-    where: { userId },
-    select: { isCorrect: true, exercise: { select: { category: true } } },
-  });
+  // Ordenado por data para dar, de brinde, a MAIOR sequência de acertos.
+  const [rows, streak] = await Promise.all([
+    prisma.userAnswer.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      select: { isCorrect: true, exercise: { select: { category: true } } },
+    }),
+    prisma.streak.findUnique({ where: { userId }, select: { maxStreak: true } }),
+  ]);
 
   const acc = new Map<string, { total: number; correct: number }>();
   for (const c of CATEGORIES) acc.set(c, { total: 0, correct: 0 });
   let totalCorrect = 0;
+  let bestAnswerStreak = 0, run = 0; // maior nº de acertos seguidos, sem erro
   for (const r of rows) {
     const cat = r.exercise.category;
     const a = acc.get(cat) ?? { total: 0, correct: 0 };
     a.total++;
-    if (r.isCorrect) { a.correct++; totalCorrect++; }
+    if (r.isCorrect) { a.correct++; totalCorrect++; run++; if (run > bestAnswerStreak) bestAnswerStreak = run; }
+    else run = 0;
     acc.set(cat, a);
   }
 
@@ -893,6 +900,8 @@ export async function getStats(userId: string): Promise<StatsResult> {
     totalAnswered: rows.length,
     totalCorrect,
     overallAccuracy: rows.length ? totalCorrect / rows.length : 0,
+    maxDayStreak: streak?.maxStreak ?? 0,
+    bestAnswerStreak,
     byCategory,
   };
 }

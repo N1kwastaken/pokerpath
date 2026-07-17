@@ -71,6 +71,10 @@ export interface StatsResult {
   totalAnswered: number;
   totalCorrect: number;
   overallAccuracy: number; // 0..1
+  /** Maior ofensiva de dias seguidos (recorde do streak diário). */
+  maxDayStreak: number;
+  /** Maior sequência de acertos sem errar (recorde do combo). */
+  bestAnswerStreak: number;
   byCategory: CategoryStat[];
 }
 
