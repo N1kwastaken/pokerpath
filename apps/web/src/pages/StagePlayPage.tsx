@@ -198,7 +198,9 @@ export function StagePlayPage() {
       setSessionXp((x) => x + res.xpGained);
       if (res.stageCompleted) { setCompleted(true); if (stageId) localStorage.setItem('pp.justCompleted', stageId); }
       if (res.worldCompleted) setWorldDone(true);
-      const newCombo = res.correct ? comboRef.current + 1 : 0;
+      // O combo é o streak REAL do servidor (persiste entre fases/sessões/
+      // níveis e caminha para a conquista de 50), não uma contagem local.
+      const newCombo = res.answerStreak;
       comboRef.current = newCombo;
       setCombo(newCombo);
       res.correct ? sound.correct(newCombo) : sound.wrong();

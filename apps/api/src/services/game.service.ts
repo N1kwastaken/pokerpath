@@ -35,7 +35,7 @@ import type { Stage, UserProgress } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { ForbiddenError, NotFoundError } from '../lib/errors.js';
 import { computeStreak } from './streak.service.js';
-import { evaluateAchievements } from './achievement.service.js';
+import { evaluateAchievements, consecutiveCorrect } from './achievement.service.js';
 import { isGodmodeEmail, effectivePlan } from '../lib/godmode.js';
 
 /** Todo o PRÉ-FLOP é grátis; o PÓS-FLOP (C-Bet em diante, Mundo 11+) é Premium. */
@@ -561,6 +561,10 @@ export async function submitAnswer(
     }),
   ]);
 
+  // Acertos seguidos (persiste entre fases/sessões/níveis, vem do log). Só há
+  // sequência quando a resposta foi certa; no erro é 0 por definição.
+  const answerStreak = correct ? await consecutiveCorrect(userId) : 0;
+
   // ── Conquistas — só reavalia o que esta resposta pode ter mudado. ──
   const newAchievements = await evaluateAchievements({
     userId,
@@ -570,6 +574,7 @@ export async function submitAnswer(
     category: exercise.category,
     stageCompleted,
     worldCompleted,
+    answerStreak,
   });
 
   return {
@@ -582,6 +587,7 @@ export async function submitAnswer(
     levelName: levelAfter.name,
     leveledUp,
     currentStreak: streakNow.currentStreak,
+    answerStreak,
     newAchievements,
     stage: {
       stageId: stage.id,

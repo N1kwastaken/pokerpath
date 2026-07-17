@@ -8,7 +8,7 @@ import { prisma } from '../lib/prisma.js';
  */
 
 /** Conta quantos acertos seguidos (sem erro) o usuário tem agora. */
-async function consecutiveCorrect(userId: string): Promise<number> {
+export async function consecutiveCorrect(userId: string): Promise<number> {
   const recent = await prisma.userAnswer.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
@@ -50,8 +50,10 @@ export async function evaluateAchievements(args: {
   category?: string;
   stageCompleted?: boolean;
   worldCompleted?: boolean;
+  /** Streak de acertos já calculado pelo chamador — evita reconsultar. */
+  answerStreak?: number;
 }): Promise<UnlockedAchievement[]> {
-  const { userId, currentStreak, answered, correct, category, stageCompleted, worldCompleted } = args;
+  const { userId, currentStreak, answered, correct, category, stageCompleted, worldCompleted, answerStreak } = args;
   const maybe = (v: boolean | undefined) => v !== false; // undefined ⇒ cheque
 
   // Conjunto de códigos já desbloqueados (evita trabalho e duplicidade).
@@ -85,7 +87,8 @@ export async function evaluateAchievements(args: {
   // HOT_STREAK / SHARP_SHOOTER — acertos seguidos (5 / 50). Um erro zera a
   // sequência, então só vale checar quando a resposta foi CERTA.
   if ((want('HOT_STREAK') || want('SHARP_SHOOTER')) && maybe(correct)) {
-    checks.push(consecutiveCorrect(userId).then((streak) => {
+    const streakP = answerStreak !== undefined ? Promise.resolve(answerStreak) : consecutiveCorrect(userId);
+    checks.push(streakP.then((streak) => {
       if (want('HOT_STREAK') && streak >= 5) unlock.add('HOT_STREAK');
       if (want('SHARP_SHOOTER') && streak >= 50) unlock.add('SHARP_SHOOTER');
     }));

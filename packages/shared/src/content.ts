@@ -209,6 +209,8 @@ export interface AnswerResult {
   levelName: string;
   leveledUp: boolean;
   currentStreak: number;
+  /** Acertos seguidos até agora (persiste entre fases/sessões; 0 se errou). */
+  answerStreak: number;
   newAchievements: UnlockedAchievement[];
   stage: StageProgressState;
   /** Verdadeiro quando esta resposta concluiu a fase (atingiu o pass_rate). */
