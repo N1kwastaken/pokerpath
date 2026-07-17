@@ -174,6 +174,12 @@ export async function authRoutes(app: FastifyInstance) {
       const recent = await prisma.passwordResetToken.count({
         where: { userId: user.id, createdAt: { gte: new Date(Date.now() - 3_600_000) } },
       });
+      // A resposta ao cliente é sempre a mesma (anti-enumeração), então sem
+      // este log o limite bloqueia em SILÊNCIO — e de fora fica idêntico a
+      // "e-mail não chegou". Custou um diagnóstico; agora aparece no log.
+      if (recent >= RESET_MAX_PER_HOUR) {
+        request.log.warn({ userId: user.id, recent }, 'Reset de senha bloqueado pelo limite por hora');
+      }
       if (recent < RESET_MAX_PER_HOUR) {
         const token = randomBytes(32).toString('hex');
         await prisma.passwordResetToken.create({
