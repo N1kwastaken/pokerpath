@@ -140,12 +140,12 @@ export const LESSONS: Record<string, LessonStep[]> = {
   ],
   'A arte do fold': [
     t(`Saber desistir economiza fichas. Foldar mão fraca não é covardia, é lucro.`),
-    h('UTG', '9♣9♦', 'FOLD', `De UTG, 99 é fold no range simplificado. Disciplina!`),
+    h('UTG', 'K♠J♥', 'FOLD', `De UTG, KJo é fold — parece forte, mas offsuit fica de fora tão cedo. Disciplina!`),
   ],
   'Recapitulando': [
     t(`Posição manda: quanto mais tarde, mais mãos você abre.`),
-    h('BTN', 'K♣Q♦', 'RAISE', `KQo abre no botão…`),
-    h('UTG', 'K♣Q♦', 'FOLD', `…mas a mesma KQo é fold de UTG.`),
+    h('BTN', 'Q♣J♦', 'RAISE', `QJo abre no botão…`),
+    h('UTG', 'Q♣J♦', 'FOLD', `…mas a mesma QJo é fold de UTG.`),
     t(`Pronto para o teste final! 🚀`),
   ],
 
@@ -204,7 +204,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
   'Range de SB': [
     t(`A SB abre quase metade das mãos: todos os pares, qualquer Ás suited e muitos offsuit. Veja o gráfico.`),
     h('SB', 'A♣7♦', 'RAISE', `A7o já abre da SB.`),
-    h('SB', 'K♦9♣', 'FOLD', `Mas K9o não: offsuit só de KTo pra cima.`),
+    h('SB', 'K♦6♣', 'FOLD', `Mas K6o não: os reis offsuit mais fraquinhos ficam de fora até da SB.`),
   ],
 
   // ── Mundo 7 (Revisão) ──────────────────────────────────────
