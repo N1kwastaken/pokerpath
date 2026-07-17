@@ -19,7 +19,7 @@ export function LogoLoader({ label = 'Carregando...', inline = false }: { label?
           <circle cx="50" cy="50" r="44" fill="none" stroke="url(#logoloader)" strokeWidth="6" strokeLinecap="round" strokeDasharray="80 210" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-brand shadow-pop animate-logo-glow">
+          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-pop animate-logo-glow">
             <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
           </div>
         </div>

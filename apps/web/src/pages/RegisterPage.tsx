@@ -74,7 +74,7 @@ export function RegisterPage() {
       <Link to="/welcome?replay=1" className="mb-6 self-start text-sm font-medium text-subtle">← Voltar</Link>
 
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-brand shadow-pop"><img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" /></div>
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-primary shadow-pop"><img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" /></div>
         <h1 className="mt-5 text-3xl font-bold text-title">{setup?.name ? 'Falta pouco, ' + setup.name + '!' : 'Crie sua conta'}</h1>
         <p className="mt-1 text-subtle">{setup ? 'Crie a conta para salvar seu progresso.' : 'Grátis para começar. Leva 10 segundos.'}</p>
       </div>

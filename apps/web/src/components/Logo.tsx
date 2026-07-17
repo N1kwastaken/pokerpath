@@ -29,9 +29,10 @@ export function Logo({
 
   return (
     <div className="flex items-center gap-3">
-      {/* Tile verde chapado com a marca branca (espada + seta). */}
+      {/* Tile chapado com a marca branca (espada + seta). Segue a cor do app
+          (bg-primary/accent) — muda junto quando o usuário troca a cor. */}
       <div
-        className={`flex ${spade} items-center justify-center overflow-hidden rounded-2xl bg-brand ${
+        className={`flex ${spade} items-center justify-center overflow-hidden rounded-2xl bg-primary ${
           animated ? 'animate-logo-glow' : ''
         }`}
         aria-hidden
