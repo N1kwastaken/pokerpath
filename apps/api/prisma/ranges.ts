@@ -181,10 +181,30 @@ const RFI_DEFS: RangeDef[] = [
     position: 'UTG', scenario: 'RFI', label: 'UTG · Open Raise',
     raise: ['22+', 'ATs+', 'A5s', 'A4s', 'A3s', 'A2s', 'KTs+', 'QTs+', 'JTs', 'T9s', '98s', '87s', '76s', 'AQo+', 'KQo'],
   },
-  { position: 'MP', scenario: 'RFI', label: 'MP · Open Raise', raise: ['99+', 'AJs+', 'KQs', 'QJs', 'AQo+'] },
-  { position: 'CO', scenario: 'RFI', label: 'CO · Open Raise', raise: ['77+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo'] },
-  { position: 'BTN', scenario: 'RFI', label: 'BTN · Open Raise', raise: ['22+', 'A2s+', 'K9s+', 'Q9s+', 'J9s+', 'T9s', '98s', '87s', '76s', '65s', 'A8o+', 'KTo+', 'QJo'] },
-  { position: 'SB', scenario: 'RFI', label: 'SB · Open Raise', raise: ['22+', 'A2s+', 'K8s+', 'Q9s+', 'J9s+', 'T8s+', '98s', '87s', '76s', '65s', '54s', 'A7o+', 'KTo+', 'QJo'] },
+  // Um jogador a menos atrás que o UTG: os ases do meio (A9s-A6s) já entram, e
+  // as broadway offsuit descem um degrau.
+  {
+    position: 'MP', scenario: 'RFI', label: 'MP · Open Raise',
+    raise: ['22+', 'A2s+', 'K9s+', 'Q9s+', 'J9s+', 'T8s+', '98s', '87s', '76s', '65s', 'ATo+', 'KJo+', 'QJo'],
+  },
+  // Só três jogadores atrás: entram os reis médios, os conectores baixos e as
+  // broadway offsuit até JTo.
+  {
+    position: 'CO', scenario: 'RFI', label: 'CO · Open Raise',
+    raise: ['22+', 'A2s+', 'K7s+', 'Q8s+', 'J8s+', 'T8s+', '97s+', '86s+', '76s', '65s', '54s', 'A9o+', 'KTo+', 'QTo+', 'JTo'],
+  },
+  // Última cadeira antes dos blinds e sempre em posição depois do flop: abre
+  // quase metade das mãos, atacando os blinds.
+  {
+    position: 'BTN', scenario: 'RFI', label: 'BTN · Open Raise',
+    raise: ['22+', 'A2s+', 'K2s+', 'Q5s+', 'J7s+', 'T6s+', '96s+', '85s+', '74s+', '63s+', '53s+', '43s', 'A2o+', 'K7o+', 'Q9o+', 'J9o+', 'T8o+', '98o'],
+  },
+  // Só o BB atrás, mas a SB joga o pote inteiro fora de posição — daí abrir
+  // (sem limpar) um pouco mais apertado que o BTN.
+  {
+    position: 'SB', scenario: 'RFI', label: 'SB · Open Raise',
+    raise: ['22+', 'A2s+', 'K2s+', 'Q4s+', 'J6s+', 'T6s+', '95s+', '85s+', '74s+', '64s+', '53s+', 'A2o+', 'K7o+', 'Q9o+', 'J9o+', 'T9o'],
+  },
 ];
 
 /**

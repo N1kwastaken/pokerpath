@@ -175,23 +175,23 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`O range de MP, comparado ao de UTG, é…`, ['Mais apertado', 'Mais largo'], 1, `Mais largo.`),
   ],
   'Range de MP': [
-    t(`No MP entram AJs, QJs e 99 (veja o gráfico).`),
-    h('MP', 'Q♠J♠', 'RAISE', `QJs já abre de MP.`),
+    t(`Um jogador a menos atrás e o range já abre: no MP entram os ases do meio (A9s, A8s…), K9s, Q9s, J9s e as broadway sem naipe como KJo. Umas 20 mãos em cada 100 (veja o gráfico).`),
+    h('MP', 'A♠9♠', 'RAISE', `A9s abre de MP — de UTG ficava de fora.`),
   ],
   'CO explicado': [
     t(`CO fica antes do botão: posição boa, range largo.`),
     quiz(`Melhor posição significa…`, ['Range aperta', 'Range abre (mais mãos)'], 1, `Mais mãos jogáveis.`),
   ],
   'Range de CO': [
-    t(`No CO entram ATs, KJs, JTs, AJo e KQo (veja o gráfico).`),
-    h('CO', 'A♠J♥', 'RAISE', `AJo já abre de CO (era fold em UTG/MP).`),
+    t(`Com só três atrás, o CO abre umas 26 mãos em cada 100: entram os reis médios (K7s+), Q8s, J8s, conectores até 54s e as broadway sem naipe até JTo (veja o gráfico).`),
+    h('CO', 'A♠9♦', 'RAISE', `A9o abre de CO — era fold em UTG e MP.`),
   ],
   'BTN explicado': [
     t(`BTN é a melhor cadeira: age por último depois do flop. Range bem largo.`),
-    h('BTN', '7♠6♠', 'RAISE', `Até conectores como 76s abrem no botão.`),
+    h('BTN', '4♠3♠', 'RAISE', `Até 43s abre no botão: em posição, dá pra jogar mão pequena.`),
   ],
   'Range de BTN': [
-    t(`No botão entram todos os pares, Ax suited e muitos conectores (veja o gráfico).`),
+    t(`O botão abre quase metade das mãos — qualquer ás, qualquer rei do mesmo naipe e muitos conectores. Só os blinds restam para pagar (veja o gráfico).`),
     h('BTN', '2♣2♥', 'RAISE', `Até 22 abre no botão.`),
   ],
   // ── Mundo 6 (SB) ───────────────────────────────────────────
