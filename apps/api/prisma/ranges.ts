@@ -238,27 +238,33 @@ const VS_DEFS: RangeDef[] = [
       'AJo', 'ATo', 'A9o', 'A8o', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
     ],
   },
-  // SB vs CO — fora de posição: 3-bet ou fold, com um call mínimo (set-mine).
+  // SB vs CO — fora de posição: 3-bet-ou-fold com um call de pares médios
+  // (set-mine). Sem posição, pagar largo é caro; blefa-se de 3-bet com os Ax
+  // suited de baixo (blocker).
   {
     position: 'SB', scenario: 'VS_CO', label: 'SB vs open de CO · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AQs+', 'AKo', 'A5s', 'A4s'],
-    call: ['88', '77', '66', '55'],
+    raise: ['TT+', 'AQs+', 'AKo', 'AJs', 'KQs', 'A5s', 'A4s', 'A3s', 'A2s'],
+    call: ['99', '88', '77', '66', '55', '44', 'ATs', 'KJs', 'KTs', 'QJs', 'JTs', 'T9s'],
   },
-  // SB vs BTN — BTN abre muito largo; SB responde 3-bet-ou-fold com call OOP curto.
+  // SB vs BTN — BTN abre quase metade; SB responde 3-bet-ou-fold, com call de
+  // pares e suited fortes.
   {
     position: 'SB', scenario: 'VS_BTN', label: 'SB vs open do BTN · 3-Bet / Call / Fold',
-    raise: ['77+', 'ATs+', 'KQs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s'],
-    call: ['66', '55', '44', 'A9s', 'A8s', 'A7s', 'A6s', 'KJs', 'KTs', 'QJs', 'JTs', 'T9s', 'ATo', 'KJo'],
+    raise: ['66+', 'ATs+', 'KTs+', 'QTs+', 'JTs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s', 'A2s'],
+    call: ['55', '44', '33', '22', 'A9s', 'A8s', 'A7s', 'A6s', 'K9s', 'Q9s', 'J9s', 'T9s', '98s', 'ATo', 'KJo'],
   },
-  // BB fecha a ação com desconto — defende largo. Contra opens mais cedo (range
-  // mais forte do vilão) defende mais apertado e blefa menos no 3-bet.
+  // BB fecha a ação com desconto — defende largo, e mais largo quanto mais tarde
+  // (mais fraco) o open. 3-bet enxuto de valor + blefes de blocker; o resto é
+  // call, aproveitando o preço.
   {
     position: 'BB', scenario: 'VS_UTG', label: 'BB vs open de UTG · Defesa',
-    raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'A5s'],
+    raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'A5s', 'A4s'],
     call: [
       'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'AJs', 'ATs', 'A9s', 'KQs', 'KJs', 'KTs', 'QJs', 'QTs', 'JTs', 'T9s', '98s', '87s', '76s', '65s',
-      'AQo', 'AJo', 'KQo',
+      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A3s', 'A2s',
+      'KQs', 'KJs', 'KTs', 'K9s', 'K8s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s',
+      '98s', '97s', '87s', '76s', '65s', '54s',
+      'AQo', 'AJo', 'ATo', 'A9o', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
     ],
   },
   {
@@ -266,8 +272,10 @@ const VS_DEFS: RangeDef[] = [
     raise: ['QQ+', 'AKs', 'AKo', 'AQs', 'AJs', 'A5s', 'A4s'],
     call: [
       'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'ATs', 'A9s', 'A8s', 'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', '98s', '87s', '76s', '65s', '54s',
-      'AQo', 'AJo', 'ATo', 'KQo', 'KJo', 'QJo',
+      'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A3s', 'A2s',
+      'KQs', 'KJs', 'KTs', 'K9s', 'K8s', 'K7s', 'QJs', 'QTs', 'Q9s', 'Q8s', 'JTs', 'J9s', 'J8s', 'T9s', 'T8s', 'T7s',
+      '98s', '97s', '87s', '86s', '76s', '75s', '65s', '54s',
+      'AQo', 'AJo', 'ATo', 'A9o', 'A8o', 'KQo', 'KJo', 'KTo', 'K9o', 'QJo', 'QTo', 'Q9o', 'JTo', 'J9o', 'T9o',
     ],
   },
   {
@@ -275,17 +283,23 @@ const VS_DEFS: RangeDef[] = [
     raise: ['JJ+', 'AQs+', 'AKo', 'KQs', 'A5s', 'A4s', 'A3s'],
     call: [
       'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s', '98s', '87s', '76s', '65s', '54s',
-      'AJo', 'ATo', 'KQo', 'KJo', 'QJo', 'JTo',
+      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A2s',
+      'KJs', 'KTs', 'K9s', 'K8s', 'K7s', 'K6s', 'K5s', 'QJs', 'QTs', 'Q9s', 'Q8s', 'Q7s', 'JTs', 'J9s', 'J8s', 'J7s', 'T9s', 'T8s', 'T7s',
+      '98s', '97s', '96s', '87s', '86s', '76s', '75s', '65s', '64s', '54s', '53s',
+      'AJo', 'ATo', 'A9o', 'A8o', 'A7o', 'A5o', 'A4o', 'A3o', 'A2o', 'KQo', 'KJo', 'KTo', 'K9o', 'QJo', 'QTo', 'Q9o', 'JTo', 'J9o', 'T9o', '98o',
     ],
   },
   {
     position: 'BB', scenario: 'VS_SB', label: 'BB vs open da SB · Defesa',
-    raise: ['99+', 'ATs+', 'KJs+', 'QJs', 'JTs', 'AJo+', 'KQo', 'A5s', 'A4s', 'A3s', 'A2s', 'K9s'],
+    raise: ['TT+', 'AQs+', 'AKo', 'A5s', 'A4s', 'A3s', 'A2s', 'K9s', 'Q9s', 'J9s', 'T8s', '97s', '86s', '75s', '64s', '53s'],
     call: [
-      '88', '77', '66', '55', '44', '33', '22',
-      'A9s', 'A8s', 'A7s', 'A6s', 'KTs', 'K8s', 'QTs', 'Q9s', 'Q8s', 'J9s', 'J8s', 'T9s', 'T8s', '98s', '97s', '87s', '76s', '65s', '54s',
-      'A9o', 'A8o', 'ATo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
+      '99', '88', '77', '66', '55', '44', '33', '22',
+      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s',
+      'KQs', 'KJs', 'KTs', 'K8s', 'K7s', 'K6s', 'K5s', 'K4s', 'K3s', 'K2s',
+      'QJs', 'QTs', 'Q8s', 'Q7s', 'Q6s', 'Q5s', 'Q4s', 'JTs', 'J8s', 'J7s', 'J6s', 'T9s', 'T7s', 'T6s',
+      '98s', '96s', '95s', '87s', '85s', '84s', '76s', '74s', '65s', '63s', '54s', '43s',
+      'AQo', 'AJo', 'ATo', 'A9o', 'A8o', 'A7o', 'A6o', 'A5o', 'A4o', 'A3o', 'A2o',
+      'KQo', 'KJo', 'KTo', 'K9o', 'K8o', 'K7o', 'QJo', 'QTo', 'Q9o', 'Q8o', 'JTo', 'J9o', 'J8o', 'T9o', 'T8o', '98o', '97o', '87o', '76o',
     ],
   },
 ];
