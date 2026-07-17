@@ -24,6 +24,11 @@ services:
         value: production
       - key: DATABASE_URL # cole aqui a connection string do Neon (com ?sslmode=require)
         sync: false
+      # URL pública: usada no CORS e, principalmente, para montar o LINK dos
+      # e-mails. Explícita de propósito — o fallback era RENDER_EXTERNAL_URL e,
+      # se ele não estiver presente, o link do reset apontaria para localhost.
+      - key: WEB_ORIGIN
+        value: https://pokerpath.onrender.com
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

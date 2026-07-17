@@ -19,10 +19,14 @@ export async function sendMail(msg: MailMessage): Promise<void> {
   const driver = process.env.MAIL_DRIVER ?? 'console';
   if (driver === 'resend') return sendViaResend(msg);
   // Driver console: loga o conteúdo para copiar o link em dev.
+  // Os href são extraídos ANTES de remover as tags — a limpeza engolia
+  // justamente a URL, que é o motivo de existir deste driver.
+  const links = [...msg.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
   console.log('📧 [mail:console] ────────────────────────────────');
   console.log(`  Para: ${msg.to}`);
   console.log(`  Assunto: ${msg.subject}`);
   console.log(`  ${msg.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()}`);
+  for (const l of links) console.log(`  🔗 ${l}`);
   console.log('──────────────────────────────────────────────────');
 }
 
@@ -110,7 +114,11 @@ export function welcomeMail(name: string): Omit<MailMessage, 'to'> {
                <li style="margin-bottom:6px;">Jogue <b>um pouco todo dia</b> — o streak é o que faz a diferença.</li>
                <li style="margin-bottom:6px;">Errar é de graça: cada erro vem com a explicação.</li>
                <li>Toque no <b>📊</b> dentro da fase para ver o gráfico da sua posição.</li>
-             </ul>`,
+             </ul>
+             <p style="margin:0;padding:10px 12px;background:#FBF3DC;border-radius:8px;font-size:13px;color:#6B5A22;">
+               📁 Achou este e-mail no <b>spam</b>? Marque como "não é spam" para não perder
+               o lembrete do seu streak.
+             </p>`,
       cta: { label: 'Jogar a primeira mão', href: env.WEB_ORIGIN },
     }),
   };

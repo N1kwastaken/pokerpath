@@ -47,8 +47,9 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET é obrigatória'),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
-  // No Render, RENDER_EXTERNAL_URL é a URL pública do serviço — como o front
-  // é servido pela própria API (mesma origem), esse default já cobre o CORS.
+  // URL pública: CORS e o LINK dos e-mails (reset de senha, boas-vindas).
+  // No Render, RENDER_EXTERNAL_URL é a URL do serviço; o localhost só vale em
+  // dev — um link de e-mail apontando para localhost em produção é inútil.
   WEB_ORIGIN: z
     .string()
     .default(process.env.RENDER_EXTERNAL_URL ?? 'http://localhost:5173'),
@@ -63,6 +64,17 @@ if (!parsed.success) {
     '\nVerifique se apps/api/.env existe. Crie com: copy apps\\api\\.env.example apps\\api\\.env',
   );
   process.exit(1);
+}
+
+// Rede de segurança: em produção, um WEB_ORIGIN de localhost significa que
+// RENDER_EXTERNAL_URL não veio e ninguém definiu a variável. O app até sobe,
+// mas TODO link de e-mail sairia apontando para a máquina de quem recebeu —
+// falha silenciosa que só aparece quando o usuário clica e nada acontece.
+if (parsed.data.NODE_ENV === 'production' && parsed.data.WEB_ORIGIN.includes('localhost')) {
+  console.warn(
+    '⚠️  WEB_ORIGIN está em localhost em PRODUÇÃO — os links dos e-mails vão quebrar.\n' +
+      '   Defina WEB_ORIGIN com a URL pública (ex.: https://pokerpath.onrender.com).',
+  );
 }
 
 export const env = parsed.data;

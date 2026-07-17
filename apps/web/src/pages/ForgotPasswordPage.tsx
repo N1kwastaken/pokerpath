@@ -44,6 +44,11 @@ export function ForgotPasswordPage() {
           <p className="mt-1 text-sm text-text">
             Se <b>{email}</b> tiver conta, você vai receber um link de recuperação. Ele vale por 30 minutos.
           </p>
+          {/* O aviso de spam é essencial, não decorativo: o e-mail cai lá com
+              frequência, e sem isso a pessoa acha que nada foi enviado. */}
+          <p className="mt-3 rounded-xl bg-gold/10 px-3 py-2 text-sm font-semibold text-gold">
+            📁 Não chegou? Olhe no <b>spam</b> ou em <b>promoções</b> — costuma cair lá.
+          </p>
           <Link to="/login" className="mt-4 inline-block font-bold text-primary">Voltar ao login</Link>
         </div>
       ) : (
