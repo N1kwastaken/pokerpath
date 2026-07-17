@@ -212,30 +212,35 @@ const RFI_DEFS: RangeDef[] = [
  * vs UTG / vs MP-CO / 3-Bet / BB.
  */
 const VS_DEFS: RangeDef[] = [
+  // BTN defende em POSIÇÃO — pode pagar largo (flat) e reservar o 3-bet para
+  // valor + alguns Ax de blocker. Contra opens mais tarde (range mais fraco do
+  // vilão) defende mais largo.
   {
     position: 'BTN', scenario: 'VS_UTG', label: 'BTN vs open de UTG · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AKs', 'AKo'],
-    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs'],
+    raise: ['JJ+', 'AKs', 'AKo', 'A5s', 'A4s'],
+    call: ['TT', '99', '88', '77', '66', 'AQs', 'AJs', 'ATs', 'A9s', 'KQs', 'KJs', 'KTs', 'QJs', 'QTs', 'JTs', 'T9s', '98s', 'AQo', 'AJo', 'KQo'],
   },
   {
     position: 'BTN', scenario: 'VS_MP', label: 'BTN vs open de MP · 3-Bet / Call / Fold',
-    raise: ['JJ+', 'AKs', 'AKo'],
-    call: ['TT', '99', '88', 'AQs', 'AJs', 'KQs', 'JTs', 'AQo'],
+    raise: ['JJ+', 'AKs', 'AKo', 'A5s', 'A4s'],
+    call: ['TT', '99', '88', '77', '66', '55', 'AQs', 'AJs', 'ATs', 'A9s', 'A8s', 'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', '98s', '87s', '76s', 'AQo', 'AJo', 'ATo', 'KQo', 'KJo'],
   },
   {
     position: 'BTN', scenario: 'VS_CO', label: 'BTN vs open de CO · 3-Bet / Call / Fold',
     raise: ['JJ+', 'AQs+', 'AKo', 'A5s', 'A4s', 'A3s', 'A2s'],
-    call: ['TT', '99', '88', '77', '66', 'AJs', 'ATs', 'KQs', 'KJs', 'QJs', 'JTs', 'T9s', '98s', '87s', 'AQo'],
+    call: ['TT', '99', '88', '77', '66', '55', '44', '33', '22', 'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'KQs', 'KJs', 'KTs', 'K9s', 'K8s', 'QJs', 'QTs', 'Q9s', 'Q8s', 'JTs', 'J9s', 'T9s', 'T8s', '98s', '97s', '87s', '86s', '76s', '65s', '54s', 'AQo', 'AJo', 'ATo', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo'],
   },
   {
     position: 'BB', scenario: 'VS_BTN', label: 'BB vs open do BTN · Defesa',
-    raise: ['QQ+', 'AQs+', 'AQo+'],
+    raise: ['TT+', 'AQs+', 'AKo', 'A5s', 'A4s', 'A3s', 'A2s', 'K9s', 'J9s', 'T8s', '97s', '86s', '75s', '64s', '53s'],
     call: [
-      'JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
-      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s',
-      'KQs', 'KJs', 'KTs', 'K9s', 'QJs', 'QTs', 'Q9s', 'JTs', 'J9s', 'T9s', 'T8s',
-      '98s', '87s', '76s', '65s', '54s',
-      'AJo', 'ATo', 'A9o', 'A8o', 'KQo', 'KJo', 'KTo', 'QJo', 'QTo', 'JTo',
+      '99', '88', '77', '66', '55', '44', '33', '22',
+      'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s',
+      'KQs', 'KJs', 'KTs', 'K8s', 'K7s', 'K6s', 'K5s', 'K4s', 'K3s', 'K2s',
+      'QJs', 'QTs', 'Q9s', 'Q8s', 'Q7s', 'Q6s', 'Q5s', 'Q4s', 'JTs', 'J8s', 'J7s', 'J6s', 'T9s', 'T7s', 'T6s', 'T5s',
+      '98s', '96s', '95s', '87s', '85s', '84s', '76s', '74s', '65s', '63s', '54s', '43s',
+      'AQo', 'AJo', 'ATo', 'A9o', 'A8o', 'A7o', 'A6o', 'A5o', 'A4o', 'A3o', 'A2o',
+      'KQo', 'KJo', 'KTo', 'K9o', 'QJo', 'QTo', 'Q9o', 'Q8o', 'JTo', 'J9o', 'J8o', 'T9o', 'T8o', '98o', '97o', '87o', '76o',
     ],
   },
   // SB vs CO — fora de posição: 3-bet-ou-fold com um call de pares médios
