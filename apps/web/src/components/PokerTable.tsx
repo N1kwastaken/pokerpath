@@ -65,8 +65,9 @@ export function PokerTable({ ex, simple = false }: {
   const cards = tokens(ex.heroHand);
 
   return (
-    <div className="relative mx-auto aspect-[6/5] w-full max-w-md">
-      {/* Rail + feltro — racetrack: mais longo e menos "bola" que antes. */}
+    <div className="relative mx-auto aspect-[5/6] w-full max-w-md">
+      {/* Rail + feltro — oval em pé (portrait): num celular alto, encher a
+          vertical faz a mesa parecer bem maior. */}
       <div
         className="absolute inset-1 rounded-[42%]"
         style={{

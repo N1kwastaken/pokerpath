@@ -24,7 +24,7 @@ import { sound } from '../lib/sound.js';
 const ACT: { key: Action; label: string; color: string }[] = [
   { key: 'FOLD', label: 'Fold', color: 'bg-error' },
   { key: 'CALL', label: 'Call', color: 'bg-call' },
-  { key: 'RAISE', label: 'Raise', color: 'bg-primary' },
+  { key: 'RAISE', label: 'Raise', color: 'bg-accent' },
 ];
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
 
@@ -110,7 +110,7 @@ export function GuestStagePage() {
   const wasCorrect = answered && choice === current.correctAction;
   const aggressor = current.villainAction === 'Check';
   const buttons = aggressor
-    ? [{ key: 'CALL' as Action, label: 'Check', color: 'bg-call' }, { key: 'RAISE' as Action, label: 'Bet', color: 'bg-primary' }]
+    ? [{ key: 'CALL' as Action, label: 'Check', color: 'bg-call' }, { key: 'RAISE' as Action, label: 'Bet', color: 'bg-accent' }]
     : ACT;
   const actionLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
 
@@ -167,7 +167,7 @@ export function GuestStagePage() {
         ) : (
           <div className={`grid gap-3 ${buttons.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
             {buttons.map((b) => (
-              <button key={b.key} onClick={() => choose(b.key)} className={`btn3d rounded-2xl ${b.color} py-4 font-bold text-white`}>
+              <button key={b.key} onClick={() => choose(b.key)} className={`btn3d rounded-2xl ${b.color} py-6 text-lg font-black text-white`}>
                 {b.label}
               </button>
             ))}

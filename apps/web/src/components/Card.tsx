@@ -18,7 +18,7 @@ export function Card({ token }: { token: string }) {
 
   return (
     <div
-      className="relative flex h-24 w-16 shrink-0 flex-col justify-between overflow-hidden rounded-lg border border-black/10 bg-white p-1.5 shadow-md sm:h-28 sm:w-20"
+      className="relative flex h-28 w-20 shrink-0 flex-col justify-between overflow-hidden rounded-lg border border-black/10 bg-white p-1.5 shadow-md sm:h-32 sm:w-24"
       style={{ color }}
       aria-label={`${label} de ${suit}`}
     >
