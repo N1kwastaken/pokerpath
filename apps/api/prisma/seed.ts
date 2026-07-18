@@ -1436,6 +1436,25 @@ function addTraps(worlds: WorldSeed[]): void {
 
 addTraps(WORLDS);
 
+/**
+ * Sessões mais longas para o jogo não terminar rápido demais. Os pools são
+ * grandes (~14 exercícios/fase) mas as sessões mostravam só 4-8 — muito do
+ * conteúdo nunca aparecia num playthrough. Aumenta a sessão (teto = pool), o
+ * que também exige mais acertos para passar. M0 (iniciante) fica curto de
+ * propósito; o alongamento é do M1 em diante.
+ */
+function lengthenSessions(worlds: WorldSeed[]): void {
+  for (const w of worlds) {
+    if (w.order < 1) continue; // M0 = primeiros passos, mantém curto
+    for (const s of w.stages) {
+      if (s.exercises.length === 0 || s.minExercises <= 0) continue;
+      s.minExercises = Math.min(s.exercises.length, s.minExercises + 4);
+    }
+  }
+}
+
+lengthenSessions(WORLDS);
+
 const ACHIEVEMENTS = [
   { code: 'FIRST_HAND', name: 'Primeira Mão', description: 'Completar o primeiro exercício', icon: '🃏' },
   { code: 'HOT_STREAK', name: 'Em Chamas', description: 'Acertar 5 exercícios seguidos', icon: '🚀' },
