@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { RANGE_DEFS, buildCells, freqForExercise } from './ranges.js';
+import { RANGE_DEFS, buildCells, freqForExercise, labelOfHand } from './ranges.js';
 
 /**
  * Seed inicial (PRD 5, 6, 7, 9.4, 9.5).
@@ -1382,6 +1382,59 @@ export const WORLDS: WorldSeed[] = [
     ],
   },
 ];
+
+/**
+ * PEGADINHAS — mãos-lixo óbvias (offsuit baixas e desconexas) que devem ser
+ * FOLD em qualquer posição/cenário preflop. Espalhadas 2 por fase para pegar
+ * quem responde no piloto automático (ex.: 36o no CO). São FOLD universal:
+ * conferido contra o RFI e as defesas mais largas (BB vs SB).
+ */
+const TRAP_HANDS = [
+  '7♦2♣', '8♦2♣', '9♦2♣', 'T♦2♣', 'J♦2♣', 'Q♦2♣', '6♦2♣', '5♦2♣', '4♦2♣', '3♦2♣',
+  '6♦3♣', '7♦3♣', '8♦3♣', '9♦3♣', 'T♦3♣', 'J♦3♣', 'Q♦3♣', '7♦4♣', '8♦4♣', '9♦4♣', 'Q♦4♣', '9♦5♣',
+];
+
+/**
+ * Injeta 2 pegadinhas em cada fase de PRÁTICA preflop com pelo menos 5
+ * exercícios normais (o "mínimo de 5"). Pula aula, postflop (tem board) e spot
+ * de agressor (villainAction 'Check' ⇒ Bet/Check, não existe fold). A pegadinha
+ * herda o contexto (posição/vilão/categoria) do 1º exercício da fase.
+ */
+function addTraps(worlds: WorldSeed[]): void {
+  let ti = 0;
+  for (const w of worlds) {
+    for (const s of w.stages) {
+      const exs = s.exercises;
+      if (exs.length < 5) continue; // mantém o mínimo de 5 normais
+      if (exs.some((e) => e.board || e.villainAction === 'Check')) continue; // postflop/agressor
+      const base = exs[0];
+      const used = new Set(exs.map((e) => e.heroHand));
+      let added = 0;
+      for (let k = 0; k < TRAP_HANDS.length && added < 2; k++) {
+        const hand = TRAP_HANDS[(ti + k) % TRAP_HANDS.length];
+        if (used.has(hand)) continue;
+        used.add(hand);
+        exs.push({
+          heroPosition: base.heroPosition,
+          villainPosition: base.villainPosition,
+          callerPosition: base.callerPosition,
+          stackBb: base.stackBb,
+          potSize: base.potSize,
+          villainAction: base.villainAction,
+          heroHand: hand,
+          correctAction: 'FOLD',
+          difficulty: 'EASY',
+          category: base.category,
+          explanation: `${labelOfHand(hand)}: lixo — fold fácil. Não abra no piloto automático.`,
+        });
+        added++;
+      }
+      ti += 2;
+    }
+  }
+}
+
+addTraps(WORLDS);
 
 const ACHIEVEMENTS = [
   { code: 'FIRST_HAND', name: 'Primeira Mão', description: 'Completar o primeiro exercício', icon: '🃏' },
