@@ -18,17 +18,13 @@ export function Card({ token }: { token: string }) {
 
   return (
     <div
-      className="relative flex h-28 w-20 shrink-0 flex-col justify-between overflow-hidden rounded-lg border border-black/10 bg-white p-1.5 shadow-md sm:h-32 sm:w-24"
+      className="flex h-28 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-black/5 bg-white shadow-[0_4px_10px_-2px_rgba(0,0,0,0.45)] sm:h-32 sm:w-24"
       style={{ color }}
       aria-label={`${label} de ${suit}`}
     >
-      <span className="text-base font-black leading-none sm:text-lg">
-        {label}<span className="block text-xs leading-none sm:text-sm">{suit}</span>
-      </span>
-      <span className="self-center text-2xl leading-none sm:text-3xl">{suit}</span>
-      <span className="rotate-180 self-end text-base font-black leading-none sm:text-lg">
-        {label}<span className="block text-xs leading-none sm:text-sm">{suit}</span>
-      </span>
+      {/* Estilo minimalista: rank grande + naipe embaixo, centralizado. */}
+      <span className="text-3xl font-black leading-none tracking-tight sm:text-4xl">{label}</span>
+      <span className="text-xl leading-none sm:text-2xl">{suit}</span>
     </div>
   );
 }

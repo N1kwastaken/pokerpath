@@ -75,6 +75,12 @@ export function PokerTable({ ex, simple = false }: {
           boxShadow: 'inset 0 0 0 7px rgba(0,0,0,0.5), inset 0 0 0 9px rgba(255,255,255,0.06), inset 0 0 55px rgba(0,0,0,0.55), 0 10px 30px -12px rgba(0,0,0,0.7)',
         }}
       />
+      {/* Anel de brilho na cor do app (inspirado no neon do trainer, mas nosso):
+          borda acesa no accent + glow que vaza pra fora. */}
+      <div
+        className="pointer-events-none absolute inset-1 rounded-[42%]"
+        style={{ boxShadow: '0 0 26px 2px rgb(var(--primary) / 0.55), inset 0 0 0 2px rgb(var(--primary) / 0.95)' }}
+      />
       <div className="absolute inset-7 rounded-[42%] border border-white/10" />
 
       {/* Pot */}
