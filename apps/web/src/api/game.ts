@@ -1,8 +1,8 @@
 import type {
   AnswerInput, AnswerResult, OnboardingInput, PublicUser,
   StagePlay, WorldDetail, WorldSummary, StatsResult, RangeGrid, LessonResult,
-  AchievementView, MissionView, MissionClaimResult, ReviewItem, EnergyState,
-  FriendsResponse, FriendView,
+  AchievementView, MissionView, MissionClaimResult, ReviewItem, ReviewAnswerResult,
+  PublicExercise, EnergyState, FriendsResponse, FriendView,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
 
@@ -24,6 +24,8 @@ export const gameApi = {
   stats: () => apiRequest<StatsResult>('/stats'),
   energy: () => apiRequest<EnergyState>('/energy'),
   review: () => apiRequest<{ review: ReviewItem[] }>('/review').then((r) => r.review),
+  reviewPlay: () => apiRequest<{ exercises: PublicExercise[] }>('/review/play').then((r) => r.exercises),
+  reviewAnswer: (input: AnswerInput) => apiRequest<ReviewAnswerResult>('/review/answer', { method: 'POST', body: input }),
   skipBasics: () => apiRequest<{ ok: true; count: number }>('/skip-basics', { method: 'POST' }),
   placement: (level: number) => apiRequest<{ ok: true; completed: number }>('/placement', { method: 'POST', body: { level } }),
   range: (f: RangeFilters) =>

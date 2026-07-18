@@ -228,6 +228,14 @@ export interface AnswerResult {
   frequencies: Frequencies | null;
 }
 
+/** Resultado de responder um erro no modo REVISÃO (treino, sem XP/progresso). */
+export interface ReviewAnswerResult {
+  correct: boolean;
+  correctAction: Action;
+  explanation: string | null;
+  frequencies: Frequencies | null;
+}
+
 /** Resultado ao concluir uma AULA (fase sem exercícios). */
 export interface LessonResult {
   xpGained: number;

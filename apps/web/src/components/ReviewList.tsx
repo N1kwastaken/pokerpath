@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import type { ReviewItem, Action } from '@pokerpath/shared';
 import { useReview } from '../hooks/useGame.js';
 import { LogoLoader } from './LogoLoader.js';
 import { Hand } from './Card.js';
 import { GtoBars } from './GtoBars.js';
+import { ReviewPlay } from './ReviewPlay.js';
 
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
 
@@ -28,6 +30,8 @@ function seatLabel(item: ReviewItem): string {
 /** Lista de mãos que o usuário ERROU, com gabarito e GTO (estudo). */
 export function ReviewList() {
   const { data, isLoading } = useReview();
+  const [playing, setPlaying] = useState(false);
+
   if (isLoading) return <div className="card"><LogoLoader inline /></div>;
   if (!data || data.length === 0) {
     return (
@@ -40,7 +44,12 @@ export function ReviewList() {
   }
   return (
     <div className="space-y-4">
-      <p className="text-xs text-subtle">Mãos que você errou — estude o porquê e fixe o range.</p>
+      {playing && <ReviewPlay onClose={() => setPlaying(false)} />}
+      {/* Rejogar: acertar aqui limpa o erro da lista. */}
+      <button onClick={() => setPlaying(true)} className="btn-primary flex w-full items-center justify-center gap-2 text-base">
+        🔁 Rejogar meus erros <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-black">{data.length}</span>
+      </button>
+      <p className="text-xs text-subtle">Ou estude abaixo — o porquê de cada erro e o range certo.</p>
       {data.map((it) => <ReviewCard key={it.id} item={it} />)}
     </div>
   );

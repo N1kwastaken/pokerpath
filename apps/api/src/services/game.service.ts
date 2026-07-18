@@ -28,6 +28,7 @@ import {
   type GuestWorld,
   type GuestStagePlay,
   type ReviewItem,
+  type ReviewAnswerResult,
   type WorldDetail,
   type WorldSummary,
 } from '@pokerpath/shared';
@@ -906,40 +907,87 @@ export async function getStats(userId: string): Promise<StatsResult> {
   };
 }
 
-// ─── Revisão: mãos que o usuário ERROU ─────────────────────────
-export async function getReview(userId: string): Promise<ReviewItem[]> {
-  const wrong = await prisma.userAnswer.findMany({
-    where: { userId, isCorrect: false },
+// ─── Revisão: mãos que o usuário ERROU e ainda não corrigiu ────
+// Varre as respostas recentes e fica só com a MAIS recente de cada exercício:
+// se a última foi um acerto, o exercício SAIU da revisão (o usuário acertou de
+// novo, na trilha ou no modo rejogar). Antes a lista só crescia.
+async function pendingMistakes(userId: string) {
+  const recent = await prisma.userAnswer.findMany({
+    where: { userId },
     orderBy: { createdAt: 'desc' },
     include: { exercise: true },
-    take: 200,
+    take: 600,
   });
   const seen = new Set<string>();
-  const out: ReviewItem[] = [];
-  for (const a of wrong) {
+  const out: { ex: (typeof recent)[number]['exercise']; yourAction: string }[] = [];
+  for (const a of recent) {
     if (seen.has(a.exerciseId)) continue;
     seen.add(a.exerciseId);
-    const ex = a.exercise;
-    const correct = ex.correctAction as Action;
-    out.push({
-      id: ex.id,
-      heroPosition: ex.heroPosition as Position,
-      villainPosition: (ex.villainPosition as Position | null) ?? null,
-      callerPosition: (ex.callerPosition as Position | null) ?? null,
-      stackBb: ex.stackBb,
-      potSize: ex.potSize,
-      heroHand: ex.heroHand,
-      board: ex.board,
-      villainAction: ex.villainAction,
-      correctAction: correct,
-      yourAction: a.selectedAction as Action,
-      explanation: ex.explanation,
-      frequencies: parseFrequencies(ex.frequencies),
-      category: ex.category as Category,
-    });
+    if (a.isCorrect) continue; // acertou por último → não é mais um erro
+    out.push({ ex: a.exercise, yourAction: a.selectedAction });
     if (out.length >= 40) break;
   }
   return out;
+}
+
+export async function getReview(userId: string): Promise<ReviewItem[]> {
+  const items = await pendingMistakes(userId);
+  return items.map(({ ex, yourAction }) => ({
+    id: ex.id,
+    heroPosition: ex.heroPosition as Position,
+    villainPosition: (ex.villainPosition as Position | null) ?? null,
+    callerPosition: (ex.callerPosition as Position | null) ?? null,
+    stackBb: ex.stackBb,
+    potSize: ex.potSize,
+    heroHand: ex.heroHand,
+    board: ex.board,
+    villainAction: ex.villainAction,
+    correctAction: ex.correctAction as Action,
+    yourAction: yourAction as Action,
+    explanation: ex.explanation,
+    frequencies: parseFrequencies(ex.frequencies),
+    category: ex.category as Category,
+  }));
+}
+
+/** Os mesmos erros, mas SEM gabarito — para REJOGAR (validação no servidor). */
+export async function getReviewPlay(userId: string): Promise<PublicExercise[]> {
+  const items = await pendingMistakes(userId);
+  return items.map(({ ex }) => ({
+    id: ex.id,
+    order: 0,
+    heroPosition: ex.heroPosition as Position,
+    villainPosition: (ex.villainPosition as Position | null) ?? null,
+    callerPosition: (ex.callerPosition as Position | null) ?? null,
+    stackBb: ex.stackBb,
+    potSize: ex.potSize,
+    heroHand: ex.heroHand,
+    board: ex.board,
+    villainAction: ex.villainAction,
+    difficulty: ex.difficulty as Difficulty,
+    category: ex.category as Category,
+    options: ACTIONS,
+  }));
+}
+
+/**
+ * Responde um exercício NO MODO REVISÃO. Registra a resposta (é o que faz o
+ * erro sumir da revisão quando o usuário acerta) mas NÃO dá XP, NÃO mexe no
+ * progresso de fase e NÃO completa nada — é treino puro dos erros.
+ * (Nota: como grava em user_answers, conta para stats/streak; num mundo pós-
+ * launch com energia limitada, valeria não descontar energia aqui.)
+ */
+export async function answerReview(
+  userId: string,
+  exerciseId: string,
+  selectedAction: Action,
+): Promise<ReviewAnswerResult> {
+  const ex = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+  if (!ex) throw new NotFoundError('Exercício não encontrado', 'EXERCISE_NOT_FOUND');
+  const correctAction = ex.correctAction as Action;
+  const correct = selectedAction === correctAction;
+  await prisma.userAnswer.create({ data: { userId, exerciseId, selectedAction, isCorrect: correct } });
+  return { correct, correctAction, explanation: ex.explanation, frequencies: parseFrequencies(ex.frequencies) };
 }
 
 // ─── Range (grid 13x13) ────────────────────────────────────────

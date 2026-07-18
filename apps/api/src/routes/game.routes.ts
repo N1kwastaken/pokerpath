@@ -12,6 +12,8 @@ import {
   getEnergy,
   getTrail,
   getReview,
+  getReviewPlay,
+  answerReview,
   skipBasics,
   graduateGuest,
   placeAtLevel,
@@ -122,6 +124,19 @@ export async function gameRoutes(app: FastifyInstance) {
 
   app.get('/review', async (request) => {
     return { review: await getReview(request.user.sub) };
+  });
+
+  // Rejogar os erros: exercícios sem gabarito + validação no servidor. Acertar
+  // aqui faz o erro sair da revisão (não dá XP nem mexe no progresso da fase).
+  app.get('/review/play', async (request) => {
+    return { exercises: await getReviewPlay(request.user.sub) };
+  });
+  app.post('/review/answer', async (request) => {
+    const parsed = answerSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new BadRequestError(parsed.error.errors[0]?.message ?? 'Dados inválidos', 'VALIDATION_ERROR');
+    }
+    return answerReview(request.user.sub, parsed.data.exerciseId, parsed.data.selectedAction);
   });
 
   app.post('/skip-basics', async (request) => {
