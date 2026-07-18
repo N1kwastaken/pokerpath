@@ -134,7 +134,7 @@ export function GuestStagePage() {
   return (
     <div className="fixed inset-0 z-30 bg-bg">
       {answered && wasCorrect && <Confetti key={idx} count={20} />}
-      <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3">
+      <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-3">
         <div className="flex items-center gap-3">
           <button onClick={exit} className="text-subtle" aria-label="Sair"><IconX size={20} /></button>
           <div className="flex-1"><ProgressBar value={answers.length} max={sessionLen} /></div>

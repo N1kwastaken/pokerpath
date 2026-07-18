@@ -65,7 +65,7 @@ export function PokerTable({ ex, simple = false }: {
   const cards = tokens(ex.heroHand);
 
   return (
-    <div className="relative mx-auto aspect-[5/6] w-full max-w-md">
+    <div className="relative mx-auto aspect-[3/4] w-full max-w-md">
       {/* Rail + feltro — oval em pé (portrait): num celular alto, encher a
           vertical faz a mesa parecer bem maior. */}
       <div
@@ -79,11 +79,21 @@ export function PokerTable({ ex, simple = false }: {
 
       {/* Pot */}
       <div className="absolute left-1/2 top-[40%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-        {ex.board && (
-          <div className="mb-2 flex gap-1">
-            {tokens(ex.board).map((t, i) => <div key={i} className="scale-[0.72]"><Card token={t} /></div>)}
-          </div>
-        )}
+        {ex.board && (() => {
+          // Turn/River: 3 cartas em cima e o resto embaixo (com as cartas
+          // maiores, 5 em linha estouraria a mesa). Flop segue em 1 linha.
+          const bc = tokens(ex.board);
+          const rows = bc.length <= 3 ? [bc] : [bc.slice(0, 3), bc.slice(3)];
+          return (
+            <div className="mb-2 flex flex-col items-center gap-1">
+              {rows.map((row, r) => (
+                <div key={r} className="flex gap-1">
+                  {row.map((t, i) => <div key={i} className="scale-[0.72]"><Card token={t} /></div>)}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
         <div className="flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1">
           <span className="inline-block h-2.5 w-2.5 rounded-full bg-call ring-2 ring-white/70" />
           <span className="text-[11px] font-bold uppercase tracking-wide text-white/90">Pot {ex.potSize} BB</span>

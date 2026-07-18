@@ -327,20 +327,22 @@ export function StagePlayPage() {
       {/* Confete cresce com o combo: acertar em sequência explode mais. */}
       {fb && result?.correct && <Confetti key={idx} count={Math.min(18 + combo * 8, 72)} />}
       <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3 lg:max-w-5xl lg:flex-row lg:items-stretch lg:gap-6 lg:px-8 lg:py-6">
-      <div className="flex min-h-0 flex-1 flex-col">
+      {/* overflow-y-auto: com a mesa grande, o estado de feedback (mesa + card
+          de explicação) rola em vez de cortar o botão Continuar. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar">
 
-      <div className="flex items-center gap-3">
-        <button onClick={backToWorld} className="text-subtle" aria-label="Sair"><IconX size={20} /></button>
+      {/* Header do exercício — chips bold sem outline, no estilo da home. */}
+      <div className="flex items-center gap-2">
+        <button onClick={backToWorld} className="shrink-0 text-subtle" aria-label="Sair"><IconX size={24} /></button>
         <div className="flex-1"><ProgressBar value={answers.length} max={sessionLen} /></div>
-        <span className="text-xs font-bold tabular-nums text-subtle">{answers.length}/{sessionLen}</span>
         {showCheat && (
           <button onClick={() => { setSheetOpen(true); setSheetPrev(false); }}
-            className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-subtle" aria-label="Ver range">
+            className="shrink-0 rounded-2xl bg-card2 px-2.5 py-1.5 text-base" aria-label="Ver range">
             📊
           </button>
         )}
-        {energy && <span className="flex items-center gap-0.5 rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-call"><IconBolt size={13} />{energy.infinite ? '∞' : energy.remaining}</span>}
-        {user && <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-title">{user.currentStreak}🔥</span>}
+        {energy && <span className="flex shrink-0 items-center gap-1 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-call"><IconBolt size={18} />{energy.infinite ? '∞' : energy.remaining}</span>}
+        {user && <span className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-title">{user.currentStreak}<span className="text-sm">🔥</span></span>}
       </div>
 
       <div className="flex flex-1 flex-col justify-center">
