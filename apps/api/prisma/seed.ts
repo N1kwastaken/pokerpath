@@ -599,7 +599,7 @@ export const WORLDS: WorldSeed[] = [
         minExercises: 5, passRate: 0.7, xpReward: 75,
         exercises: [
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'K♠Q♦7♣3♥', heroHand: '5♥4♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'TURN', explanation: 'Ar no turn: fold.' },
-          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'A♠T♦6♣9♥', heroHand: '8♦7♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Projeto que nao veio: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'A♠T♦6♣2♥', heroHand: '8♦7♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Gutshot que não veio: só 8-high, fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'Q♣J♦3♠5♦', heroHand: '6♥5♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Par de baixo fraco: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'K♦8♣4♠2♥', heroHand: 'A♥5♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'TURN', explanation: 'Ace-high: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 12, board: 'J♠9♥2♦Q♣', heroHand: '4♣4♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'TURN', explanation: 'Underpair: fold.' },
@@ -634,7 +634,7 @@ export const WORLDS: WorldSeed[] = [
         title: 'River: quando desistir', concept: 'River blefe', description: 'Projeto que errou: fold.',
         minExercises: 5, passRate: 0.7, xpReward: 80,
         exercises: [
-          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♠Q♦7♣2♥9♦', heroHand: 'J♥T♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Sequencia nao veio: fold.' },
+          { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'K♠Q♦7♣2♥4♦', heroHand: 'J♥T♦', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Broadway não fechou (faltou 9 ou Á): J-high, fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'A♠K♦8♣4♥2♠', heroHand: 'Q♥J♦', correctAction: 'FOLD', difficulty: 'EASY', category: 'RIVER', explanation: 'Ar: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: '9♥8♦2♣5♠K♣', heroHand: 'J♠T♥', correctAction: 'FOLD', difficulty: 'MEDIUM', category: 'RIVER', explanation: 'Projeto de sequencia falhou: fold.' },
           { heroPosition: 'BTN', villainPosition: 'CO', villainAction: 'Aposta', potSize: 24, board: 'A♦7♣3♦Q♠6♣', heroHand: 'K♦J♦', correctAction: 'FOLD', difficulty: 'HARD', category: 'RIVER', explanation: 'Nut flush draw que errou: fold.' },
