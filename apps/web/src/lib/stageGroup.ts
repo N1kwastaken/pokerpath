@@ -15,7 +15,9 @@ export function stageGroup(concept: string): string {
   if (/^river/i.test(concept)) return 'River';
   if (/board/i.test(concept)) return 'Leitura';
   if (/projeto/i.test(concept)) return 'Projetos';
-  if (/forte/i.test(concept)) return 'Mãos fortes';
+  // As fases de valor postflop ('Flop/Turn/River fortes') já foram roteadas
+  // acima por rua; o único conceito que sobraria com "forte" é o 'Mãos fortes'
+  // dos FUNDAMENTOS — e esse deve ficar junto do resto, não numa mesa própria.
   if (/catch/i.test(concept)) return 'Bluff-catch';
   if (/blefe/i.test(concept)) return 'Blefe & fold';
   if (/teste/i.test(concept)) return 'Teste';
@@ -46,7 +48,6 @@ const CAT: Record<string, { color: string; desc: string }> = {
   'Turn': { color: '#20A39E', desc: 'A quarta carta' },
   'River': { color: '#8E7CC3', desc: 'A última carta' },
   'Leitura': { color: '#20A39E', desc: 'Ler a textura do board' },
-  'Mãos fortes': { color: '#E4572E', desc: 'Mãos feitas de valor' },
   'Projetos': { color: '#17A2B8', desc: 'Projetos e semi-blefe' },
   'Bluff-catch': { color: '#8E7CC3', desc: 'Pagar apostas finas' },
   'Blefe & fold': { color: '#6C757D', desc: 'Ar: quando desistir' },

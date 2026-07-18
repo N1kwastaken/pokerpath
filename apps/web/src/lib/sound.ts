@@ -13,11 +13,12 @@ export const sound = {
     localStorage.setItem(MUTE_KEY, next ? '1' : '0');
     return next;
   },
-  /** Acerto: o tom SOBE a cada acerto seguido (combo) — recompensa a sequência. */
+  /** Acerto: o tom sobe SUAVE a cada acerto seguido (combo). Teto baixo para
+   *  não ficar estridente em sequências longas. */
   correct(combo = 0) {
-    const step = Math.min(combo, 8) * 45;
-    tones([660 + step, 880 + step], 0.12);
-    if (combo >= 3) tones([1320 + step, 1760 + step], 0.09); // brilho extra no combo
+    const step = Math.min(combo, 10) * 16; // subida gentil, no máx +160Hz
+    tones([600 + step, 800 + step], 0.12);
+    if (combo >= 3) tones([900 + step, 1120 + step], 0.07); // brilho discreto, sem passar de ~1300Hz
   },
   wrong() { tones([200, 150], 0.16, 'sawtooth'); },
   levelUp() { tones([523, 659, 784, 1046, 1319], 0.13); },
