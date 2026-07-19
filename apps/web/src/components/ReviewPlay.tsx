@@ -80,7 +80,7 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
-      <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3">
+      <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-3">
         <div className="flex items-center gap-3">
           <button onClick={finish} aria-label="Sair"><IconX size={20} /></button>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-card2">
@@ -89,9 +89,12 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
           <span className="text-xs font-bold tabular-nums text-subtle">{idx + 1}/{list.length}</span>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center">
-          <div className={result && !result.correct ? 'animate-shake' : ''}><PokerTable ex={current} /></div>
+        {/* Mesa travada no topo (sem pulo ao responder); spacer joga o
+            feedback/botões pro rodapé. */}
+        <div className={`mt-3 shrink-0 ${result && !result.correct ? 'animate-shake' : ''}`}>
+          <PokerTable ex={current} />
         </div>
+        <div className="flex-1" />
 
         {result ? (
           <div className="animate-slide-up space-y-3 rounded-2xl border border-line bg-card p-4">
