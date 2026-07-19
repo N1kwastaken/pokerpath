@@ -65,7 +65,7 @@ export function PokerTable({ ex, simple = false }: {
   const cards = tokens(ex.heroHand);
 
   return (
-    <div className="relative mx-auto h-[54dvh] w-[44dvh] max-h-[440px] max-w-[370px] shrink-0">
+    <div className="relative mx-auto h-[55dvh] w-[46dvh] max-h-[455px] max-w-[388px] shrink-0">
       {/* Rail + feltro — oval EM PÉ (retrato) como o trainer de referência.
           Largura E altura em `dvh` (retrato fixo, ~0.85), independente do
           contexto de layout: ainda sobra espaço pros botões/feedback embaixo

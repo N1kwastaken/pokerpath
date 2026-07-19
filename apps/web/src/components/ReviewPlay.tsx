@@ -89,9 +89,9 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
           <span className="text-xs font-bold tabular-nums text-subtle">{idx + 1}/{list.length}</span>
         </div>
 
-        {/* Mesa travada no topo (sem pulo ao responder); spacer joga o
-            feedback/botões pro rodapé. */}
-        <div className={`mt-3 shrink-0 ${result && !result.correct ? 'animate-shake' : ''}`}>
+        {/* Mesa em posição fixa (sem pulo); gap de topo em dvh centraliza mais,
+            o spacer mantém o feedback/botões no rodapé. */}
+        <div className={`mt-[13dvh] shrink-0 ${result && !result.correct ? 'animate-shake' : ''}`}>
           <PokerTable ex={current} />
         </div>
         <div className="flex-1" />

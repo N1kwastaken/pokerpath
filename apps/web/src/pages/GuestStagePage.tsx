@@ -142,9 +142,9 @@ export function GuestStagePage() {
           <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-subtle">Visitante</span>
         </div>
 
-        {/* Mesa travada no topo (sem o pulo ao responder); o spacer joga os
-            botões/feedback pro rodapé. */}
-        <div className={`mt-3 shrink-0 ${answered && !wasCorrect ? 'animate-shake' : ''}`}>
+        {/* Mesa em posição fixa (sem pulo); gap de topo em dvh centraliza mais,
+            o spacer mantém os botões/feedback no rodapé. */}
+        <div className={`mt-[13dvh] shrink-0 ${answered && !wasCorrect ? 'animate-shake' : ''}`}>
           <PokerTable ex={current} simple={data.worldOrder === 0} />
         </div>
         <div className="flex-1" />

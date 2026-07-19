@@ -346,11 +346,10 @@ export function StagePlayPage() {
         {user && <span className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-title">{user.currentStreak}<span className="text-sm">🔥</span></span>}
       </div>
 
-      {/* Mesa TRAVADA no topo — mesma posição jogando e no feedback, sem o pulo
-          ("subindo") que havia ao trocar de estado. O spacer abaixo empurra os
-          botões/feedback pro rodapé (como no trainer); no feedback o card sobe
-          do rodapé, e a mesa não mexe. */}
-      <div className={`mt-3 shrink-0 ${fb && result && !result.correct ? 'animate-shake' : ''}`}>
+      {/* Mesa em posição FIXA (mesmo jogando e no feedback, sem pulo). O gap de
+          topo em dvh a desce do header pra centralizar mais; o spacer abaixo
+          mantém os botões/feedback ancorados no rodapé. */}
+      <div className={`mt-[13dvh] shrink-0 ${fb && result && !result.correct ? 'animate-shake' : ''}`}>
         <PokerTable ex={current} simple={data.worldOrder === 0} />
       </div>
       <div className="flex-1" />
