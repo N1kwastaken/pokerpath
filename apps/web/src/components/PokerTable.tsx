@@ -46,8 +46,8 @@ function SeatCards({ state }: { state: SeatState }) {
         : { background: '#33383d', border: '1px solid rgba(255,255,255,0.16)', opacity: 0.9 };
   return (
     <div className="flex -space-x-1">
-      <span className="h-3.5 w-2.5 -rotate-6 rounded-[3px]" style={style} />
-      <span className="h-3.5 w-2.5 rotate-6 rounded-[3px]" style={style} />
+      <span className="h-5 w-3.5 -rotate-6 rounded-[3px]" style={style} />
+      <span className="h-5 w-3.5 rotate-6 rounded-[3px]" style={style} />
     </div>
   );
 }
@@ -65,12 +65,12 @@ export function PokerTable({ ex, simple = false }: {
   const cards = tokens(ex.heroHand);
 
   return (
-    <div className="relative mx-auto h-[46dvh] w-[40dvh] max-h-[400px] max-w-[350px] shrink-0">
+    <div className="relative mx-auto h-[54dvh] w-[44dvh] max-h-[440px] max-w-[370px] shrink-0">
       {/* Rail + feltro — oval EM PÉ (retrato) como o trainer de referência.
-          Largura E altura em `dvh` (retrato fixo, ~0.87), independente do
-          contexto de layout: sobra espaço garantido pros botões/feedback
-          embaixo. As cartas ficam menores (size sm/md) pra o oval estreito não
-          apertar nem esconder os assentos. */}
+          Largura E altura em `dvh` (retrato fixo, ~0.85), independente do
+          contexto de layout: ainda sobra espaço pros botões/feedback embaixo
+          (o cap em px evita ficar gigante em telas altas). As cartas do herói
+          são `sm` pra não cobrir o pot; as do board também `sm`. */}
       <div
         className="absolute inset-1 rounded-[42%]"
         style={{
@@ -153,7 +153,7 @@ export function PokerTable({ ex, simple = false }: {
         <div key={ex.heroHand} className="flex gap-1.5">
           {cards.map((t, i) => (
             <div key={i} className="animate-deal-in drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)]" style={{ animationDelay: `${i * 90}ms` }}>
-              <Card token={t} size="md" />
+              <Card token={t} size="sm" />
             </div>
           ))}
         </div>
