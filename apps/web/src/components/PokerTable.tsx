@@ -65,9 +65,10 @@ export function PokerTable({ ex, simple = false }: {
   const cards = tokens(ex.heroHand);
 
   return (
-    <div className="relative mx-auto aspect-[3/4] w-full max-w-md">
-      {/* Rail + feltro — oval em pé (portrait): num celular alto, encher a
-          vertical faz a mesa parecer bem maior. */}
+    <div className="relative mx-auto aspect-[7/6] w-full max-w-md">
+      {/* Rail + feltro — oval HORIZONTAL como o trainer de referência: os
+          assentos sentam bem ao redor e tudo fica legível (a versão portrait
+          apertava e escondia elementos). */}
       <div
         className="absolute inset-1 rounded-[42%]"
         style={{
@@ -129,12 +130,10 @@ export function PokerTable({ ex, simple = false }: {
                   {seat === 'folded' ? 'saiu' : 'jogador'}
                 </span>
               ) : (
-                <>
-                  <span className={`flex items-center gap-1 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-extrabold tracking-wide ${seat === 'folded' ? 'text-white/35' : 'text-white/80'}`}>
-                    {pos}{pos === 'BTN' && <Dealer />}
-                  </span>
-                  <span className={`text-[10px] font-semibold tabular-nums ${seat === 'folded' ? 'text-white/25' : 'text-white/50'}`}>{ex.stackBb} BB</span>
-                </>
+                // Posição + stack num pill só ("BTN 100BB"), como no trainer.
+                <span className={`flex items-center gap-1.5 rounded-lg bg-black/60 px-2 py-1 text-[11px] font-extrabold tracking-wide ${seat === 'folded' ? 'text-white/30' : 'text-white/85'}`}>
+                  {pos}<span className={`font-semibold tabular-nums ${seat === 'folded' ? 'text-white/25' : 'text-white/50'}`}>{ex.stackBb}BB</span>{pos === 'BTN' && <Dealer />}
+                </span>
               )}
               {isVillain && ex.villainAction && (
                 <span className="rounded bg-call/25 px-1.5 py-0.5 text-[9px] font-bold text-call">{ex.villainAction}</span>
@@ -157,13 +156,11 @@ export function PokerTable({ ex, simple = false }: {
           ))}
         </div>
         <div className="flex flex-col items-center gap-0.5">
-          <span className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1 text-xs font-extrabold tracking-wide text-white ring-2 ring-white/30">
-            VOCÊ · {ex.heroPosition}{ex.heroPosition === 'BTN' && <Dealer />}
+          <span className="flex items-center gap-1.5 rounded-lg bg-primary px-2.5 py-1 text-[11px] font-extrabold tracking-wide text-white ring-2 ring-white/30">
+            VOCÊ · {ex.heroPosition}{!simple && <span className="font-semibold text-white/70 tabular-nums">{ex.stackBb}BB</span>}{ex.heroPosition === 'BTN' && <Dealer />}
           </span>
-          {simple ? (
+          {simple && (
             <span className="rounded bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-white/70">{POS_NAME[ex.heroPosition]}</span>
-          ) : (
-            <span className="text-[10px] font-semibold tabular-nums text-white/60">{ex.stackBb} BB</span>
           )}
         </div>
       </div>

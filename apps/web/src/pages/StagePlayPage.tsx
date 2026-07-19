@@ -327,8 +327,9 @@ export function StagePlayPage() {
       {/* Confete cresce com o combo: acertar em sequência explode mais. */}
       {fb && result?.correct && <Confetti key={idx} count={Math.min(18 + combo * 8, 72)} />}
       <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3 lg:max-w-5xl lg:flex-row lg:items-stretch lg:gap-6 lg:px-8 lg:py-6">
-      {/* overflow-y-auto: com a mesa grande, o estado de feedback (mesa + card
-          de explicação) rola em vez de cortar o botão Continuar. */}
+      {/* Sem flex-1 na mesa durante o feedback (abaixo), o conteúdo cabe sem
+          rolar na tela comum. O overflow aqui é só rede: telas MUITO baixas ou
+          o feedback máximo (combo+nível+conquista) rolam em vez de cortar. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar">
 
       {/* Header do exercício — chips bold sem outline, no estilo da home. */}
@@ -345,7 +346,9 @@ export function StagePlayPage() {
         {user && <span className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-title">{user.currentStreak}<span className="text-sm">🔥</span></span>}
       </div>
 
-      <div className="flex flex-1 flex-col justify-center">
+      {/* flex-1 só ao JOGAR (centraliza a mesa). No feedback, sem flex-1: a mesa
+          fica no topo e o card de explicação cabe logo abaixo, sem rolar. */}
+      <div className={`flex flex-col justify-center ${fb ? '' : 'flex-1'}`}>
         <div className={`w-full ${fb && result && !result.correct ? 'animate-shake' : ''}`}><PokerTable ex={current} simple={data.worldOrder === 0} /></div>
       </div>
 

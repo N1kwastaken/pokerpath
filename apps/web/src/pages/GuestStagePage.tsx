@@ -142,7 +142,7 @@ export function GuestStagePage() {
           <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-subtle">Visitante</span>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center">
+        <div className={`flex flex-col justify-center ${answered ? '' : 'flex-1'}`}>
           <div className={`w-full ${answered && !wasCorrect ? 'animate-shake' : ''}`}><PokerTable ex={current} simple={data.worldOrder === 0} /></div>
         </div>
 
