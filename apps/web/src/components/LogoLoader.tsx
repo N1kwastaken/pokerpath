@@ -1,6 +1,8 @@
+import { logoTileStyle } from './Logo.js';
+
 /**
- * Animação de carregamento com a logo: a espada pulsa no centro de um anel
- * giratório com gradiente, sobre o wordmark e três pontinhos. Theme-aware.
+ * Animação de carregamento com a logo: a marca no tile metálico ao centro de um
+ * anel giratório com gradiente, sobre o wordmark e três pontinhos. Theme-aware.
  * `inline` usa um bloco com padding (para dentro de uma página) em vez de
  * ocupar a tela inteira.
  */
@@ -19,8 +21,8 @@ export function LogoLoader({ label = 'Carregando...', inline = false }: { label?
           <circle cx="50" cy="50" r="44" fill="none" stroke="url(#logoloader)" strokeWidth="6" strokeLinecap="round" strokeDasharray="80 210" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-pop animate-logo-glow">
-            <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
+          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl" style={logoTileStyle}>
+            <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)]" />
           </div>
         </div>
       </div>

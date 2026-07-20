@@ -74,7 +74,8 @@ export function PokerTable({ ex, simple = false }: {
       <div
         className="absolute inset-1 rounded-[42%]"
         style={{
-          background: 'radial-gradient(ellipse at 50% 36%, #1c8454 0%, #14613b 52%, #0c3d27 100%)',
+          background:
+            'radial-gradient(ellipse at 50% 38%, color-mix(in srgb, rgb(var(--primary)) 55%, #06170e) 0%, color-mix(in srgb, rgb(var(--primary)) 38%, #05130b) 55%, color-mix(in srgb, rgb(var(--primary)) 20%, #040f08) 100%)',
           boxShadow: 'inset 0 0 0 7px rgba(0,0,0,0.5), inset 0 0 0 9px rgba(255,255,255,0.06), inset 0 0 55px rgba(0,0,0,0.55), 0 10px 30px -12px rgba(0,0,0,0.7)',
         }}
       />

@@ -6,11 +6,31 @@
 const MUTE_KEY = 'pp.muted';
 let ctx: AudioContext | null = null;
 
+function audioCtx(): AudioContext | null {
+  try {
+    ctx = ctx ?? new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    return ctx;
+  } catch {
+    return null;
+  }
+}
+
+// O AudioContext SUSPENDE quando o app vai pro fundo (tela bloqueada, aba
+// trocada). Ao voltar, resumimos proativamente pra o próximo som não falhar.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && ctx && ctx.state === 'suspended') void ctx.resume();
+  });
+}
+
 export const sound = {
   isMuted: () => localStorage.getItem(MUTE_KEY) === '1',
   toggleMute(): boolean {
     const next = !this.isMuted();
     localStorage.setItem(MUTE_KEY, next ? '1' : '0');
+    // Ao LIGAR o som, destrava o contexto na hora (gesto do usuário) pra o
+    // próximo som já sair — antes ficava mudo até um segundo toque.
+    if (!next) void audioCtx()?.resume();
     return next;
   },
   /** Acerto: o tom sobe SUAVE a cada acerto seguido (combo). Teto baixo para
@@ -29,24 +49,30 @@ export const sound = {
 
 function tones(freqs: number[], dur: number, type: OscillatorType = 'sine') {
   if (sound.isMuted()) return;
-  try {
-    ctx = ctx ?? new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const ac = ctx;
-    if (ac.state === 'suspended') void ac.resume();
-    freqs.forEach((f, i) => {
-      const osc = ac.createOscillator();
-      const gain = ac.createGain();
-      osc.type = type;
-      osc.frequency.value = f;
-      const start = ac.currentTime + i * dur * 0.9;
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.18, start + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-      osc.connect(gain).connect(ac.destination);
-      osc.start(start);
-      osc.stop(start + dur);
-    });
-  } catch {
-    /* áudio indisponível — silencioso */
-  }
+  const ac = audioCtx();
+  if (!ac) return;
+  // Agendar os osciladores SÓ depois de o contexto estar rodando. resume() é
+  // assíncrono: se agendarmos antes (com o contexto ainda suspenso, ex. logo
+  // após desbloquear o celular), o primeiro som não sai.
+  const play = () => {
+    try {
+      freqs.forEach((f, i) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = type;
+        osc.frequency.value = f;
+        const start = ac.currentTime + i * dur * 0.9;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.18, start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+        osc.connect(gain).connect(ac.destination);
+        osc.start(start);
+        osc.stop(start + dur);
+      });
+    } catch {
+      /* áudio indisponível — silencioso */
+    }
+  };
+  if (ac.state === 'suspended') ac.resume().then(play).catch(() => {});
+  else play();
 }
