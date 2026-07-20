@@ -132,9 +132,9 @@ export function GuestStagePage() {
   }
 
   return (
-    <div className="fixed inset-0 z-30 bg-bg">
+    <div className="fixed inset-0 z-30 overflow-hidden overscroll-none bg-bg">
       {answered && wasCorrect && <Confetti key={idx} count={20} />}
-      <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-3">
+      <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3">
         <div className="flex items-center gap-3">
           <button onClick={exit} className="text-subtle" aria-label="Sair"><IconX size={20} /></button>
           <div className="flex-1"><ProgressBar value={answers.length} max={sessionLen} /></div>
@@ -142,28 +142,32 @@ export function GuestStagePage() {
           <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-subtle">Visitante</span>
         </div>
 
-        {/* Mesa em posição fixa (sem pulo); gap de topo em dvh centraliza mais,
-            o spacer mantém os botões/feedback no rodapé. */}
-        <div className={`mt-[13dvh] shrink-0 ${answered && !wasCorrect ? 'animate-shake' : ''}`}>
+        {/* Mesa em posição FIXA (sem pulo). A área de baixo (flex-1 justify-end)
+            ancora botões/feedback no rodapé SEM overshoot; a tela é travada
+            (container overflow-hidden + overscroll-none) e o card de feedback
+            rola por dentro se passar da altura, com o Continuar sempre visível. */}
+        <div className={`mt-[8dvh] shrink-0 ${answered && !wasCorrect ? 'animate-shake' : ''}`}>
           <PokerTable ex={current} simple={data.worldOrder === 0} />
         </div>
-        <div className="flex-1" />
 
+        <div className="flex min-h-0 flex-1 flex-col justify-end">
         {answered ? (
-          <div className="animate-slide-up space-y-3 rounded-2xl border border-line bg-card p-4">
-            <div className="flex items-center gap-3">
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${wasCorrect ? 'bg-primary' : 'bg-error'}`}>
-                {wasCorrect ? <IconCheck size={20} /> : <span className="text-lg font-black">✕</span>}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className={`font-extrabold ${wasCorrect ? 'text-primary' : 'text-error'}`}>
-                  {wasCorrect ? 'Correto' : `Incorreto — era ${actionLabel(current.correctAction)}`}
-                </p>
-                {current.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={current.explanation} /></p>}
+          <div className="animate-slide-up flex max-h-full flex-col rounded-2xl border border-line bg-card p-4">
+            <div className="min-h-0 space-y-3 overflow-y-auto no-scrollbar">
+              <div className="flex items-center gap-3">
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${wasCorrect ? 'bg-primary' : 'bg-error'}`}>
+                  {wasCorrect ? <IconCheck size={20} /> : <span className="text-lg font-black">✕</span>}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className={`font-extrabold ${wasCorrect ? 'text-primary' : 'text-error'}`}>
+                    {wasCorrect ? 'Correto' : `Incorreto — era ${actionLabel(current.correctAction)}`}
+                  </p>
+                  {current.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={current.explanation} /></p>}
+                </div>
               </div>
+              <GtoBars freq={current.frequencies} chosen={choice ?? undefined} correct={current.correctAction} aggressor={aggressor} />
             </div>
-            <GtoBars freq={current.frequencies} chosen={choice ?? undefined} correct={current.correctAction} aggressor={aggressor} />
-            <button className="btn-primary w-full" onClick={next}>
+            <button className="btn-primary mt-3 w-full shrink-0" onClick={next}>
               {answers.length >= sessionLen ? 'Ver resultado' : 'Próxima mão'}
             </button>
           </div>
@@ -176,6 +180,7 @@ export function GuestStagePage() {
             ))}
           </div>
         )}
+        </div>
       </div>
       {tutorialOpen && <TableTutorial onDone={() => setTutorialOpen(false)} />}
     </div>

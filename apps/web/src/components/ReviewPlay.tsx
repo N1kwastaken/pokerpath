@@ -79,8 +79,8 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
   const actLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-bg">
-      <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto no-scrollbar px-4 pb-4 pt-3">
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden overscroll-none bg-bg">
+      <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3">
         <div className="flex items-center gap-3">
           <button onClick={finish} aria-label="Sair"><IconX size={20} /></button>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-card2">
@@ -89,15 +89,16 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
           <span className="text-xs font-bold tabular-nums text-subtle">{idx + 1}/{list.length}</span>
         </div>
 
-        {/* Mesa em posição fixa (sem pulo); gap de topo em dvh centraliza mais,
-            o spacer mantém o feedback/botões no rodapé. */}
-        <div className={`mt-[13dvh] shrink-0 ${result && !result.correct ? 'animate-shake' : ''}`}>
+        {/* Mesa fixa (sem pulo). Área de baixo (flex-1 justify-end) ancora os
+            controles no rodapé; a tela é travada e o card rola por dentro. */}
+        <div className={`mt-[8dvh] shrink-0 ${result && !result.correct ? 'animate-shake' : ''}`}>
           <PokerTable ex={current} />
         </div>
-        <div className="flex-1" />
 
+        <div className="flex min-h-0 flex-1 flex-col justify-end">
         {result ? (
-          <div className="animate-slide-up space-y-3 rounded-2xl border border-line bg-card p-4">
+          <div className="animate-slide-up flex max-h-full flex-col rounded-2xl border border-line bg-card p-4">
+            <div className="min-h-0 space-y-3 overflow-y-auto no-scrollbar">
             <div className="flex items-center gap-3">
               <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${result.correct ? 'bg-primary' : 'bg-error'}`}>
                 {result.correct ? <IconCheck size={20} /> : <span className="text-lg font-black">✕</span>}
@@ -110,7 +111,8 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
               </div>
             </div>
             <GtoBars freq={result.frequencies} chosen={chosen ?? undefined} correct={result.correctAction} aggressor={aggressor} />
-            <button className="btn-primary w-full" onClick={next}>Continuar</button>
+            </div>
+            <button className="btn-primary mt-3 w-full shrink-0" onClick={next}>Continuar</button>
           </div>
         ) : (
           <div className={`grid gap-2.5 ${aggressor ? 'grid-cols-2' : 'grid-cols-3'}`}>
@@ -124,6 +126,7 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

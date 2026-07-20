@@ -323,14 +323,15 @@ export function StagePlayPage() {
     : ACT;
   const actionLabel = (a: Action) => (aggressor ? (a === 'RAISE' ? 'Bet' : a === 'CALL' ? 'Check' : 'Fold') : LABEL[a]);
   return (
-    <div className="fixed inset-0 z-30 bg-bg">
+    <div className="fixed inset-0 z-30 overflow-hidden overscroll-none bg-bg">
       {/* Confete cresce com o combo: acertar em sequência explode mais. */}
       {fb && result?.correct && <Confetti key={idx} count={Math.min(18 + combo * 8, 72)} />}
       <div className="mx-auto flex h-full w-full max-w-md flex-col px-4 pb-4 pt-3 lg:max-w-5xl lg:flex-row lg:items-stretch lg:gap-6 lg:px-8 lg:py-6">
-      {/* Sem flex-1 na mesa durante o feedback (abaixo), o conteúdo cabe sem
-          rolar na tela comum. O overflow aqui é só rede: telas MUITO baixas ou
-          o feedback máximo (combo+nível+conquista) rolam em vez de cortar. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar">
+      {/* Tela de treino TRAVADA (container overflow-hidden + overscroll-none):
+          não rola pra baixo nem pros lados. Tudo cabe — a área de baixo ancora
+          os controles no rodapé e o card de feedback rola por dentro se passar
+          da altura (com o Continuar fixo, sempre visível). */}
+      <div className="flex min-h-0 flex-1 flex-col">
 
       {/* Header do exercício — chips bold sem outline, no estilo da home. */}
       <div className="flex items-center gap-2">
@@ -346,16 +347,17 @@ export function StagePlayPage() {
         {user && <span className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-title">{user.currentStreak}<span className="text-sm">🔥</span></span>}
       </div>
 
-      {/* Mesa em posição FIXA (mesmo jogando e no feedback, sem pulo). O gap de
-          topo em dvh a desce do header pra centralizar mais; o spacer abaixo
-          mantém os botões/feedback ancorados no rodapé. */}
-      <div className={`mt-[13dvh] shrink-0 ${fb && result && !result.correct ? 'animate-shake' : ''}`}>
+      {/* Mesa em posição FIXA (mesmo jogando e no feedback, sem pulo). Gap de
+          topo em dvh pra centralizar. A área de baixo (flex-1 justify-end)
+          ancora os controles no rodapé SEM overshoot. */}
+      <div className={`mt-[8dvh] shrink-0 ${fb && result && !result.correct ? 'animate-shake' : ''}`}>
         <PokerTable ex={current} simple={data.worldOrder === 0} />
       </div>
-      <div className="flex-1" />
 
+      <div className="flex min-h-0 flex-1 flex-col justify-end">
       {fb && result ? (
-        <div className="animate-slide-up space-y-3 rounded-2xl border border-line bg-card p-4">
+        <div className="animate-slide-up flex max-h-full flex-col rounded-2xl border border-line bg-card p-4">
+          <div className="min-h-0 space-y-3 overflow-y-auto no-scrollbar">
           <div className="flex items-center gap-3">
             <motion.span
               initial={{ scale: 0, rotate: result.correct ? -30 : 0 }}
@@ -419,7 +421,8 @@ export function StagePlayPage() {
             </div>
           )}
 
-          <button className="btn-primary w-full" onClick={advance}>Continuar</button>
+          </div>
+          <button className="btn-primary mt-3 w-full shrink-0" onClick={advance}>Continuar</button>
         </div>
       ) : (
         <div className={`grid gap-2.5 ${aggressor ? 'grid-cols-2' : 'grid-cols-3'}`}>
@@ -447,6 +450,7 @@ export function StagePlayPage() {
           })}
         </div>
       )}
+      </div>
       </div>
 
       <aside className="hidden w-[300px] shrink-0 flex-col gap-3 lg:flex">
