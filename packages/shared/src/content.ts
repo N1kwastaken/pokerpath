@@ -13,9 +13,12 @@ import type { Frequencies } from './gto.js';
  * Tipos e schemas do conteúdo e do loop de jogo (PRD 5, 6, 7, 15.3).
  * Compartilhados entre API e frontend para garantir contratos idênticos.
  *
- * Princípio de segurança (PRD 15.5): a resposta correta NUNCA é enviada ao
- * cliente junto do exercício. Por isso PublicExercise não tem correctAction
- * nem explanation — eles só voltam na resposta do POST /answers.
+ * Feedback instantâneo: o gabarito (correctAction/explanation/frequencies)
+ * VIAJA junto do exercício, então o cliente valida na hora (como nas aulas) e
+ * mostra certo/errado + explicação sem esperar a rede. O POST /answers ainda
+ * roda em segundo plano pra gravar XP/progresso (o servidor é a autoridade).
+ * Trade-off aceito: o gabarito fica visível na rede — num trainer solo isso só
+ * prejudica quem cola, sem ranking com aposta em jogo.
  */
 
 // ─── Onboarding (PRD 4.1) ──────────────────────────────────────
@@ -124,9 +127,14 @@ export interface PublicExercise {
   difficulty: Difficulty;
   category: Category;
   options: readonly Action[];
+  /** Gabarito embutido p/ validação local instantânea (ver nota no topo). */
+  correctAction: Action;
+  explanation: string | null;
+  /** `null` quando não há chart por trás — ver AnswerResult.frequencies. */
+  frequencies: Frequencies | null;
 }
 
-/** Resposta de GET /stages/:id — a fase e seus exercícios (sem gabarito). */
+/** Resposta de GET /stages/:id — a fase e seus exercícios (com gabarito). */
 export interface StagePlay {
   stage: StageSummary;
   worldId: string;

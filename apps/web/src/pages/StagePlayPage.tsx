@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
-import { USER_LEVELS } from '@pokerpath/shared';
+import { USER_LEVELS, XP_BY_DIFFICULTY } from '@pokerpath/shared';
 import { useStage, useRange, useEnergy } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
@@ -190,24 +190,20 @@ export function StagePlayPage() {
     { enabled: showCheat && sheetOpen && !!prevPos },
   );
 
+  // O servidor roda em SEGUNDO PLANO (a validação já foi local, instantânea).
+  // Aqui só reconciliamos o que é autoridade do servidor: XP/nível/conquistas
+  // reais e o streak que persiste entre fases/sessões (rumo à conquista de 50).
   const mutation = useMutation({
     mutationFn: (action: Action) => gameApi.answer({ exerciseId: current!.id, selectedAction: action }),
     onSuccess: (res) => {
       setResult(res);
-      setAnswers((a) => [...a, res.correct]);
-      setSessionXp((x) => x + res.xpGained);
+      comboRef.current = res.answerStreak;
+      setCombo(res.answerStreak);
       if (res.stageCompleted) { setCompleted(true); if (stageId) localStorage.setItem('pp.justCompleted', stageId); }
       if (res.worldCompleted) setWorldDone(true);
-      // O combo é o streak REAL do servidor (persiste entre fases/sessões/
-      // níveis e caminha para a conquista de 50), não uma contagem local.
-      const newCombo = res.answerStreak;
-      comboRef.current = newCombo;
-      setCombo(newCombo);
-      res.correct ? sound.correct(newCombo) : sound.wrong();
       if (res.leveledUp) setTimeout(() => sound.levelUp(), 250);
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
       queryClient.invalidateQueries({ queryKey: ['energy'] });
-      setPhase('feedback');
     },
     onError: (err) => { if (err instanceof ApiError && err.code === 'DAILY_LIMIT_REACHED') navigate('/premium'); },
   });
@@ -254,8 +250,38 @@ export function StagePlayPage() {
     setCompleted(false); setWorldDone(false); setPhase('playing'); scrollTop();
   }
   function choose(action: Action) {
-    if (mutation.isPending || phase !== 'playing') return;
-    setLastChoice(action); sound.click(); mutation.mutate(action);
+    if (phase !== 'playing') return;
+    setLastChoice(action);
+    // Validação LOCAL, instantânea — o gabarito viaja no exercício (como nas
+    // aulas). O núcleo (certo/errado + explicação + frequências) aparece na
+    // hora; XP/nível/conquistas viram os do servidor quando a resposta chegar.
+    const correct = action === current!.correctAction;
+    const xpGained = correct ? XP_BY_DIFFICULTY[current!.difficulty] : 0;
+    const newCombo = correct ? comboRef.current + 1 : 0;
+    comboRef.current = newCombo;
+    setCombo(newCombo);
+    correct ? sound.correct(newCombo) : sound.wrong();
+    setAnswers((a) => [...a, correct]);
+    setSessionXp((x) => x + xpGained);
+    setResult({
+      correct,
+      correctAction: current!.correctAction,
+      explanation: current!.explanation,
+      frequencies: current!.frequencies,
+      xpGained,
+      totalXp: (user?.totalXp ?? 0) + xpGained,
+      level: user?.level ?? 1,
+      levelName: user?.levelName ?? '',
+      leveledUp: false,
+      currentStreak: user?.currentStreak ?? 0,
+      answerStreak: newCombo,
+      newAchievements: [],
+      stage: { stageId: stageId!, status: 'IN_PROGRESS', exercisesDone: answers.length + 1, correctAnswers: 0, accuracy: 0, xpEarned: sessionXp + xpGained, minExercises: sessionLen, passRate: data!.stage.passRate },
+      stageCompleted: false,
+      worldCompleted: false,
+    });
+    setPhase('feedback');
+    mutation.mutate(action); // grava XP/progresso no servidor + reconcilia
   }
 
   // ─── RESUMO ──────────────────────────────────────────────────
@@ -426,28 +452,12 @@ export function StagePlayPage() {
         </div>
       ) : (
         <div className={`grid gap-2.5 ${aggressor ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          {buttons.map((b) => {
-            // Feedback IMEDIATO ao tocar: o botão escolhido pulsa com spinner
-            // enquanto o servidor valida; os outros apagam. Sem isso, a espera
-            // da rede parece travamento.
-            const pending = mutation.isPending;
-            const chosen = pending && lastChoice === b.key;
-            return (
-              <button key={b.key} onClick={() => choose(b.key)} disabled={pending}
-                className={`btn3d rounded-2xl py-6 text-lg font-black text-white transition ${b.color} ${
-                  chosen ? 'scale-[0.97] animate-pulse' : pending ? 'opacity-40' : 'hover:brightness-110'
-                }`}>
-                {chosen ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    {b.label}
-                  </span>
-                ) : (
-                  b.label
-                )}
-              </button>
-            );
-          })}
+          {buttons.map((b) => (
+            <button key={b.key} onClick={() => choose(b.key)}
+              className={`btn3d rounded-2xl py-6 text-lg font-black text-white transition hover:brightness-110 ${b.color}`}>
+              {b.label}
+            </button>
+          ))}
         </div>
       )}
       </div>

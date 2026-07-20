@@ -379,6 +379,11 @@ export async function getStagePlay(
     difficulty: ex.difficulty as Difficulty,
     category: ex.category as Category,
     options: ACTIONS,
+    // Gabarito embutido → o cliente valida local e mostra feedback na hora;
+    // o POST /answers grava XP/progresso em segundo plano.
+    correctAction: ex.correctAction as Action,
+    explanation: ex.explanation,
+    frequencies: parseFrequencies(ex.frequencies),
   }));
 
   const status: ProgressStatus =
@@ -967,6 +972,9 @@ export async function getReviewPlay(userId: string): Promise<PublicExercise[]> {
     difficulty: ex.difficulty as Difficulty,
     category: ex.category as Category,
     options: ACTIONS,
+    correctAction: ex.correctAction as Action,
+    explanation: ex.explanation,
+    frequencies: parseFrequencies(ex.frequencies),
   }));
 }
 
