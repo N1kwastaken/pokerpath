@@ -34,18 +34,27 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
   const current: PublicExercise | undefined = list[idx];
   const aggressor = current?.villainAction === 'Check';
 
+  // Grava a resposta em segundo plano (é o que faz o erro sair da revisão). O
+  // feedback já apareceu local; a revisão não dá XP, então não há o que
+  // reconciliar do servidor.
   const mut = useMutation({
     mutationFn: (a: Action) => gameApi.reviewAnswer({ exerciseId: current!.id, selectedAction: a }),
-    onSuccess: (res) => {
-      setResult(res);
-      if (res.correct) setRight((n) => n + 1);
-      res.correct ? sound.correct() : sound.wrong();
-    },
   });
 
   function choose(a: Action) {
-    if (mut.isPending || result) return;
-    setChosen(a); sound.click(); mut.mutate(a);
+    if (result) return;
+    // Validação LOCAL, instantânea (o gabarito viaja no exercício).
+    const correct = a === current!.correctAction;
+    setChosen(a);
+    correct ? sound.correct() : sound.wrong();
+    if (correct) setRight((n) => n + 1);
+    setResult({
+      correct,
+      correctAction: current!.correctAction,
+      explanation: current!.explanation,
+      frequencies: current!.frequencies,
+    });
+    mut.mutate(a);
   }
   function next() { setResult(null); setChosen(null); setIdx((i) => i + 1); }
   function finish() {
@@ -117,10 +126,8 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
         ) : (
           <div className={`grid gap-2.5 ${aggressor ? 'grid-cols-2' : 'grid-cols-3'}`}>
             {buttons.map((b) => (
-              <button key={b.key} onClick={() => choose(b.key)} disabled={mut.isPending}
-                className={`btn3d rounded-2xl py-6 text-lg font-black text-white ${b.color} ${
-                  mut.isPending && chosen === b.key ? 'scale-[0.97] animate-pulse' : mut.isPending ? 'opacity-40' : 'hover:brightness-110'
-                }`}>
+              <button key={b.key} onClick={() => choose(b.key)}
+                className={`btn3d rounded-2xl py-6 text-lg font-black text-white transition hover:brightness-110 ${b.color}`}>
                 {b.label}
               </button>
             ))}
