@@ -4,7 +4,16 @@ import { useMemo } from 'react';
  * Confete leve, sem dependências. Renderize com uma `key` única para disparar
  * (ex.: a cada acerto). Some sozinho ao fim da animação.
  */
-const COLORS = ['#1FA463', '#27D17C', '#16A34A', '#3FD08A', '#0E7A45', '#A7F3C4'];
+// Segue a cor do app (--primary): o próprio accent + tons claros/escuros e um
+// toque de ouro pro brilho. Muda junto quando o usuário troca a cor nas configs.
+const COLORS = [
+  'rgb(var(--primary))',
+  'color-mix(in srgb, rgb(var(--primary)) 60%, white)',
+  'color-mix(in srgb, rgb(var(--primary)) 82%, black)',
+  'color-mix(in srgb, rgb(var(--primary)) 40%, white)',
+  '#F5C451',
+  'color-mix(in srgb, rgb(var(--primary)) 70%, black)',
+];
 
 export function Confetti({ count = 36 }: { count?: number }) {
   const pieces = useMemo(

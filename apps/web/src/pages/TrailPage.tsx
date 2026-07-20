@@ -46,7 +46,9 @@ function DrawCheck({ size = 12 }: { size?: number }) {
 export function TrailPage() {
   const { data: trail, isLoading, isError } = useTrail();
   const { user } = useAuth();
-  const isFree = user?.plan !== 'PREMIUM';
+  // Contas DEV (beta) são premium mesmo com plan=FREE — bater com o servidor
+  // (effectivePlan), senão as fases premium travam na interface sem motivo.
+  const isFree = user?.plan !== 'PREMIUM' && !user?.isDev;
   const navigate = useNavigate();
   const location = useLocation();
   const fromExercise = !!(location.state as { fromExercise?: boolean } | null)?.fromExercise;

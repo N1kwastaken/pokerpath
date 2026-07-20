@@ -27,12 +27,22 @@ export function MissionsCard() {
 
   const claim = useMutation({
     mutationFn: (code: string) => gameApi.claimMission(code),
-    onSuccess: (res) => {
+    // Resgate INSTANTÂNEO: som + confete + "Resgatado" na hora; o servidor grava
+    // e reconcilia XP/nível em segundo plano (autoridade do servidor).
+    onMutate: (code) => {
       sound.levelUp();
       setCelebrate((c) => c + 1);
+      const m = missions?.find((x) => x.code === code);
+      queryClient.setQueryData<MissionView[]>(['missions'], (old) =>
+        old?.map((x) => (x.code === code ? { ...x, claimed: true } : x)),
+      );
+      if (user && m) setUser({ ...user, totalXp: user.totalXp + m.xpReward });
+    },
+    onSuccess: (res) => {
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
       queryClient.invalidateQueries({ queryKey: ['missions'] });
     },
+    onError: () => { queryClient.invalidateQueries({ queryKey: ['missions'] }); },
   });
 
   if (isLoading || !missions || missions.length === 0) return null;

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
-import { USER_LEVELS, XP_BY_DIFFICULTY } from '@pokerpath/shared';
+import { XP_BY_DIFFICULTY } from '@pokerpath/shared';
 import { useStage, useRange, useEnergy } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
@@ -32,12 +32,6 @@ const ACT: { key: Action; label: string; color: string }[] = [
   { key: 'RAISE', label: 'Raise', color: 'bg-accent' },
 ];
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
-function xpProgress(totalXp: number, level: number): { pct: number; hasNext: boolean } {
-  const cur = USER_LEVELS[level - 1]?.xpRequired ?? 0;
-  const nx = USER_LEVELS[level]?.xpRequired;
-  if (nx == null) return { pct: 100, hasNext: false };
-  return { pct: Math.max(0, Math.min(100, Math.round(((totalXp - cur) / (nx - cur)) * 100))), hasNext: true };
-}
 type Phase = 'playing' | 'feedback' | 'summary';
 
 /** Sessão salva por fase: sair no meio e voltar retoma de onde parou. */
@@ -411,6 +405,10 @@ export function StagePlayPage() {
             )}
           </div>
 
+          {/* Frequências GTO no TOPO — o núcleo (a porcentagem) fica sempre
+              visível. A barra de XP saiu (empurrava a porcentagem pra fora). */}
+          <GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} />
+
           {/* Selo de combo: acertos em sequência (3+) ganham um destaque pulsante. */}
           {result.correct && combo >= 3 && (
             <motion.div
@@ -423,23 +421,9 @@ export function StagePlayPage() {
             </motion.div>
           )}
 
-          {(() => {
-            const xp = xpProgress(result.totalXp, result.level);
-            return (
-              <div className="flex items-center gap-2">
-                <span className="w-9 shrink-0 text-[10px] font-bold text-subtle">Nv {result.level}</span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/30">
-                  <div key={result.totalXp} className="h-full origin-left rounded-full bg-gold animate-grow-x" style={{ width: `${xp.pct}%` }} />
-                </div>
-                <span className="w-9 shrink-0 text-right text-[10px] font-bold text-subtle">{xp.hasNext ? `Nv ${result.level + 1}` : 'MAX'}</span>
-              </div>
-            );
-          })()}
           {result.leveledUp && (
             <div className="animate-slide-up rounded-xl bg-primary/15 py-1.5 text-center text-sm font-black text-primary">⭐ Subiu de nível — {result.levelName}!</div>
           )}
-
-          <GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} />
 
           {result.newAchievements.length > 0 && (
             <div className="rounded-xl border border-gold/30 bg-gold/10 p-2 text-center text-xs font-semibold text-gold">
