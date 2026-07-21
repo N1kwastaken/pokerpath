@@ -44,3 +44,6 @@ apps/api/prisma/schema.postgres.prisma
 
 # Prisma — shadow db temporário
 apps/api/shadow.db
+
+# página do kit de artes (gerada por brand/build_kit_page.py, ~2MB de base64)
+brand/kit.html
