@@ -1466,17 +1466,34 @@ const ACHIEVEMENTS = [
   { code: 'FULL_GAME', name: 'Full Game', description: 'Completar todos os Mundos', icon: '👑' },
 ];
 
-const MISSIONS = [
-  { code: 'DAILY_PLAY', title: 'Sente à mesa', description: 'Jogue ao menos 1 exercício hoje.', type: 'DAILY', xpReward: 10, target: 1 },
-  { code: 'DAILY_5_CORRECT', title: '5 acertos hoje', description: 'Acerte 5 exercícios hoje.', type: 'DAILY', xpReward: 15, target: 5 },
-  { code: 'DAILY_10_CORRECT', title: '10 acertos hoje', description: 'Acerte 10 exercícios hoje.', type: 'DAILY', xpReward: 25, target: 10 },
-  { code: 'DAILY_20_CORRECT', title: '20 acertos hoje', description: 'Acerte 20 exercícios hoje.', type: 'DAILY', xpReward: 45, target: 20 },
-  { code: 'DAILY_FINISH_STAGE', title: 'Conclua uma fase', description: 'Complete 1 fase hoje.', type: 'DAILY', xpReward: 30, target: 1 },
-  { code: 'DAILY_2_STAGES', title: 'Duas fases hoje', description: 'Complete 2 fases hoje.', type: 'DAILY', xpReward: 60, target: 2 },
-  { code: 'WEEKLY_3_DAYS', title: '3 dias na semana', description: 'Jogue em 3 dias diferentes esta semana.', type: 'WEEKLY', xpReward: 100, target: 3 },
-  { code: 'WEEKLY_5_DAYS', title: '5 dias na semana', description: 'Jogue em 5 dias diferentes esta semana.', type: 'WEEKLY', xpReward: 200, target: 5 },
-  { code: 'WEEKLY_50_CORRECT', title: '50 acertos na semana', description: 'Acerte 50 exercícios esta semana.', type: 'WEEKLY', xpReward: 120, target: 50 },
-  { code: 'WEEKLY_5_STAGES', title: '5 fases na semana', description: 'Complete 5 fases esta semana.', type: 'WEEKLY', xpReward: 150, target: 5 },
+export const MISSIONS = [
+  // DIÁRIAS — o dia serve 2 fáceis, 2 médias e 1 difícil (getMissions).
+  // Há mais missões do que vagas em cada faixa: a rotação diária varia o cardápio.
+  { code: 'DAILY_PLAY', title: 'Sente à mesa', description: 'Jogue ao menos 1 exercício hoje.', type: 'DAILY', difficulty: 'EASY', xpReward: 10, target: 1 },
+  { code: 'DAILY_3_CORRECT', title: '3 acertos hoje', description: 'Acerte 3 exercícios hoje.', type: 'DAILY', difficulty: 'EASY', xpReward: 12, target: 3 },
+  { code: 'DAILY_5_CORRECT', title: '5 acertos hoje', description: 'Acerte 5 exercícios hoje.', type: 'DAILY', difficulty: 'EASY', xpReward: 15, target: 5 },
+
+  { code: 'DAILY_10_CORRECT', title: '10 acertos hoje', description: 'Acerte 10 exercícios hoje.', type: 'DAILY', difficulty: 'MEDIUM', xpReward: 25, target: 10 },
+  { code: 'DAILY_15_CORRECT', title: '15 acertos hoje', description: 'Acerte 15 exercícios hoje.', type: 'DAILY', difficulty: 'MEDIUM', xpReward: 35, target: 15 },
+  { code: 'DAILY_FINISH_STAGE', title: 'Conclua uma fase', description: 'Complete 1 fase hoje.', type: 'DAILY', difficulty: 'MEDIUM', xpReward: 30, target: 1 },
+  { code: 'DAILY_STREAK_5', title: '5 seguidas', description: 'Acerte 5 exercícios em sequência hoje.', type: 'DAILY', difficulty: 'MEDIUM', xpReward: 35, target: 5 },
+
+  { code: 'DAILY_20_CORRECT', title: '20 acertos hoje', description: 'Acerte 20 exercícios hoje.', type: 'DAILY', difficulty: 'HARD', xpReward: 50, target: 20 },
+  { code: 'DAILY_30_CORRECT', title: '30 acertos hoje', description: 'Acerte 30 exercícios hoje.', type: 'DAILY', difficulty: 'HARD', xpReward: 75, target: 30 },
+  { code: 'DAILY_2_STAGES', title: 'Duas fases hoje', description: 'Complete 2 fases hoje.', type: 'DAILY', difficulty: 'HARD', xpReward: 60, target: 2 },
+  { code: 'DAILY_STREAK_10', title: '10 seguidas', description: 'Acerte 10 exercícios em sequência hoje.', type: 'DAILY', difficulty: 'HARD', xpReward: 80, target: 10 },
+  { code: 'DAILY_PERFECT_STAGE', title: 'Fase impecável', description: 'Complete uma fase hoje sem errar nenhuma mão.', type: 'DAILY', difficulty: 'HARD', xpReward: 90, target: 1 },
+
+  // SEMANAIS — 1 de cada faixa por semana.
+  { code: 'WEEKLY_3_DAYS', title: '3 dias na semana', description: 'Jogue em 3 dias diferentes esta semana.', type: 'WEEKLY', difficulty: 'EASY', xpReward: 100, target: 3 },
+  { code: 'WEEKLY_50_CORRECT', title: '50 acertos na semana', description: 'Acerte 50 exercícios esta semana.', type: 'WEEKLY', difficulty: 'EASY', xpReward: 120, target: 50 },
+
+  { code: 'WEEKLY_5_DAYS', title: '5 dias na semana', description: 'Jogue em 5 dias diferentes esta semana.', type: 'WEEKLY', difficulty: 'MEDIUM', xpReward: 200, target: 5 },
+  { code: 'WEEKLY_5_STAGES', title: '5 fases na semana', description: 'Complete 5 fases esta semana.', type: 'WEEKLY', difficulty: 'MEDIUM', xpReward: 150, target: 5 },
+
+  { code: 'WEEKLY_7_DAYS', title: 'Semana cheia', description: 'Jogue todos os 7 dias desta semana.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 350, target: 7 },
+  { code: 'WEEKLY_100_CORRECT', title: '100 acertos na semana', description: 'Acerte 100 exercícios esta semana.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 250, target: 100 },
+  { code: 'WEEKLY_10_STAGES', title: '10 fases na semana', description: 'Complete 10 fases esta semana.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 300, target: 10 },
 ];
 
 

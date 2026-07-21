@@ -17,11 +17,19 @@ export interface AchievementView {
 export const MISSION_TYPES = ['DAILY', 'WEEKLY'] as const;
 export type MissionType = (typeof MISSION_TYPES)[number];
 
+/**
+ * Dificuldade da missão. O dia sempre serve 2 fáceis + 2 médias + 1 difícil:
+ * as fáceis garantem a vitória diária (o hábito), a difícil dá o que perseguir.
+ */
+export const MISSION_DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD'] as const;
+export type MissionDifficulty = (typeof MISSION_DIFFICULTIES)[number];
+
 export interface MissionView {
   code: string;
   title: string;
   description: string;
   type: MissionType;
+  difficulty: MissionDifficulty;
   xpReward: number;
   target: number;
   progress: number;

@@ -75,13 +75,31 @@ function Group({ title, timer, items, pending, onClaim }: { title: string; timer
   );
 }
 
+/** Selo da dificuldade — o ouro marca a difícil, que é o alvo do dia. */
+function Level({ d }: { d: MissionView['difficulty'] }) {
+  const style = {
+    EASY: { label: 'Fácil', cls: 'bg-card2 text-subtle' },
+    MEDIUM: { label: 'Média', cls: 'bg-primary/15 text-primary' },
+    HARD: { label: 'Difícil', cls: 'bg-gold/15 text-gold' },
+  }[d] ?? { label: '', cls: '' };
+  if (!style.label) return null;
+  return (
+    <span className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${style.cls}`}>
+      {style.label}
+    </span>
+  );
+}
+
 function Row({ m, onClaim, pending }: { m: MissionView; onClaim: () => void; pending: boolean }) {
   const pct = m.target ? Math.round((m.progress / m.target) * 100) : 0;
   return (
     <div className="p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold text-title">{m.title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="truncate font-semibold text-title">{m.title}</h3>
+            <Level d={m.difficulty} />
+          </div>
           <p className="mt-0.5 text-xs text-subtle">{m.progress}/{m.target} · +{m.xpReward} XP</p>
         </div>
         {m.claimed ? (

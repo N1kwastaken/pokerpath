@@ -282,6 +282,8 @@ model Mission {
   title       String
   description String
   type        String
+  /// EASY | MEDIUM | HARD — o dia serve 2 fáceis, 2 médias e 1 difícil.
+  difficulty  String   @default("EASY")
   xpReward    Int
   target      Int      @default(1)
   createdAt   DateTime @default(now())

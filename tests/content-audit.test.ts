@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { WORLDS } from '../apps/api/prisma/seed.js';
+import { WORLDS, MISSIONS } from '../apps/api/prisma/seed.js';
 import { RANGE_DEFS, raiseSet, labelOfHand, rangeDefFor } from '../apps/api/prisma/ranges.js';
 
 /** Auditoria além dos testes existentes: procura mãos erradas, ranges incoerentes,
@@ -97,6 +97,40 @@ describe('posições e ações', () => {
     for (const { ex, stage } of all) {
       if (ex.potSize != null && ex.potSize <= 0) bad.push(`${stage.title}: ${ex.heroHand} pot=${ex.potSize}`);
       if (ex.stackBb != null && ex.stackBb <= 0) bad.push(`${stage.title}: ${ex.heroHand} stack=${ex.stackBb}`);
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('missões', () => {
+  // O dia serve 2 fáceis + 2 médias + 1 difícil e a semana 1 de cada. Se uma
+  // faixa ficar sem missões suficientes, o período passa a servir MENOS
+  // missões — em silêncio, sem erro nenhum.
+  const SLOTS = { DAILY: { EASY: 2, MEDIUM: 2, HARD: 1 }, WEEKLY: { EASY: 1, MEDIUM: 1, HARD: 1 } };
+
+  it('toda faixa tem missões suficientes para preencher as vagas', () => {
+    const faltando: string[] = [];
+    for (const [type, slots] of Object.entries(SLOTS)) {
+      for (const [level, n] of Object.entries(slots)) {
+        const have = MISSIONS.filter((m) => m.type === type && m.difficulty === level).length;
+        if (have < n) faltando.push(`${type}/${level}: ${have} missões para ${n} vagas`);
+      }
+    }
+    expect(faltando).toEqual([]);
+  });
+
+  it('toda missão tem dificuldade válida e alvo positivo', () => {
+    const bad = MISSIONS
+      .filter((m) => !['EASY', 'MEDIUM', 'HARD'].includes(m.difficulty) || !(m.target > 0))
+      .map((m) => `${m.code}: difficulty=${m.difficulty} target=${m.target}`);
+    expect(bad).toEqual([]);
+  });
+
+  it('dentro de uma faixa, o XP cresce com a dificuldade', () => {
+    const maxOf = (t: string, d: string) => Math.max(...MISSIONS.filter((m) => m.type === t && m.difficulty === d).map((m) => m.xpReward));
+    const bad: string[] = [];
+    for (const t of ['DAILY', 'WEEKLY']) {
+      if (!(maxOf(t, 'EASY') < maxOf(t, 'HARD'))) bad.push(`${t}: fácil paga tanto quanto difícil`);
     }
     expect(bad).toEqual([]);
   });

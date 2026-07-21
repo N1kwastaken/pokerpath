@@ -3,6 +3,7 @@ import {
   type AchievementView,
   type MissionView,
   type MissionType,
+  type MissionDifficulty,
   type MissionClaimResult,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
@@ -46,19 +47,46 @@ async function missionProgress(userId: string, code: string): Promise<number> {
   switch (code) {
     case 'DAILY_PLAY':
       return prisma.userAnswer.count({ where: { userId, createdAt: { gte: today } } });
+    case 'DAILY_3_CORRECT':
     case 'DAILY_5_CORRECT':
     case 'DAILY_10_CORRECT':
+    case 'DAILY_15_CORRECT':
     case 'DAILY_20_CORRECT':
+    case 'DAILY_30_CORRECT':
       return prisma.userAnswer.count({ where: { userId, isCorrect: true, createdAt: { gte: today } } });
     case 'DAILY_FINISH_STAGE':
     case 'DAILY_2_STAGES':
       return prisma.userProgress.count({ where: { userId, status: 'COMPLETED', completedAt: { gte: today } } });
+    case 'DAILY_STREAK_5':
+    case 'DAILY_STREAK_10': {
+      // Maior sequência de acertos HOJE — não é o streak global do usuário.
+      const rows = await prisma.userAnswer.findMany({
+        where: { userId, createdAt: { gte: today } },
+        orderBy: { createdAt: 'asc' },
+        select: { isCorrect: true },
+      });
+      let best = 0;
+      let run = 0;
+      for (const r of rows) {
+        run = r.isCorrect ? run + 1 : 0;
+        if (run > best) best = run;
+      }
+      return best;
+    }
+    case 'DAILY_PERFECT_STAGE':
+      // accuracy é fração (1 = nenhuma mão errada na fase).
+      return prisma.userProgress.count({
+        where: { userId, status: 'COMPLETED', completedAt: { gte: today }, accuracy: { gte: 1 } },
+      });
     case 'WEEKLY_50_CORRECT':
+    case 'WEEKLY_100_CORRECT':
       return prisma.userAnswer.count({ where: { userId, isCorrect: true, createdAt: { gte: week } } });
     case 'WEEKLY_5_STAGES':
+    case 'WEEKLY_10_STAGES':
       return prisma.userProgress.count({ where: { userId, status: 'COMPLETED', completedAt: { gte: week } } });
     case 'WEEKLY_3_DAYS':
-    case 'WEEKLY_5_DAYS': {
+    case 'WEEKLY_5_DAYS':
+    case 'WEEKLY_7_DAYS': {
       const rows = await prisma.userAnswer.findMany({ where: { userId, createdAt: { gte: week } }, select: { createdAt: true } });
       const days = new Set(rows.map((r) => r.createdAt.toISOString().slice(0, 10)));
       return days.size;
@@ -68,13 +96,33 @@ async function missionProgress(userId: string, code: string): Promise<number> {
   }
 }
 
-/** Quantas missões ativas por vez (sorteadas da "tabela" e rotacionadas). */
-const DAILY_COUNT = 3;
-const WEEKLY_COUNT = 2;
+/**
+ * Vagas por faixa de dificuldade. As fáceis existem para garantir a vitória
+ * diária (é o que sustenta o hábito); a difícil é o alvo de quem já engatou.
+ */
+const DAILY_SLOTS = { EASY: 2, MEDIUM: 2, HARD: 1 } as const;
+const WEEKLY_SLOTS = { EASY: 1, MEDIUM: 1, HARD: 1 } as const;
+
 function rotate<T>(arr: T[], n: number): T[] {
   if (arr.length === 0) return arr;
   const k = ((n % arr.length) + arr.length) % arr.length;
   return arr.slice(k).concat(arr.slice(0, k));
+}
+
+/**
+ * Preenche as vagas de cada faixa rotacionando pelo índice do período. O
+ * deslocamento por faixa (`+i`) evita que todas girem em bloco — senão as
+ * fáceis e as difíceis mudariam sempre juntas.
+ */
+function pickByDifficulty<T extends { difficulty: string }>(
+  pool: T[],
+  slots: Record<string, number>,
+  periodIdx: number,
+): T[] {
+  return Object.entries(slots).flatMap(([level, n], i) => {
+    const tier = pool.filter((m) => m.difficulty === level);
+    return rotate(tier, periodIdx + i).slice(0, n);
+  });
 }
 
 export async function getMissions(userId: string): Promise<MissionView[]> {
@@ -88,10 +136,10 @@ export async function getMissions(userId: string): Promise<MissionView[]> {
   const dayIdx = Math.floor(today.getTime() / 86_400_000);   // muda a cada 24h
   const weekIdx = Math.floor(week.getTime() / (7 * 86_400_000)); // muda a cada 7 dias
 
-  // Subconjunto ativo do período (rotaciona a tabela pelo índice do dia/semana).
+  // Subconjunto ativo do período, respeitando as vagas de cada dificuldade.
   const active = [
-    ...rotate(daily, dayIdx).slice(0, DAILY_COUNT),
-    ...rotate(weekly, weekIdx).slice(0, WEEKLY_COUNT),
+    ...pickByDifficulty(daily, DAILY_SLOTS, dayIdx),
+    ...pickByDifficulty(weekly, WEEKLY_SLOTS, weekIdx),
   ];
 
   const um = await prisma.userMission.findMany({ where: { userId, missionId: { in: active.map((m) => m.id) } } });
@@ -107,6 +155,7 @@ export async function getMissions(userId: string): Promise<MissionView[]> {
       title: m.title,
       description: m.description,
       type: m.type as MissionType,
+      difficulty: m.difficulty as MissionDifficulty,
       xpReward: m.xpReward,
       target: m.target,
       progress: Math.min(progress, m.target),
