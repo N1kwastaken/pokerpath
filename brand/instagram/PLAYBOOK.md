@@ -29,19 +29,24 @@ Uma mão nova pra treinar todo dia
 O campo **Nome** é indexado na busca do Instagram. Manter "Aprender Poker" ali
 faz você aparecer para quem procura o assunto — não desperdice só com a marca.
 
-## 2. Destaques
+## 2. Destaques — um naipe por assunto
 
-Capas em `destaques/` (fundo escuro, ícone centralizado — o Instagram corta em
-círculo e exibe pequeno, por isso são só ícones, sem texto).
+Quatro capas em `destaques/`: **fundo branco, naipe verde**. Sem texto, porque o
+Instagram corta um círculo e exibe com ~60px — qualquer palavra some. O branco
+contrasta com a foto de perfil (verde sólida), então a fileira "respira".
 
 | Arquivo | Nome do destaque | O que vai dentro |
 | --- | --- | --- |
-| `01-comece.png` | **Comece aqui** | O que é o PokerPath, para quem é, como usar |
-| `02-maos.png` | **Mãos** | Os quizzes respondidos (arquivo do que já foi) |
-| `03-dicas.png` | **Dicas** | Conceitos soltos: posição, ranges, pot odds |
-| `04-ranges.png` | **Ranges** | Prints dos charts do app |
-| `05-app.png` | **O app** | Tour: telas, mesa, progressão |
-| `06-duvidas.png` | **Dúvidas** | Respostas às perguntas que chegarem na DM |
+| `01-comece-espadas.png` ♠ | **Comece aqui** | O que é o PokerPath, para quem é, como usar. É o primeiro que o visitante abre — deixe-o à esquerda. |
+| `02-maos-copas.png` ♥ | **Mãos** | O arquivo dos quizzes: pergunta, enquete e resposta de cada mão |
+| `03-dicas-ouros.png` ♦ | **Dicas** | Conceitos soltos: posição, ranges, pot odds, erros comuns |
+| `04-app-paus.png` ♣ | **O app** | Tour pelas telas, a mesa, a progressão — e o link |
+
+> Os naipes foram escalados para pintar a **mesma área**. No mesmo corpo de
+> fonte o ouros sai bem menor que o paus e a fileira ficaria irregular.
+
+**Ordem no perfil:** o Instagram mostra por atualização mais recente. Para fixar
+esta ordem, atualize os destaques de trás para frente (♣ primeiro, ♠ por último).
 
 ## 3. O motor de conteúdo: quiz de mão
 

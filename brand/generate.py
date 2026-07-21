@@ -166,35 +166,33 @@ def story_answer(h, path):
     img.save(path, quality=95)
 
 
-# ── Capas de destaque (o Instagram corta em círculo: ícone no centro) ────
-def highlight(name, kind, path):
-    # O Instagram corta um CÍRCULO do centro e exibe com ~60px: o ícone precisa
-    # ocupar boa parte do círculo, senão vira um pontinho ilegível no perfil.
-    img = Image.new("RGB", STORY, (13, 18, 15))
+# ── Capas de destaque: um naipe por assunto ─────────────────────────────
+def _ink(suit, size):
+    """Pixels pintados por um naipe num dado corpo — base da normalização."""
+    f = suit_font(size)
+    probe = Image.new("L", (size * 2, size * 2), 0)
+    ImageDraw.Draw(probe).text((size // 2, size // 2), suit, font=f, fill=255)
+    return sum(probe.histogram()[200:]), probe.getbbox()
+
+
+def highlight_suit(suit, path, target_ink=118_000):
+    """Fundo branco, naipe verde. O Instagram corta um CÍRCULO do centro e o
+    exibe com ~60px — por isso o naipe é grande e não há texto (some no
+    tamanho real). O branco contrasta com a foto de perfil, que é verde.
+
+    Cada naipe é escalado para pintar a MESMA área: no mesmo corpo de fonte o
+    ouros sai bem menor que o paus, e a fileira de destaques ficaria irregular.
+    """
+    base = 400
+    ink, _ = _ink(suit, base)
+    size = max(60, int(base * (target_ink / ink) ** 0.5))
+
+    img = Image.new("RGB", STORY, (255, 255, 255))
     d = ImageDraw.Draw(img)
-    cx, cy = STORY[0] / 2, STORY[1] / 2
-    if kind == "glyph":
-        f = inter(430, 600) if name != "♠" else suit_font(430)
-        bb = d.textbbox((0, 0), name, font=f)
-        d.text((cx - (bb[2] - bb[0]) / 2 - bb[0], cy - (bb[3] - bb[1]) / 2 - bb[1]),
-               name, font=f, fill=TITLE)
-    elif kind == "play":
-        d.polygon([(cx - 130, cy - 195), (cx - 130, cy + 195), (cx + 180, cy)], fill=TITLE)
-    elif kind == "grid":
-        n, s, g = 4, 84, 18
-        tot = n * s + (n - 1) * g
-        for r in range(n):
-            for c in range(n):
-                x0 = cx - tot / 2 + c * (s + g)
-                y0 = cy - tot / 2 + r * (s + g)
-                on = (r + c) % 3 == 0
-                d.rounded_rectangle([x0, y0, x0 + s, y0 + s], radius=16,
-                                    fill=GREEN if on else (36, 44, 39))
-    elif kind == "phone":
-        d.rounded_rectangle([cx - 155, cy - 255, cx + 155, cy + 255], radius=48,
-                            outline=TITLE, width=18)
-        d.rounded_rectangle([cx - 58, cy - 220, cx + 58, cy - 202], radius=9, fill=TITLE)
-        d.rounded_rectangle([cx - 92, cy - 58, cx + 92, cy + 10], radius=14, fill=GREEN)
+    f = suit_font(size)
+    bb = d.textbbox((0, 0), suit, font=f)
+    d.text((STORY[0] / 2 - (bb[2] - bb[0]) / 2 - bb[0],
+            STORY[1] / 2 - (bb[3] - bb[1]) / 2 - bb[1]), suit, font=f, fill=BRAND)
     img.save(path, quality=95)
 
 
@@ -209,17 +207,16 @@ def main():
         story_question(h, os.path.join(OUT, "stories", f"{i:02d}-{h['label']}-pergunta.png"))
         story_answer(h, os.path.join(OUT, "stories", f"{i:02d}-{h['label']}-resposta.png"))
 
-    for fname, name, kind in [
-        ("01-comece.png", "", "play"),
-        ("02-maos.png", "♠", "glyph"),
-        ("03-dicas.png", "!", "glyph"),
-        ("04-ranges.png", "", "grid"),
-        ("05-app.png", "", "phone"),
-        ("06-duvidas.png", "?", "glyph"),
-    ]:
-        highlight(name, kind, os.path.join(OUT, "destaques", fname))
+    # Um naipe por assunto. ♠ é a marca (vai em "Comece aqui", o primeiro que
+    # o visitante abre); os outros seguem a ordem natural do baralho.
+    dest = os.path.join(OUT, "destaques")
+    for old in os.listdir(dest):
+        os.remove(os.path.join(dest, old))
+    for fname, suit in [("01-comece-espadas.png", "♠"), ("02-maos-copas.png", "♥"),
+                        ("03-dicas-ouros.png", "♦"), ("04-app-paus.png", "♣")]:
+        highlight_suit(suit, os.path.join(dest, fname))
 
-    print(f"quizzes: {len(quiz)*2} imagens | destaques: 6")
+    print(f"quizzes: {len(quiz)*2} imagens | destaques: 4 (um por naipe)")
 
 
 if __name__ == "__main__":
