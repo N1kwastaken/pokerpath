@@ -133,6 +133,13 @@
   .btn-ghost { @apply btn text-text hover:text-title; box-shadow: none; }
   .btn-ghost:active:not(:disabled) { transform: none; box-shadow: none; }
 
+  /* Foco de teclado visível — sem ele, navegar por Tab é jogo de adivinhação.
+     Só :focus-visible: toque/clique não ganham anel. */
+  .btn:focus-visible, .btn3d:focus-visible, .chip:focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 2px;
+  }
+
   /* Aresta 2.5D para botões de ação coloridos (Fold/Call/Raise) */
   .btn3d { box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.5); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; }
   .btn3d:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.5); }

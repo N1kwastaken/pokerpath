@@ -35,7 +35,7 @@ export function DashboardPage() {
       {/* Barra de recursos — streak e energia no lugar do nome; nível à direita.
           Energia em destaque (é o que trava/libera o jogo). */}
       <header className="mb-4 flex items-center gap-2.5">
-        <StatChip icon="🔥" value={`${user.currentStreak}`} label="ofensiva" alert={user.streakAtRisk} />
+        <StatChip icon="🔥" value={`${user.currentStreak}`} label="ofensiva" alert={user.streakAtRisk} lit={user.streakPlayedToday && user.currentStreak > 0} />
         {energy && (
           <StatChip
             iconNode={<IconBolt size={22} />}
@@ -44,13 +44,15 @@ export function DashboardPage() {
             tone="energy"
           />
         )}
-        {/* O nome do nível (não "Nível 2") — mais humano e continua clicável. */}
+        {/* XP total (o nível já tem a barra logo abaixo — repetir o nome aqui
+            era redundância). Clicável: leva à escada de níveis. */}
         <button
           onClick={() => navigate('/levels')}
-          className="ml-auto flex items-center gap-1 rounded-2xl bg-card px-3.5 py-2.5 active:scale-95"
+          className="ml-auto flex items-center gap-1.5 rounded-2xl bg-card px-3.5 py-2.5 active:scale-95"
         >
-          <span className="text-base font-black text-title">{user.levelName}</span>
-          <IconChevron size={16} className="text-subtle" />
+          <span className="text-base font-black text-gold">★</span>
+          <span className="text-base font-black tabular-nums text-title">{user.totalXp.toLocaleString('pt-BR')}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wide text-subtle">XP</span>
         </button>
       </header>
 
@@ -132,16 +134,18 @@ export function DashboardPage() {
 }
 
 /** Chip de recurso do topo: ícone grande + número em destaque + rótulo. */
-function StatChip({ icon, iconNode, value, label, alert, tone }: {
+function StatChip({ icon, iconNode, value, label, alert, tone, lit }: {
   icon?: string; iconNode?: React.ReactNode; value: string; label: string;
   alert?: boolean; tone?: 'energy';
+  /** Chama animada: o dia está garantido — o fogo está "aceso". */
+  lit?: boolean;
 }) {
   const valueColor = alert ? 'text-gold' : tone === 'energy' ? 'text-call' : 'text-title';
   // Sem outline: só um fundo suave (destaque em risco vira tom dourado no fundo).
   return (
     <div className={`flex items-center gap-2 rounded-2xl px-3.5 py-2 ${alert ? 'bg-gold/15' : 'bg-card'}`}>
       <span className={tone === 'energy' ? 'text-call' : ''}>
-        {iconNode ?? <span className="text-xl leading-none">{icon}</span>}
+        {iconNode ?? <span className={`text-xl leading-none ${lit ? 'animate-flame inline-block' : ''}`}>{icon}</span>}
       </span>
       <div className="leading-none">
         <p className={`text-2xl font-black tabular-nums ${valueColor}`}>{value}</p>

@@ -12,13 +12,14 @@ import { PokerTable } from '../components/PokerTable.js';
 import { ProgressBar } from '../components/ProgressBar.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
+import { CountUp } from '../components/CountUp.js';
 import { GtoBars } from '../components/GtoBars.js';
 import { IconX, IconCheck, IconBolt } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
 import { LessonPlayer } from '../components/LessonPlayer.js';
 import { stageGroup } from '../lib/stageGroup.js';
-import { Glossarized } from '../components/Glossarized.js';
+import { Explanation } from '../components/Explanation.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
 import { sound } from '../lib/sound.js';
 
@@ -78,6 +79,12 @@ export function StagePlayPage() {
   const [sessionXp, setSessionXp] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [worldDone, setWorldDone] = useState(false);
+  // Energia devolvida pela fase perfeita — anunciada no resumo, que é onde a
+  // pessoa está olhando quando termina.
+  const [energyBack, setEnergyBack] = useState(0);
+  // Nome do nível alcançado NESTA sessão (null = não subiu). Vai pro resumo:
+  // subir de nível no meio da fase não pode ser um banner que some.
+  const [levelUpTo, setLevelUpTo] = useState<string | null>(null);
 
   function scrollTop() { window.scrollTo({ top: 0 }); }
   function invalidateProgress() {
@@ -195,7 +202,8 @@ export function StagePlayPage() {
       setCombo(res.answerStreak);
       if (res.stageCompleted) { setCompleted(true); if (stageId) localStorage.setItem('pp.justCompleted', stageId); }
       if (res.worldCompleted) setWorldDone(true);
-      if (res.leveledUp) setTimeout(() => sound.levelUp(), 250);
+      if (res.energyRestored > 0) setEnergyBack(res.energyRestored);
+      if (res.leveledUp) { setLevelUpTo(res.levelName); setTimeout(() => sound.levelUp(), 250); }
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
       queryClient.invalidateQueries({ queryKey: ['energy'] });
     },
@@ -241,7 +249,7 @@ export function StagePlayPage() {
     if (stageId) localStorage.removeItem(sessionKey(stageId));
     setIdx(0); setAnswers([]); setSessionXp(0); setResult(null); setLastChoice(null);
     comboRef.current = 0; setCombo(0);
-    setCompleted(false); setWorldDone(false); setPhase('playing'); scrollTop();
+    setCompleted(false); setWorldDone(false); setEnergyBack(0); setLevelUpTo(null); setPhase('playing'); scrollTop();
   }
   function choose(action: Action) {
     if (phase !== 'playing') return;
@@ -272,7 +280,10 @@ export function StagePlayPage() {
       newAchievements: [],
       stage: { stageId: stageId!, status: 'IN_PROGRESS', exercisesDone: answers.length + 1, correctAnswers: 0, accuracy: 0, xpEarned: sessionXp + xpGained, minExercises: sessionLen, passRate: data!.stage.passRate },
       stageCompleted: false,
+      // Devolução de energia é decisão do servidor (ele é quem sabe se a fase
+      // já tinha sido limpa sem erro antes); chega na reconciliação.
       worldCompleted: false,
+      energyRestored: 0,
     });
     setPhase('feedback');
     mutation.mutate(action); // grava XP/progresso no servidor + reconcilia
@@ -286,12 +297,50 @@ export function StagePlayPage() {
     const streakAdvanced = !!user && user.currentStreak > streakBefore;
     return (
       <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
-        {passed && <Confetti count={50} />}
-        <Mascot mood={worldDone ? 'cheer' : passed ? 'win' : 'sad'} size={176} />
-        <h1 className="mt-5 text-3xl font-bold text-title">{passed ? 'Fase concluída!' : 'Quase lá!'}</h1>
-        {worldDone && <p className="mt-1 font-bold text-primary">Mundo completo! 🏆</p>}
+        {passed && <Confetti count={worldDone ? 90 : 50} />}
+        {worldDone ? (
+          // Fechar um MUNDO é o maior feito do jogo — merece o troféu em cena,
+          // não uma linha de texto embaixo do título.
+          <>
+            <div className="relative animate-spin-in">
+              <span className="absolute inset-0 -z-10 rounded-full bg-gold/25 blur-2xl" aria-hidden />
+              <span className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold bg-gold/15 text-6xl shadow-pop">🏆</span>
+            </div>
+            <h1 className="mt-5 text-3xl font-black text-title">Mundo completo!</h1>
+            <p className="mt-1 text-sm font-semibold text-gold">Todas as fases fechadas. O próximo mundo é seu.</p>
+          </>
+        ) : (
+          <>
+            <Mascot mood={passed ? 'win' : 'sad'} size={176} />
+            <h1 className="mt-5 text-3xl font-bold text-title">{passed ? 'Fase concluída!' : 'Quase lá!'}</h1>
+          </>
+        )}
         {!passed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
-        {passed && <div className="mt-4 animate-deal-in text-5xl">🎁</div>}
+
+        {/* Subiu de nível nesta sessão */}
+        {levelUpTo && (
+          <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-primary/50 bg-primary/10 px-4 py-3">
+            <span className="animate-spin-in text-3xl">⭐</span>
+            <div className="text-left">
+              <p className="text-lg font-extrabold text-primary">Subiu de nível!</p>
+              <p className="text-xs text-subtle">Agora você é <b className="text-title">{levelUpTo}</b>.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Fase perfeita: a energia gasta volta. É o incentivo a aprender de
+            verdade em vez de chutar até passar no pass_rate. */}
+        {energyBack > 0 && (
+          <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-call/50 bg-call/10 px-4 py-3">
+            <IconBolt size={28} className="shrink-0 text-call" />
+            <div className="text-left">
+              <p className="text-lg font-extrabold text-call">Perfeito! Energia restaurada.</p>
+              <p className="text-xs text-subtle">
+                Sem errar nenhuma — os {energyBack} de energia desta fase voltaram para você.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Streak conquistado nesta sessão — a recompensa que fecha o dia. */}
         {streakAdvanced && (
@@ -309,9 +358,9 @@ export function StagePlayPage() {
         )}
 
         <div className="mt-8 grid w-full grid-cols-3 gap-3">
-          <Stat label="Acerto" value={`${accuracy}%`} />
-          <Stat label="Acertos" value={`${correct}/${answers.length}`} />
-          <Stat label="XP" value={`+${sessionXp}`} />
+          <Stat label="Acerto" delay={0}><CountUp to={accuracy} suffix="%" /></Stat>
+          <Stat label="Acertos" delay={120}>{correct}/{answers.length}</Stat>
+          <Stat label="XP" delay={240} gold={sessionXp > 0}><CountUp to={sessionXp} prefix="+" /></Stat>
         </div>
         <div className="mt-8 w-full space-y-3">
           {worldDone ? (
@@ -391,7 +440,6 @@ export function StagePlayPage() {
               <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
                 {result.correct ? 'Correto' : `Incorreto — era ${actionLabel(result.correctAction)}`}
               </p>
-              {result.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={result.explanation} /></p>}
             </div>
             {result.correct && (
               <motion.span
@@ -404,6 +452,10 @@ export function StagePlayPage() {
               </motion.span>
             )}
           </div>
+
+          {/* A explicação ocupa a LARGURA TODA do cartão: dentro do cabeçalho
+              ela dividia espaço com o ícone e o XP e quebrava em 4 linhas. */}
+          {result.explanation && <Explanation text={result.explanation} />}
 
           {/* Frequências GTO no TOPO — o núcleo (a porcentagem) fica sempre
               visível. A barra de XP saiu (empurrava a porcentagem pra fora). */}
@@ -426,8 +478,16 @@ export function StagePlayPage() {
           )}
 
           {result.newAchievements.length > 0 && (
-            <div className="rounded-xl border border-gold/30 bg-gold/10 p-2 text-center text-xs font-semibold text-gold">
-              {result.newAchievements.map((a) => `${a.icon} ${a.name}`).join(' · ')}
+            <div className="space-y-1.5">
+              {result.newAchievements.map((a) => (
+                <div key={a.name} className="flex items-center gap-2.5 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2">
+                  <span className="animate-spin-in text-2xl">{a.icon}</span>
+                  <div className="min-w-0 text-left leading-tight">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gold">Conquista desbloqueada</p>
+                    <p className="truncate text-sm font-extrabold text-title">{a.name}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -516,11 +576,13 @@ export function StagePlayPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, children, delay = 0, gold = false }: {
+  label: string; children: React.ReactNode; delay?: number; gold?: boolean;
+}) {
   return (
-    <div className="card-2 p-3">
+    <div className="card-2 animate-chip-pop p-3" style={{ animationDelay: `${delay}ms` }}>
       <p className="text-[11px] uppercase tracking-wide text-subtle">{label}</p>
-      <p className="mt-1 text-lg font-bold text-title">{value}</p>
+      <p className={`mt-1 text-lg font-bold tabular-nums ${gold ? 'text-gold' : 'text-title'}`}>{children}</p>
     </div>
   );
 }

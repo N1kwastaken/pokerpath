@@ -3,6 +3,8 @@
  * de acerto/erro/level-up (PRD 11.1 — som opcional, ligado por padrão).
  * Preferência de mudo persistida em localStorage.
  */
+import { haptics } from './haptics.js';
+
 const MUTE_KEY = 'pp.muted';
 let ctx: AudioContext | null = null;
 
@@ -36,15 +38,16 @@ export const sound = {
   /** Acerto: o tom sobe SUAVE a cada acerto seguido (combo). Teto baixo para
    *  não ficar estridente em sequências longas. */
   correct(combo = 0) {
+    haptics.correct();
     const step = Math.min(combo, 10) * 16; // subida gentil, no máx +160Hz
     tones([600 + step, 800 + step], 0.12);
     if (combo >= 3) tones([900 + step, 1120 + step], 0.07); // brilho discreto, sem passar de ~1300Hz
   },
-  wrong() { tones([200, 150], 0.16, 'sawtooth'); },
-  levelUp() { tones([523, 659, 784, 1046, 1319], 0.13); },
+  wrong() { haptics.wrong(); tones([200, 150], 0.16, 'sawtooth'); },
+  levelUp() { haptics.levelUp(); tones([523, 659, 784, 1046, 1319], 0.13); },
   /** Fanfarra de fim de fase — mais cheia que o level-up. */
-  fanfare() { tones([523, 659, 784, 1046], 0.14); tones([392, 523, 659, 784], 0.14); },
-  click() { tones([440], 0.05); },
+  fanfare() { haptics.fanfare(); tones([523, 659, 784, 1046], 0.14); tones([392, 523, 659, 784], 0.14); },
+  click() { haptics.tap(); tones([440], 0.05); },
 };
 
 function tones(freqs: number[], dur: number, type: OscillatorType = 'sine') {

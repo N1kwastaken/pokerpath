@@ -37,17 +37,32 @@ const POS_NAME: Record<Position, string> = {
 /** Estado do assento: na mão (verde), foldou (escuro dessaturado) ou ainda não agiu (escuro). */
 type SeatState = 'in' | 'folded' | 'pending';
 
+// Verso da carta do oponente. Segue a cor do app (`--primary`) em vez do verde
+// fixo de antes, e o brilho no topo + a textura diagonal são o que fazem 24px
+// de largura parecerem uma carta de baralho, e não um retângulo colorido.
+const CARD_BACK: CSSProperties = {
+  background:
+    'linear-gradient(150deg, color-mix(in srgb, rgb(var(--primary)) 80%, #fff) 0%, rgb(var(--primary)) 42%, color-mix(in srgb, rgb(var(--primary)) 55%, #000) 100%)',
+  border: '1px solid rgba(255,255,255,0.55)',
+  boxShadow: '0 3px 7px -1px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4)',
+};
+const TEXTURE = 'repeating-linear-gradient(48deg, rgba(255,255,255,0.16) 0 1.5px, transparent 1.5px 5px)';
+
 function SeatCards({ state }: { state: SeatState }) {
   const style: CSSProperties =
     state === 'in'
-      ? { background: 'linear-gradient(145deg, #33cc7a, #177a43)', border: '1px solid rgba(255,255,255,0.55)' }
+      ? CARD_BACK
       : state === 'folded'
         ? { background: '#232628', border: '1px solid rgba(255,255,255,0.06)', filter: 'saturate(0)', opacity: 0.35 }
         : { background: '#33383d', border: '1px solid rgba(255,255,255,0.16)', opacity: 0.9 };
   return (
-    <div className="flex -space-x-1">
-      <span className="h-5 w-3.5 -rotate-6 rounded-[3px]" style={style} />
-      <span className="h-5 w-3.5 rotate-6 rounded-[3px]" style={style} />
+    <div className="flex -space-x-1.5">
+      {[-8, 8].map((rot, i) => (
+        <span key={i} className="relative h-8 w-6 overflow-hidden rounded-[4px]"
+          style={{ ...style, transform: `rotate(${rot}deg)` }}>
+          {state === 'in' && <span className="absolute inset-0" style={{ backgroundImage: TEXTURE }} />}
+        </span>
+      ))}
     </div>
   );
 }
@@ -69,8 +84,9 @@ export function PokerTable({ ex, simple = false }: {
       {/* Rail + feltro — oval EM PÉ (retrato) como o trainer de referência.
           Largura E altura em `dvh` (retrato fixo, ~0.85), independente do
           contexto de layout: ainda sobra espaço pros botões/feedback embaixo
-          (o cap em px evita ficar gigante em telas altas). As cartas do herói
-          são `sm` pra não cobrir o pot; as do board também `sm`. */}
+          (o cap em px evita ficar gigante em telas altas). Herói e board usam
+          `md`: com `sm` as cartas ficavam ilegíveis em celular. Turn/river
+          quebram em 2 linhas justamente porque 5 cartas `md` não cabem numa. */}
       <div
         className="absolute inset-1 rounded-[42%]"
         style={{
@@ -98,7 +114,7 @@ export function PokerTable({ ex, simple = false }: {
             <div className="mb-2 flex flex-col items-center gap-1">
               {rows.map((row, r) => (
                 <div key={r} className="flex gap-1">
-                  {row.map((t, i) => <Card key={i} token={t} size="sm" />)}
+                  {row.map((t, i) => <Card key={i} token={t} size="md" />)}
                 </div>
               ))}
             </div>
@@ -154,7 +170,7 @@ export function PokerTable({ ex, simple = false }: {
         <div key={ex.heroHand} className="flex gap-1.5">
           {cards.map((t, i) => (
             <div key={i} className="animate-deal-in drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)]" style={{ animationDelay: `${i * 90}ms` }}>
-              <Card token={t} size="sm" />
+              <Card token={t} size="md" />
             </div>
           ))}
         </div>
