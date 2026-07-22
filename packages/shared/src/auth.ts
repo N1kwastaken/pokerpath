@@ -69,6 +69,9 @@ export interface PublicUser {
   streakAtRisk: boolean;
   /** Já garantiu o dia de hoje. */
   streakPlayedToday: boolean;
+  /** Recorde de dias seguidos — é o que destrava recompensas de streak
+   *  (usar o máximo garante que cosmético conquistado nunca se perde). */
+  maxStreak: number;
   /** Recebe o lembrete diário de streak por e-mail. */
   emailReminders: boolean;
   onboardingCompleted: boolean;

@@ -94,9 +94,12 @@ export const MILESTONES: MilestoneDef[] = [
   { code: 'CORRECT_500',  title: '500 mãos certas',    description: 'Quinhentas. Isso já é leitura de range.',           icon: '🧠', track: 'CORRECT', target: 500,  xpReward: 350, energyReward: 15 },
   { code: 'CORRECT_1000', title: '1000 mãos certas',   description: 'Mil mãos certas — território de jogador sério.',    icon: '💎', track: 'CORRECT', target: 1000, xpReward: 700, energyReward: 25 },
 
-  { code: 'STREAK_3',     title: '3 dias seguidos',    description: 'Três dias sem falhar. O começo de tudo.',           icon: '🔥', track: 'STREAK',  target: 3,    xpReward: 60,  energyReward: 5 },
-  { code: 'STREAK_7',     title: '7 dias seguidos',    description: 'Uma semana inteira de treino.',                     icon: '⚡', track: 'STREAK',  target: 7,    xpReward: 150, energyReward: 10 },
-  { code: 'STREAK_30',    title: '30 dias seguidos',   description: 'Um mês. Poker virou rotina.',                       icon: '🏆', track: 'STREAK',  target: 30,   xpReward: 600, energyReward: 25 },
+  { code: 'STREAK_3',     title: '3 dias seguidos',    description: 'Três dias sem falhar. A faísca pegou.',             icon: '🔥', track: 'STREAK',  target: 3,    xpReward: 60,   energyReward: 5 },
+  { code: 'STREAK_7',     title: '7 dias seguidos',    description: 'Uma semana inteira de treino.',                     icon: '🔥', track: 'STREAK',  target: 7,    xpReward: 150,  energyReward: 10 },
+  { code: 'STREAK_14',    title: '14 dias seguidos',   description: 'Duas semanas de fogo — metade do caminho até o mês.', icon: '🔥', track: 'STREAK', target: 14,  xpReward: 300,  energyReward: 15 },
+  { code: 'STREAK_30',    title: '30 dias seguidos',   description: 'Um mês inteiro — e desbloqueia a cor Brasa.',       icon: '🔥', track: 'STREAK',  target: 30,   xpReward: 600,  energyReward: 25 },
+  { code: 'STREAK_60',    title: '60 dias seguidos',   description: 'Dois meses seguidos. Pouquíssimos chegam aqui.',    icon: '🔥', track: 'STREAK',  target: 60,   xpReward: 900,  energyReward: 30 },
+  { code: 'STREAK_100',   title: '100 dias seguidos',  description: 'Cem dias. O fogo mais quente queima azul — desbloqueia a Chama fria.', icon: '🔥', track: 'STREAK', target: 100, xpReward: 1500, energyReward: 40 },
 
   { code: 'PERFECT_10',   title: '10 fases impecáveis', description: 'Dez fases sem errar uma única mão.',               icon: '⭐', track: 'PERFECT', target: 10,   xpReward: 250, energyReward: 10 },
 ];

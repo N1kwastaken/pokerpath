@@ -23,7 +23,7 @@ export function LevelsPage() {
 
   if (!user) return null;
   const prog = levelProgress(user.totalXp);
-  const unlocked = unlockedAccents(trail);
+  const unlocked = unlockedAccents(trail, user?.maxStreak ?? 0);
 
   return (
     <div className="px-5 py-8">

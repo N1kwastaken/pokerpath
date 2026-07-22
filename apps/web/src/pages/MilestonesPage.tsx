@@ -8,6 +8,7 @@ import { sound } from '../lib/sound.js';
 import { Confetti } from '../components/Confetti.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { IconCheck, IconBolt } from '../components/Icons.js';
+import { StreakBadge, tierForTarget } from '../components/StreakBadge.js';
 
 /**
  * Marcos — a escada de progresso, agrupada por trilha.
@@ -100,8 +101,13 @@ function Row({ m, claimed, onClaim }: { m: MilestoneView; claimed: boolean; onCl
   return (
     <div className={`p-4 ${m.reached ? '' : 'opacity-90'}`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 gap-3">
-          <span className={`text-2xl ${m.reached ? '' : 'grayscale'}`} aria-hidden>{m.icon}</span>
+        <div className="flex min-w-0 items-start gap-3">
+          {/* Streak tem emblema próprio (a arte da recompensa); as outras trilhas seguem no emoji. */}
+          {m.track === 'STREAK' && tierForTarget(m.target) ? (
+            <span className="shrink-0"><StreakBadge tier={tierForTarget(m.target)!} size={44} dim={!m.reached} /></span>
+          ) : (
+            <span className={`text-2xl ${m.reached ? '' : 'grayscale'}`} aria-hidden>{m.icon}</span>
+          )}
           <div className="min-w-0">
             <h3 className="truncate font-bold text-title">{m.title}</h3>
             <p className="mt-0.5 text-xs text-subtle">{m.description}</p>

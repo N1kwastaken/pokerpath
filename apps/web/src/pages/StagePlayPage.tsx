@@ -13,6 +13,7 @@ import { ProgressBar } from '../components/ProgressBar.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
 import { CountUp } from '../components/CountUp.js';
+import { StreakBadge, tierForDays } from '../components/StreakBadge.js';
 import { GtoBars } from '../components/GtoBars.js';
 import { IconX, IconCheck, IconBolt } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
@@ -345,7 +346,11 @@ export function StagePlayPage() {
         {/* Streak conquistado nesta sessão — a recompensa que fecha o dia. */}
         {streakAdvanced && (
           <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 px-4 py-3">
-            <span className="animate-flame text-3xl">🔥</span>
+            {tierForDays(user!.currentStreak) ? (
+              <StreakBadge tier={tierForDays(user!.currentStreak)!} size={44} />
+            ) : (
+              <span className="animate-flame text-3xl">🔥</span>
+            )}
             <div className="text-left">
               <p className="text-lg font-extrabold text-gold">
                 {user!.currentStreak} {user!.currentStreak === 1 ? 'dia seguido' : 'dias seguidos'}

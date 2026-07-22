@@ -9,6 +9,7 @@ import type { WorldDetail } from '@pokerpath/shared';
 export type AccentUnlock =
   | { type: 'start' }
   | { type: 'world'; order: number; label: string }
+  | { type: 'streak'; days: number; label: string }
   | { type: 'finish' }
   | { type: 'perfect' };
 
@@ -18,13 +19,19 @@ export const ACCENTS: readonly { key: string; name: string; hex: string; unlock:
   { key: 'purple', name: 'Roxo royal', hex: '#935CF6', unlock: { type: 'world', order: 1, label: 'Complete o Iniciante' } },
   { key: 'orange', name: 'Laranja pote', hex: '#EA7C2A', unlock: { type: 'world', order: 2, label: 'Complete o Intermediário' } },
   { key: 'pink', name: 'Rosa all-in', hex: '#E74C91', unlock: { type: 'world', order: 3, label: 'Complete o Avançado' } },
+  // Cores de STREAK — o cosmético que só a constância compra.
+  { key: 'ember', name: 'Brasa — 30 dias de streak', hex: '#E2543E', unlock: { type: 'streak', days: 30, label: 'Chegue a 30 dias de sequência' } },
+  { key: 'ice', name: 'Chama fria — 100 dias de streak', hex: '#22D3EE', unlock: { type: 'streak', days: 100, label: 'Chegue a 100 dias de sequência' } },
   { key: 'silver', name: 'Prata — terminou o jogo', hex: '#94A3B8', unlock: { type: 'finish' } },
   { key: 'gold', name: 'Ouro — 100% perfeito', hex: '#C9A84C', unlock: { type: 'perfect' } },
 ] as const;
 
-/** Quais cores o progresso atual libera (a partir da trilha). */
-export function unlockedAccents(trail: WorldDetail[] | undefined): Set<string> {
+/** Quais cores o progresso atual libera (trilha + recorde de streak). */
+export function unlockedAccents(trail: WorldDetail[] | undefined, maxStreak = 0): Set<string> {
   const un = new Set<string>(['green']);
+  for (const a of ACCENTS) {
+    if (a.unlock.type === 'streak' && maxStreak >= a.unlock.days) un.add(a.key);
+  }
   if (!trail || trail.length === 0) return un;
   const worldComplete = (order: number) => {
     const w = trail.find((x) => x.order === order);
@@ -44,6 +51,7 @@ export function unlockLabel(a: (typeof ACCENTS)[number]): string {
   switch (a.unlock.type) {
     case 'start': return 'Disponível desde o início';
     case 'world': return a.unlock.label;
+    case 'streak': return a.unlock.label;
     case 'finish': return 'Termine todas as fases do jogo';
     case 'perfect': return 'Feche o jogo 100% perfeito (todas as estrelas)';
   }
@@ -56,7 +64,7 @@ export function unlockLabel(a: (typeof ACCENTS)[number]): string {
  */
 const ACCENT_WORD: Record<string, string> = {
   green: 'verde', blue: 'azul', purple: 'roxo', orange: 'laranja',
-  pink: 'rosa', silver: 'prata', gold: 'dourado',
+  pink: 'rosa', ember: 'vermelho', ice: 'ciano', silver: 'prata', gold: 'dourado',
 };
 export function accentWord(): string {
   return ACCENT_WORD[currentAccent()] ?? 'verde';

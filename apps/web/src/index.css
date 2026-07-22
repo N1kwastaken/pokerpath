@@ -47,6 +47,12 @@
   [data-theme='light'][data-accent='orange'] { --primary: 217 104 24; --primary2: 172 78 16; --primary-soft: 253 230 211; }
   [data-accent='pink'] { --primary: 231 76 145; --primary2: 184 51 110; --primary-soft: 52 18 33; }
   [data-theme='light'][data-accent='pink'] { --primary: 214 51 122; --primary2: 168 34 92; --primary-soft: 251 219 233; }
+  /* Cores de STREAK: brasa (30 dias) e chama fria (100 dias) */
+  [data-accent='ember'] { --primary: 226 84 62; --primary2: 178 55 38; --primary-soft: 52 20 15; }
+  [data-theme='light'][data-accent='ember'] { --primary: 200 62 40; --primary2: 156 44 28; --primary-soft: 252 224 218; }
+  [data-accent='ice'] { --primary: 34 211 238; --primary2: 14 154 181; --primary-soft: 12 42 48; }
+  [data-theme='light'][data-accent='ice'] { --primary: 8 145 178; --primary2: 6 110 136; --primary-soft: 205 244 251; }
+
   /* Cores de prestígio: prata (terminou o jogo) e ouro (100% perfeito) */
   [data-accent='silver'] { --primary: 148 163 184; --primary2: 100 116 139; --primary-soft: 30 36 46; }
   [data-theme='light'][data-accent='silver'] { --primary: 100 116 139; --primary2: 71 85 105; --primary-soft: 226 232 240; }

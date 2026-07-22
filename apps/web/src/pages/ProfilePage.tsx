@@ -16,7 +16,7 @@ export function ProfilePage() {
   const queryClient = useQueryClient();
   // Cores são conquistadas pelo progresso — a trilha diz o que já foi liberado.
   const { data: trail } = useQuery({ queryKey: ['trail'], queryFn: gameApi.trail });
-  const unlocked = unlockedAccents(trail);
+  const unlocked = unlockedAccents(trail, user?.maxStreak ?? 0);
   const [muted, setMuted] = useState(sound.isMuted());
 
   // Qualquer ação de debug recarrega para refletir o novo estado (XP, plano, etc.).

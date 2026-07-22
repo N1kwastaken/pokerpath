@@ -26,6 +26,9 @@ export function toPublicUser(
     currentStreak: sv.current,
     streakAtRisk: sv.atRisk,
     streakPlayedToday: sv.playedToday,
+    // current nunca passa do máximo gravado, mas o max(...) blinda contra
+    // qualquer corrida de escrita — recompensa de streak não pode regredir.
+    maxStreak: Math.max(sv.current, streak?.maxStreak ?? 0),
     emailReminders: user.emailReminders,
     onboardingCompleted: user.onboardingCompleted,
     createdAt: user.createdAt.toISOString(),
