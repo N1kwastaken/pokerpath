@@ -7,6 +7,7 @@ import { useAchievements } from '../hooks/useGame.js';
 import { userApi } from '../api/game.js';
 import { sound } from '../lib/sound.js';
 import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
+import { Avatar } from '../components/Avatar.js';
 import { IconChevron, IconSettings, IconCheck } from '../components/Icons.js';
 
 /**
@@ -73,9 +74,9 @@ export function ProfilePage() {
         {/* avatar sobreposto, com anel na cor do app */}
         <div className="absolute -bottom-10 left-5">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-bg p-1.5">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-4xl font-black text-white">
-              {user.name.trim().charAt(0).toUpperCase() || '?'}
-            </div>
+            {/* O próprio usuário usa a COR DO APP (a que ele escolheu); os
+                outros ganham cor derivada do nome, no Avatar. */}
+            <Avatar name={user.name} size={84} color="rgb(var(--primary))" />
           </div>
         </div>
       </div>
