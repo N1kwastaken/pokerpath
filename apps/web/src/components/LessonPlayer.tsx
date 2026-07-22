@@ -7,7 +7,7 @@ import { LessonVisual } from './LessonVisual.js';
 import { LessonHandTable } from './LessonHandTable.js';
 import { PositionRangeCard } from './PositionRangeCard.js';
 import { RangeGridView } from './RangeGridView.js';
-import { OrderGame, MatchGame } from './LessonGames.js';
+import { OrderGame, MatchGame, TapAllGame, MemoryGame } from './LessonGames.js';
 import { Glossarized } from './Glossarized.js';
 import { lessonFor } from '../content/lessons.js';
 import { sound } from '../lib/sound.js';
@@ -51,11 +51,11 @@ export function LessonPlayer({ title, concept, onExit, onFinish, finishing = fal
 
   const step = steps[lessonIdx];
   const last = lessonIdx >= steps.length - 1;
-  const needsAnswer = step.kind === 'quiz' || step.kind === 'hand' || step.kind === 'order' || step.kind === 'match';
+  const needsAnswer = step.kind === 'quiz' || step.kind === 'hand' || step.kind === 'order' || step.kind === 'match' || step.kind === 'tapall' || step.kind === 'memory';
   const answered =
     step.kind === 'hand' ? handPick !== null
     : step.kind === 'quiz' ? quizPick !== null
-    : step.kind === 'order' || step.kind === 'match' ? gameDone
+    : step.kind === 'order' || step.kind === 'match' || step.kind === 'tapall' || step.kind === 'memory' ? gameDone
     : true;
 
   function resetStepState() { setQuizPick(null); setHandPick(null); setGameDone(false); }
@@ -111,10 +111,16 @@ export function LessonPlayer({ title, concept, onExit, onFinish, finishing = fal
             )}
           </div>
         ) : step.kind === 'order' ? (
-          <OrderGame key={lessonIdx} prompt={step.prompt} items={step.items} explain={step.explain}
+          <OrderGame key={lessonIdx} prompt={step.prompt} items={step.items} explain={step.explain} level={step.level}
             onComplete={() => setGameDone(true)} onMistake={() => setMistakes((m) => m + 1)} />
         ) : step.kind === 'match' ? (
-          <MatchGame key={lessonIdx} prompt={step.prompt} pairs={step.pairs} explain={step.explain}
+          <MatchGame key={lessonIdx} prompt={step.prompt} pairs={step.pairs} explain={step.explain} level={step.level}
+            onComplete={() => setGameDone(true)} onMistake={() => setMistakes((m) => m + 1)} />
+        ) : step.kind === 'tapall' ? (
+          <TapAllGame key={lessonIdx} prompt={step.prompt} targets={step.targets} decoys={step.decoys} explain={step.explain} level={step.level}
+            onComplete={() => setGameDone(true)} onMistake={() => setMistakes((m) => m + 1)} />
+        ) : step.kind === 'memory' ? (
+          <MemoryGame key={lessonIdx} prompt={step.prompt} pairs={step.pairs} explain={step.explain} level={step.level}
             onComplete={() => setGameDone(true)} onMistake={() => setMistakes((m) => m + 1)} />
         ) : step.kind === 'text' ? (
           <>

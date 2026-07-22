@@ -15,8 +15,12 @@ export type LessonStep =
   | { kind: 'hand'; position: Position; hand: string; answer: 'FOLD' | 'RAISE' | 'CALL'; explain: string; facing?: string }
   // table: mostra a situação NA MESA (mão do herói + cartas comunitárias) em vez de só texto.
   | { kind: 'quiz'; q: string; options: string[]; answer: number; explain: string; table?: { position: Position; hand: string; board?: string } }
-  | { kind: 'order'; prompt: string; items: string[]; explain: string }
-  | { kind: 'match'; prompt: string; pairs: [string, string][]; explain: string };
+  | { kind: 'order'; prompt: string; items: string[]; explain: string; level?: 1 | 2 | 3 }
+  | { kind: 'match'; prompt: string; pairs: [string, string][]; explain: string; level?: 1 | 2 | 3 }
+  // caça-alvos: toque em TODOS os itens que obedecem à regra
+  | { kind: 'tapall'; prompt: string; targets: string[]; decoys: string[]; explain: string; level?: 1 | 2 | 3 }
+  // jogo da memória: pares nome ↔ desenho, cartas viradas para baixo
+  | { kind: 'memory'; prompt: string; pairs: [string, string][]; explain: string; level?: 1 | 2 | 3 };
 
 const t = (text: string): LessonStep => ({ kind: 'text', text });
 const v = (visual: 'suits' | 'order' | 'ranking' | 'positions' | 'handranks'): LessonStep => ({ kind: 'visual', visual });
@@ -30,8 +34,12 @@ const quizT = (table: { position: Position; hand: string; board?: string }, q: s
   ({ kind: 'quiz', q, options, answer, explain, table });
 const order = (prompt: string, items: string[], explain: string): LessonStep =>
   ({ kind: 'order', prompt, items, explain });
-const match = (prompt: string, pairs: [string, string][], explain: string): LessonStep =>
-  ({ kind: 'match', prompt, pairs, explain });
+const match = (prompt: string, pairs: [string, string][], explain: string, level?: 1 | 2 | 3): LessonStep =>
+  ({ kind: 'match', prompt, pairs, explain, level });
+const tapall = (prompt: string, targets: string[], decoys: string[], explain: string, level?: 1 | 2 | 3): LessonStep =>
+  ({ kind: 'tapall', prompt, targets, decoys, explain, level });
+const memory = (prompt: string, pairs: [string, string][], explain: string, level?: 1 | 2 | 3): LessonStep =>
+  ({ kind: 'memory', prompt, pairs, explain, level });
 
 export const LESSONS: Record<string, LessonStep[]> = {
   // ── Mundo 0 ────────────────────────────────────────────────
@@ -44,8 +52,23 @@ export const LESSONS: Record<string, LessonStep[]> = {
   'Baralho e naipes': [
     t(`São 52 cartas em 4 naipes:`),
     v('suits'),
+    match(`Combine o nome do naipe com o desenho:`, [
+      ['Espadas', '♠'],
+      ['Copas', '♥'],
+      ['Ouros', '♦'],
+      ['Paus', '♣'],
+    ], `Espadas ♠ e paus ♣ são pretos; copas ♥ e ouros ♦ são vermelhos.`, 1),
+    tapall(`Toque em todos os naipes VERMELHOS:`,
+      ['♥', '♦'], ['♠', '♣'],
+      `Copas e ouros são os vermelhos. Nas cartas, a cor ajuda a ler a mesa rápido.`, 1),
     quiz(`Qual naipe vale mais no Hold'em?`, ['Espadas ♠', 'Nenhum: todos iguais'], 1,
       `Nenhum — os naipes têm o mesmo valor.`),
+    memory(`Jogo da memória: ache os pares nome ↔ naipe.`, [
+      ['Copas', '♥'],
+      ['Espadas', '♠'],
+      ['Ouros', '♦'],
+      ['Paus', '♣'],
+    ], `Decorou os quatro? Isso vira leitura automática com o tempo.`, 1),
   ],
   'Ordem das cartas': [
     t(`Do 2 (mais fraco) ao Ás (mais forte):`),
@@ -53,6 +76,9 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`Quem vale mais: A ou K?`, ['K', 'A'], 1, `O Ás (A) é a carta mais alta.`),
     order(`Agora você: coloque da MAIS FORTE para a mais fraca.`, ['A♠', 'K♥', 'Q♦', 'J♣', 'T♠', '9♥'],
       `Ás > Rei > Dama > Valete > Dez > Nove. O T representa o 10.`),
+    tapall(`Toque em todas as cartas MAIS FORTES que o 9:`,
+      ['A♠', 'K♦', 'Q♣', 'J♥', 'T♠'], ['9♥', '8♣', '7♦', '4♠', '2♥'],
+      `T (dez), J, Q, K e A — todas acima do 9. O T engana muita gente.`, 2),
   ],
   'Ranking de mãos': [
     t(`Sua jogada usa 5 cartas: as 2 da sua mão + as da mesa. Veja cada uma, da mais forte à mais fraca:`),
@@ -74,6 +100,12 @@ export const LESSONS: Record<string, LessonStep[]> = {
       'Sequência|4♣ 5♦ 6♠ 7♥ 8♣',
       'Par|Q♠ Q♥',
     ], `Quadra > Full house > Flush > Sequência > Par. Quanto mais rara, mais forte.`),
+    memory(`Memória: combine a jogada com as cartas dela.`, [
+      ['Par', '9♠ 9♥'],
+      ['Trinca', '7♠ 7♥ 7♦'],
+      ['Dois pares', 'K♠ K♥ 8♦ 8♣'],
+      ['Quadra', 'J♠ J♥ J♦ J♣'],
+    ], `Par, dois pares, trinca, quadra: a escadinha das mãos "de iguais".`, 2),
   ],
   'Anatomia de uma rodada': [
     t(`Antes das cartas, dois jogadores pagam apostas obrigatórias, chamadas BLINDS: o small blind (SB, a menor) e o big blind (BB, a maior).`),
@@ -117,6 +149,12 @@ export const LESSONS: Record<string, LessonStep[]> = {
     v('positions'),
     // {cor} = cor de destaque escolhida pelo usuário (ver lib/accent.ts).
     t(`Nos treinos, VOCÊ é sempre a cadeira de baixo, marcada em {cor}. Os nomes (UTG, MP, CO, BTN, SB, BB) você vai decorar com o tempo — sem pressa.`),
+    memory(`Memória: cada posição com o papel dela.`, [
+      ['BTN', 'Melhor cadeira: fala por último'],
+      ['UTG', 'Primeiro a falar'],
+      ['SB', 'Paga a blind menor'],
+      ['BB', 'Paga a blind maior'],
+    ], `BTN age por último (vantagem enorme); UTG por primeiro; SB e BB pagam as apostas obrigatórias.`, 2),
     t(`Do flop em diante, o BTN é SEMPRE o último a agir — por isso é a melhor cadeira: decide vendo o que todos fizeram.`),
     quiz(`Quem age por último vê o que todos fizeram antes. Qual é a melhor cadeira?`, ['UTG (a primeira a falar)', 'BTN (o botão)'], 1,
       `O botão (BTN): depois do flop, decide por último, com o máximo de informação.`),
@@ -150,6 +188,9 @@ export const LESSONS: Record<string, LessonStep[]> = {
   ],
 
   'Ler o gráfico': [
+    tapall(`No gráfico, suited (s) e offsuit (o) são casas diferentes. Toque em todas as mãos SUITED:`,
+      ['A♠ K♠', 'Q♥ J♥', '9♦ 8♦'], ['A♣ K♦', 'Q♠ J♥', '9♣ 8♥'],
+      `Suited = as DUAS cartas do mesmo naipe. AKs e AKo parecem irmãs, mas são mãos bem diferentes.`, 3),
     t(`Este é um GRÁFICO DE MÃOS — o mapa que diz o que fazer com cada mão inicial. Cada quadradinho é uma combinação das suas 2 cartas:`),
     t(`A DIAGONAL são os pares (AA, KK… 22). ACIMA dela ficam as mãos do MESMO naipe (AKs, o "s" de suited). ABAIXO, as de naipes diferentes (AKo, o "o" de offsuit).`),
     t(`As cores dizem a ação: VERDE = aumentar (raise) e CINZA = descartar (fold). Quadradinho dividido = mão de fronteira: joga das duas formas, na proporção das cores.`),
@@ -283,12 +324,22 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Com A♠5♠ você segura um dos ases: fica mais difícil o vilão ter AA ou AK. Por isso é um bom 3-bet blefe.`),
     quiz(`Por que A5s blefa melhor que 87s como 3-bet?`, ['Faz mais sequência', 'O ás bloqueia AA/AK do vilão'], 1,
       `O blocker de ás reduz as mãos com que o vilão continua.`),
+    memory(`Memória final: cada termo com o significado.`, [
+      ['RFI', 'Abrir o pote com raise'],
+      ['3-bet', 'Reaumentar quem abriu'],
+      ['Suited', 'Duas cartas do mesmo naipe'],
+      ['Blocker', 'Carta sua que corta combos do vilão'],
+      ['Blinds', 'Apostas obrigatórias'],
+    ], `Cinco termos que sustentam todo o resto do curso.`, 3),
   ],
   'Flop board': [
     t(`Board seco (ex.: K♠7♦2♣): poucas sequências/flushes possíveis — favorece quem abriu.`),
     t(`Board molhado (ex.: 9♥8♥7♣): muitos projetos — perigoso, exige mãos mais fortes para continuar.`),
     quiz(`Em qual board vale continuar com mais cuidado?`, ['Seco K♠7♦2♣', 'Molhado 9♥8♥7♣'], 1,
       `Boards molhados dão mais projetos ao vilão: cuidado.`),
+    tapall(`Toque em todos os boards MOLHADOS (conectados ou com 2 do mesmo naipe):`,
+      ['9♥ 8♥ 7♣', 'J♠ T♠ 6♦', 'Q♦ J♣ 9♦'], ['K♠ 7♦ 2♣', 'A♣ 8♠ 3♥', 'K♥ 9♣ 4♦'],
+      `Cartas próximas ou naipes repetidos = projetos vivos. Boards com cartas soltas e naipes variados são secos.`, 3),
   ],
   'Cbet intro': [
     t(`Agora VOCÊ é o agressor: você abriu, o BB pagou e deu check. Apostar (c-bet) ou dar check?`),

@@ -22,6 +22,46 @@ describe('aulas', () => {
   });
 });
 
+describe('mini-jogos das aulas', () => {
+  const games = Object.entries(LESSONS).flatMap(([lesson, steps]) =>
+    steps.map((step, i) => ({ lesson, i, step })),
+  );
+
+  it('order/match: itens únicos (o jogo identifica pelo texto — repetido quebra)', () => {
+    const bad: string[] = [];
+    for (const { lesson, step } of games) {
+      if (step.kind === 'order' && new Set(step.items).size !== step.items.length)
+        bad.push(`${lesson}: order com item repetido`);
+      if (step.kind === 'match') {
+        if (new Set(step.pairs.map((p) => p[0])).size !== step.pairs.length) bad.push(`${lesson}: match com lado esquerdo repetido`);
+        if (new Set(step.pairs.map((p) => p[1])).size !== step.pairs.length) bad.push(`${lesson}: match com lado direito repetido`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('tapall: alvo nunca é igual a isca (ficaria visualmente impossível)', () => {
+    const bad: string[] = [];
+    for (const { lesson, step } of games) {
+      if (step.kind !== 'tapall') continue;
+      if (step.targets.length === 0) bad.push(`${lesson}: tapall sem alvos`);
+      const t = new Set(step.targets);
+      for (const d of step.decoys) if (t.has(d)) bad.push(`${lesson}: "${d}" é alvo E isca`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('memory: nenhuma face repetida (duas cartas iguais de pares diferentes é injusto)', () => {
+    const bad: string[] = [];
+    for (const { lesson, step } of games) {
+      if (step.kind !== 'memory') continue;
+      const faces = step.pairs.flat();
+      if (new Set(faces).size !== faces.length) bad.push(`${lesson}: memory com face repetida`);
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
 describe('stageGroup', () => {
   it('nenhum conceito do Avançado cai em Fundamentos por engano', () => {
     // Fundamentos é o fallback: se um conceito novo cai lá, faltou prefixo.
