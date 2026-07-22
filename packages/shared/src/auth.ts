@@ -72,6 +72,8 @@ export interface PublicUser {
   /** Recorde de dias seguidos — é o que destrava recompensas de streak
    *  (usar o máximo garante que cosmético conquistado nunca se perde). */
   maxStreak: number;
+  /** Badges escolhidos para a vitrine do perfil (máx. 2, ordem preservada). */
+  showcaseBadges: string[];
   /** Recebe o lembrete diário de streak por e-mail. */
   emailReminders: boolean;
   onboardingCompleted: boolean;
@@ -87,6 +89,8 @@ export interface FriendView {
   levelName: string;
   currentStreak: number;
   isDev: boolean;
+  /** A vitrine dele — é o que faz escolher badge valer a pena. */
+  showcaseBadges: string[];
 }
 
 export interface FriendsResponse {

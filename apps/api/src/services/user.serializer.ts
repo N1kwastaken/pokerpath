@@ -6,6 +6,17 @@ import { viewStreak } from './streak.service.js';
  * Converte um User do banco no formato público (sem hash de senha).
  * Centraliza a derivação de nível e streak para não repetir em cada rota.
  */
+/** JSON corrompido nunca derruba o perfil: vira vitrine vazia. */
+export function parseShowcase(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const v: unknown = JSON.parse(raw);
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 2) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function toPublicUser(
   user: User,
   streak?: Streak | null,
@@ -29,6 +40,7 @@ export function toPublicUser(
     // current nunca passa do máximo gravado, mas o max(...) blinda contra
     // qualquer corrida de escrita — recompensa de streak não pode regredir.
     maxStreak: Math.max(sv.current, streak?.maxStreak ?? 0),
+    showcaseBadges: parseShowcase(user.showcaseBadges),
     emailReminders: user.emailReminders,
     onboardingCompleted: user.onboardingCompleted,
     createdAt: user.createdAt.toISOString(),

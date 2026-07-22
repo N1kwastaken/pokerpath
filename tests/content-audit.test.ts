@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { WORLDS, MISSIONS } from '../apps/api/prisma/seed.js';
-import { MILESTONES, MILESTONE_TRACKS } from '../packages/shared/src/gamification.js';
+import { MILESTONES, MILESTONE_TRACKS, ownsBadge, STREAK_BADGE_DAYS } from '../packages/shared/src/gamification.js';
 import { RANGE_DEFS, raiseSet, labelOfHand, rangeDefFor } from '../apps/api/prisma/ranges.js';
 
 /** Auditoria além dos testes existentes: procura mãos erradas, ranges incoerentes,
@@ -165,6 +165,37 @@ describe('marcos', () => {
       if (m.energyReward < 0) bad.push(`${m.code}: energia ${m.energyReward}`);
     }
     expect(bad).toEqual([]);
+  });
+});
+
+describe('vitrine de badges', () => {
+  // A posse é validada NO SERVIDOR com esta função. Se ela afrouxar, qualquer
+  // cliente passa a exibir conquista que nunca fez.
+  const has = { achievements: ['PRIMEIRA_MAO'], maxStreak: 30 };
+
+  it('só reconhece badge realmente conquistado', () => {
+    const bad: string[] = [];
+    const casos: [string, boolean][] = [
+      ['ach:PRIMEIRA_MAO', true],
+      ['ach:NAO_TENHO', false],
+      ['streak:3', true],
+      ['streak:30', true],
+      ['streak:60', false],   // maxStreak 30 < 60
+      ['streak:5', false],    // degrau que não existe
+      ['streak:abc', false],
+      ['qualquer', false],
+      ['', false],
+    ];
+    for (const [id, esperado] of casos) {
+      if (ownsBadge(id, has) !== esperado) bad.push(`${id}: esperado ${esperado}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('todo degrau de badge de streak tem um marco correspondente', () => {
+    const alvos = new Set(MILESTONES.filter((m) => m.track === 'STREAK').map((m) => m.target));
+    const orfaos = STREAK_BADGE_DAYS.filter((d) => !alvos.has(d));
+    expect(orfaos).toEqual([]);
   });
 });
 

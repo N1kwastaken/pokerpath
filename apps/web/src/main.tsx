@@ -5,9 +5,11 @@ import { AuthProvider } from './auth/AuthContext.js';
 import { ThemeProvider } from './lib/theme.js';
 import { App } from './App.js';
 import './index.css';
+import { initA11y } from './lib/a11y.js';
 import { initAccent } from './lib/accent.js';
 
 initAccent();
+initA11y();
 
 // O iOS Safari IGNORA user-scalable=no do viewport: bloqueia o pinch-zoom
 // manualmente (gesture* são eventos só do iOS). O double-tap-zoom é bloqueado

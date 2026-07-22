@@ -1,201 +1,210 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { SHOWCASE_MAX, achievementBadgeId, streakBadgeId, STREAK_BADGE_DAYS } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
-import { useTheme } from '../lib/theme.js';
-import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } from '../lib/accent.js';
+import { useAchievements } from '../hooks/useGame.js';
+import { userApi } from '../api/game.js';
 import { sound } from '../lib/sound.js';
-import { gameApi, userApi } from '../api/game.js';
-import { IconUser, IconLogout, IconChevron } from '../components/Icons.js';
+import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
+import { IconChevron, IconSettings, IconCheck } from '../components/Icons.js';
 
-/** Perfil — dados do usuário, preferências, logout e painel de debug. */
+/**
+ * Perfil — CARTÃO DE IDENTIDADE, não painel de controle.
+ *
+ * Estrutura de rede social (banner + avatar sobreposto + nome + vitrine):
+ * o que a pessoa conquistou fica em cima, e toda a manutenção (tema, som,
+ * acessibilidade, debug) mudou para /settings, atrás da engrenagem.
+ */
 export function ProfilePage() {
-  const { user, logout, setUser } = useAuth();
-  const { theme, toggle } = useTheme();
-  const [accent, setAccent] = useState(currentAccent());
-  const queryClient = useQueryClient();
-  // Cores são conquistadas pelo progresso — a trilha diz o que já foi liberado.
-  const { data: trail } = useQuery({ queryKey: ['trail'], queryFn: gameApi.trail });
-  const unlocked = unlockedAccents(trail, user?.maxStreak ?? 0);
-  const [muted, setMuted] = useState(sound.isMuted());
+  const { user, setUser } = useAuth();
+  const { data: achievements } = useAchievements();
+  const [picking, setPicking] = useState(false);
 
-  // Qualquer ação de debug recarrega para refletir o novo estado (XP, plano, etc.).
-  const debugMut = useMutation({
-    mutationFn: (fn: () => Promise<unknown>) => fn(),
-    onSuccess: () => { queryClient.clear(); window.location.reload(); },
-    onError: (e: unknown) => { window.alert('Falha no debug: ' + (e instanceof Error ? e.message : 'erro')); },
+  const showcaseMut = useMutation({
+    mutationFn: (badges: string[]) => userApi.setShowcase(badges),
+    onSuccess: (u) => setUser(u),
   });
-
-  // Lembrete por e-mail: atualiza só o usuário, sem recarregar a página.
-  const remindersMut = useMutation({
-    mutationFn: (on: boolean) => userApi.setEmailReminders(on),
-    onSuccess: (u) => { sound.click(); setUser(u); },
-  });
-
-  function run(fn: () => Promise<unknown>) { debugMut.mutate(fn); }
-  function confirmReset() {
-    if (window.confirm('Reiniciar TODO o seu progresso? Apaga XP, fases, conquistas, missões e streak. Não dá para desfazer.')) {
-      run(() => gameApi.resetProgress());
-    }
-  }
 
   if (!user) return null;
-  const busy = debugMut.isPending;
+  const unlockedAch = (achievements ?? []).filter((a) => a.unlocked);
+  const owned = [
+    ...unlockedAch.map((a) => achievementBadgeId(a.code)),
+    ...STREAK_BADGE_DAYS.filter((d) => user.maxStreak >= d).map(streakBadgeId),
+  ];
+  // Fonte da verdade é o servidor; durante o salvamento mostramos o otimista.
+  const showcase = (showcaseMut.isPending ? showcaseMut.variables : user.showcaseBadges) ?? [];
+
+  function toggleBadge(id: string) {
+    sound.click();
+    const has = showcase.includes(id);
+    const next = has
+      ? showcase.filter((b) => b !== id)
+      // Cheio? o novo empurra o mais antigo — evita "desmarque um primeiro".
+      : [...showcase, id].slice(-SHOWCASE_MAX);
+    showcaseMut.mutate(next);
+  }
 
   return (
-    <div className="px-5 py-8">
-      <h1 className="mb-6 text-3xl font-bold text-title">Perfil</h1>
-
-      <div className="card flex items-center gap-4 p-5">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary">
-          <IconUser size={30} />
+    <div className="pb-8">
+      {/* ── Banner + avatar (a "capa" da conta) ── */}
+      <div className="relative">
+        <div
+          className="h-28 w-full"
+          style={{
+            background:
+              'linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary2)) 55%, rgb(var(--card)) 100%)',
+          }}
+        >
+          <div
+            className="h-full w-full opacity-30"
+            style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 12px)' }}
+          />
         </div>
-        <div className="min-w-0">
-          <p className="flex items-center gap-2 truncate text-lg font-bold text-title">
-            {user.name}
-            {user.isDev && (
-              <span title="Beta tester: premium liberado" className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent">DEV</span>
-            )}
-          </p>
-          <p className="truncate text-sm text-subtle">{user.email}</p>
-        </div>
-      </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <Mini value={`${user.level}`} label={user.levelName} />
-        <Mini value={user.totalXp.toLocaleString('pt-BR')} label="XP total" />
-        <Mini value={`${user.currentStreak}🔥`} label="Streak" />
-      </div>
+        {/* engrenagem: a manutenção agora mora atrás deste botão */}
+        <Link
+          to="/settings" aria-label="Configurações"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm active:scale-95"
+        >
+          <IconSettings size={20} />
+        </Link>
 
-      <h2 className="mb-3 mt-7 text-sm font-bold uppercase tracking-wide text-subtle">Preferências</h2>
-      <div className="card divide-y divide-line">
-        <Row label="Tema escuro" onClick={toggle} value={theme === 'dark' ? 'Ligado' : 'Desligado'} />
-        <Row label="Som" onClick={() => setMuted(sound.toggleMute())} value={muted ? 'Mudo' : 'Ligado'} />
-        <Row
-          label="Lembrete de streak por e-mail"
-          onClick={() => remindersMut.mutate(!user.emailReminders)}
-          value={remindersMut.isPending ? '...' : user.emailReminders ? 'Ligado' : 'Desligado'}
-        />
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <span className="font-medium text-title">Cor do app</span>
-            <div className="flex gap-2">
-              {ACCENTS.map((a) => {
-                const isUnlocked = unlocked.has(a.key);
-                return (
-                  <button key={a.key} aria-label={a.name} title={isUnlocked ? a.name : unlockLabel(a)}
-                    disabled={!isUnlocked}
-                    onClick={() => { sound.click(); applyAccent(a.key); setAccent(a.key); }}
-                    className={`relative h-7 w-7 rounded-full transition-transform ${accent === a.key ? 'scale-110 ring-2 ring-title' : isUnlocked ? 'opacity-70' : 'opacity-30'}`}
-                    style={{ backgroundColor: a.hex }}>
-                    {!isUnlocked && <span className="absolute inset-0 flex items-center justify-center text-[11px]">🔒</span>}
-                  </button>
-                );
-              })}
+        {/* avatar sobreposto, com anel na cor do app */}
+        <div className="absolute -bottom-10 left-5">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-bg p-1.5">
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-4xl font-black text-white">
+              {user.name.trim().charAt(0).toUpperCase() || '?'}
             </div>
           </div>
-          <p className="mt-1.5 text-[11px] text-subtle">Novas cores são conquistadas jogando: uma por nível — prata ao terminar o jogo e ouro no 100% perfeito.</p>
         </div>
       </div>
 
-      <Link to="/friends" className="mt-4 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
-        <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">👥</span> Amigos</span>
-        <IconChevron size={18} className="text-subtle" />
-      </Link>
-
-      <Link to="/achievements" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
-        <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">🏆</span> Conquistas</span>
-        <IconChevron size={18} className="text-subtle" />
-      </Link>
-
-      <Link to="/milestones" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
-        <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">🪜</span> Marcos</span>
-        <IconChevron size={18} className="text-subtle" />
-      </Link>
-
-      <Link to="/glossary" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
-        <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">📖</span> Glossário</span>
-        <IconChevron size={18} className="text-subtle" />
-      </Link>
-
-      <Link to="/tour" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
-        <span className="font-medium text-title">Rever tour de introdução</span>
-        <IconChevron size={18} className="text-subtle" />
-      </Link>
-
-      {user.isDev ? (
-        <div className="mt-4 w-full rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center text-sm font-semibold text-accent">
-          ⭐ Conta DEV — você tem o Premium liberado como beta tester. Obrigado por testar!
-        </div>
-      ) : (
-        <Link to="/premium" className="btn-primary mt-4 w-full">⭐ Conhecer o Premium</Link>
-      )}
-      <button
-        onClick={logout}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-error/30 bg-error/10 py-3.5 font-semibold text-error transition-colors hover:bg-error/15 active:scale-[0.98]"
-      >
-        <IconLogout size={18} /> Sair da conta
-      </button>
-
-      {/* ── Painel de debug (godmode) ── */}
-      <div className="mt-8 rounded-2xl border border-dashed border-line bg-card2 p-4">
-        <p className="text-xs font-bold uppercase tracking-wide text-subtle">🛠️ Debug (godmode)</p>
-
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Plano</p>
-        <div className="mt-1 grid grid-cols-2 gap-2">
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('FREE'))}>Definir FREE</DebugBtn>
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('PREMIUM'))}>Definir PREMIUM</DebugBtn>
+      <div className="px-5 pt-12">
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <h1 className="flex items-center gap-2 text-2xl font-black text-title">
+              <span className="truncate">{user.name}</span>
+              {user.isDev && (
+                <span title="Beta tester: premium liberado"
+                  className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent">DEV</span>
+              )}
+            </h1>
+            <p className="truncate text-sm text-subtle">{user.levelName} · {user.email}</p>
+          </div>
+          {/* vitrine ao lado do nome, como num cartão de perfil */}
+          {showcase.length > 0 && (
+            <div className="flex shrink-0 gap-1.5 pt-1">
+              {showcase.map((id) => (
+                <span key={id} title={badgeName(id, achievements ?? [])}>
+                  <ProfileBadge id={id} achievements={achievements ?? []} size={38} />
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">XP</p>
-        <div className="mt-1 grid grid-cols-3 gap-2">
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(100))}>+100</DebugBtn>
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(1000))}>+1000</DebugBtn>
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(-100000))}>Zerar</DebugBtn>
+        {/* ── Vitrine ── */}
+        <section className="mt-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-subtle">
+              Vitrine · {showcase.length}/{SHOWCASE_MAX}
+            </h2>
+            <button
+              onClick={() => { sound.click(); setPicking((p) => !p); }}
+              className="text-xs font-bold text-primary active:opacity-70"
+            >
+              {picking ? 'Concluir' : 'Escolher'}
+            </button>
+          </div>
+
+          {picking ? (
+            owned.length === 0 ? (
+              <p className="card p-4 text-sm text-subtle">
+                Você ainda não tem badges. Desbloqueie conquistas ou chegue a 3 dias de sequência.
+              </p>
+            ) : (
+              <div className="card p-4">
+                <p className="mb-3 text-xs text-subtle">
+                  Toque para exibir no perfil. Máximo de {SHOWCASE_MAX} — o terceiro substitui o mais antigo.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {owned.map((id) => {
+                    const on = showcase.includes(id);
+                    return (
+                      <button key={id} onClick={() => toggleBadge(id)} title={badgeName(id, achievements ?? [])}
+                        aria-pressed={on}
+                        className={`relative rounded-full transition-transform ${on ? 'scale-105' : 'opacity-55'}`}>
+                        <ProfileBadge id={id} achievements={achievements ?? []} size={48} />
+                        {on && (
+                          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-bg">
+                            <IconCheck size={11} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )
+          ) : showcase.length === 0 ? (
+            <button onClick={() => { sound.click(); setPicking(true); }}
+              className="w-full rounded-2xl border border-dashed border-line bg-card p-4 text-sm text-subtle active:scale-[0.99]">
+              Nenhum badge escolhido — toque para montar sua vitrine.
+            </button>
+          ) : (
+            <div className="card flex items-center gap-3 p-4">
+              {showcase.map((id) => (
+                <div key={id} className="flex items-center gap-2">
+                  <ProfileBadge id={id} achievements={achievements ?? []} size={40} />
+                  <span className="text-sm font-semibold text-title">{badgeName(id, achievements ?? [])}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Números ── */}
+        <div className="mt-5 grid grid-cols-3 gap-3">
+          <Mini value={user.totalXp.toLocaleString('pt-BR')} label="XP total" />
+          <Mini value={`${user.currentStreak}🔥`} label="Sequência" />
+          <Mini value={`${user.maxStreak}`} label="Recorde" />
         </div>
 
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Progresso</p>
-        <div className="mt-1 grid grid-cols-1 gap-2">
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugCompleteAll())}>✓ Completar todos os mundos</DebugBtn>
-          <button
-            onClick={confirmReset}
-            disabled={busy}
-            className="w-full rounded-xl border border-error/40 py-2.5 text-sm font-semibold text-error transition-colors hover:bg-error/10 active:scale-[0.98] disabled:opacity-50"
-          >
-            ↺ Reiniciar progresso
-          </button>
-        </div>
+        {/* ── Navegação ── */}
+        <nav className="mt-5 space-y-3">
+          <NavLink to="/achievements" icon="🏆" label="Conquistas" />
+          <NavLink to="/milestones" icon="🪜" label="Marcos" />
+          <NavLink to="/friends" icon="👥" label="Amigos" />
+          <NavLink to="/glossary" icon="📖" label="Glossário" />
+        </nav>
 
-        <p className="mt-3 text-[11px] text-subtle">Visível para todos, mas as ações de plano/XP/completar só funcionam na sua conta godmode.</p>
+        {user.isDev ? (
+          <div className="mt-4 w-full rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center text-sm font-semibold text-accent">
+            ⭐ Conta DEV — Premium liberado como beta tester. Obrigado por testar!
+          </div>
+        ) : (
+          <Link to="/premium" className="btn-primary mt-4 w-full">⭐ Conhecer o Premium</Link>
+        )}
       </div>
     </div>
   );
 }
 
-function DebugBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
+function NavLink({ to, icon, label }: { to: string; icon: string; label: string }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="rounded-xl border border-line bg-card py-2.5 text-sm font-semibold text-title transition-colors hover:border-primary/50 active:scale-[0.98] disabled:opacity-50"
-    >
-      {children}
-    </button>
+    <Link to={to} className="flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
+      <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">{icon}</span> {label}</span>
+      <IconChevron size={18} className="text-subtle" />
+    </Link>
   );
 }
+
 function Mini({ value, label }: { value: string; label: string }) {
   return (
     <div className="card p-3 text-center">
-      <p className="text-lg font-bold text-title">{value}</p>
+      <p className="text-lg font-bold tabular-nums text-title">{value}</p>
       <p className="truncate text-[11px] text-subtle">{label}</p>
     </div>
-  );
-}
-function Row({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="flex w-full items-center justify-between p-4 text-left active:bg-card2">
-      <span className="font-medium text-title">{label}</span>
-      <span className="text-sm font-semibold text-primary">{value}</span>
-    </button>
   );
 }

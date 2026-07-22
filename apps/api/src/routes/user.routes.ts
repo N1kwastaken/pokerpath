@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { onboardingSchema } from '@pokerpath/shared';
+import { onboardingSchema, ownsBadge, SHOWCASE_MAX } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
 import { BadRequestError, NotFoundError } from '../lib/errors.js';
 import { toPublicUser } from '../services/user.serializer.js';
@@ -8,6 +8,7 @@ import { toPublicUser } from '../services/user.serializer.js';
  * Rotas do usuário autenticado.
  *   POST /onboarding   — salva as 3 respostas e marca o onboarding concluído (PRD 4.1)
  *   PATCH /preferences — preferências da conta (hoje: lembrete por e-mail)
+ *   PUT   /showcase    — badges exibidos no perfil (posse validada aqui)
  */
 export async function userRoutes(app: FastifyInstance) {
   app.addHook('onRequest', app.authenticate);
@@ -20,6 +21,41 @@ export async function userRoutes(app: FastifyInstance) {
     const user = await prisma.user.update({
       where: { id: request.user.sub },
       data: { emailReminders: on },
+      include: { streak: true },
+    });
+    return reply.send({ user: toPublicUser(user, user.streak) });
+  });
+
+  /**
+   * Vitrine do perfil. O servidor VALIDA a posse de cada badge: sem isto,
+   * qualquer cliente exibiria a conquista que nunca fez.
+   */
+  app.put<{ Body: { badges?: unknown } | null }>('/showcase', async (request, reply) => {
+    const raw = request.body?.badges;
+    if (!Array.isArray(raw) || raw.some((x) => typeof x !== 'string')) {
+      throw new BadRequestError('badges deve ser uma lista de textos', 'VALIDATION_ERROR');
+    }
+    const badges = [...new Set(raw as string[])].slice(0, SHOWCASE_MAX);
+
+    const [owned, streak] = await Promise.all([
+      prisma.userAchievement.findMany({
+        where: { userId: request.user.sub },
+        select: { achievement: { select: { code: true } } },
+      }),
+      prisma.streak.findUnique({ where: { userId: request.user.sub }, select: { maxStreak: true } }),
+    ]);
+    const has = {
+      achievements: owned.map((o) => o.achievement.code),
+      maxStreak: streak?.maxStreak ?? 0,
+    };
+    const invalid = badges.filter((b) => !ownsBadge(b, has));
+    if (invalid.length > 0) {
+      throw new BadRequestError(`Badge não conquistado: ${invalid.join(', ')}`, 'BADGE_NOT_OWNED');
+    }
+
+    const user = await prisma.user.update({
+      where: { id: request.user.sub },
+      data: { showcaseBadges: JSON.stringify(badges) },
       include: { streak: true },
     });
     return reply.send({ user: toPublicUser(user, user.streak) });

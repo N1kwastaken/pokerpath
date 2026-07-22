@@ -18,6 +18,7 @@ import { StatsPage } from './pages/StatsPage.js';
 import { ProfilePage } from './pages/ProfilePage.js';
 import { AchievementsPage } from './pages/AchievementsPage.js';
 import { MilestonesPage } from './pages/MilestonesPage.js';
+import { SettingsPage } from './pages/SettingsPage.js';
 import { FriendsPage } from './pages/FriendsPage.js';
 import { LevelsPage } from './pages/LevelsPage.js';
 import { GlossaryPage } from './pages/GlossaryPage.js';
@@ -69,6 +70,7 @@ export function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/achievements" element={<AchievementsPage />} />
               <Route path="/milestones" element={<MilestonesPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/friends" element={<FriendsPage />} />
               <Route path="/levels" element={<LevelsPage />} />
               <Route path="/glossary" element={<GlossaryPage />} />

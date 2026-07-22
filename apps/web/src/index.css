@@ -75,6 +75,22 @@
     filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.18));
   }
 
+  /* ── Acessibilidade ──
+     Movimento reduzido: mata animação e transição. `!important` porque muitas
+     vêm de classe utilitária, que ganharia da regra normal. O parallax/float
+     do mascote e o confete param junto — é o esperado. */
+  html[data-reduce-motion] *,
+  html[data-reduce-motion] *::before,
+  html[data-reduce-motion] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Texto maior: escala a raiz, e como todo o app usa rem/em, a interface
+     inteira acompanha sem quebrar layout. */
+  html[data-large-text] { font-size: 118%; }
+
   /* Rolagem horizontal sem barra: touch no celular; roda do mouse já rola de lado. */
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }

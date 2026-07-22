@@ -5,8 +5,11 @@
  *
  * Padrões em ms, calibrados curtos: háptica boa se SENTE, não se percebe.
  */
+import { a11y } from './a11y.js';
+
 function buzz(pattern: number | number[]) {
   try {
+    if (!a11y.haptics()) return; // desligável nas configurações
     navigator.vibrate?.(pattern);
   } catch {
     /* nunca derruba o jogo por causa de vibração */

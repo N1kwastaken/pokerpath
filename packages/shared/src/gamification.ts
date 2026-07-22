@@ -121,3 +121,32 @@ export interface MilestoneClaimResult {
   leveledUp: boolean;
   newAchievements: UnlockedAchievement[];
 }
+
+// ─── Vitrine de badges do perfil ───────────────────────────────
+/**
+ * Um badge exibível vem de duas origens: conquista desbloqueada
+ * (`ach:<CODE>`) ou degrau de streak alcançado (`streak:<dias>`). O id é
+ * string prefixada para as duas famílias caberem na mesma lista sem tabela
+ * nova — e para o servidor validar posse sem adivinhar de onde veio.
+ */
+export const SHOWCASE_MAX = 2;
+
+export function achievementBadgeId(code: string): string { return `ach:${code}`; }
+export function streakBadgeId(days: number): string { return `streak:${days}`; }
+
+/** Degraus de streak que valem badge (espelha os marcos da trilha STREAK). */
+export const STREAK_BADGE_DAYS = [3, 7, 14, 30, 60, 100] as const;
+
+/**
+ * O usuário POSSUI o badge? Regra única, usada pelo servidor (para validar a
+ * escolha) e pelo cliente (para montar o seletor) — duas implementações
+ * divergiriam e deixariam escolher badge não conquistado.
+ */
+export function ownsBadge(id: string, owned: { achievements: string[]; maxStreak: number }): boolean {
+  if (id.startsWith('ach:')) return owned.achievements.includes(id.slice(4));
+  if (id.startsWith('streak:')) {
+    const d = Number(id.slice(7));
+    return Number.isFinite(d) && STREAK_BADGE_DAYS.includes(d as (typeof STREAK_BADGE_DAYS)[number]) && owned.maxStreak >= d;
+  }
+  return false;
+}

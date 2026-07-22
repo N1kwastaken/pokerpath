@@ -49,6 +49,11 @@ model User {
   energyBonus         Int      @default(0)
   energyBonusDate     DateTime?
 
+  // Vitrine do perfil: JSON com no MÁXIMO 2 ids de badge ("ach:PRIMEIRA_MAO",
+  // "streak:30"). String porque o SQLite não tem array — a validação (posse e
+  // limite) é do servidor, nunca do cliente.
+  showcaseBadges      String?
+
   // Respostas do onboarding (PRD 4.1) -- opcionais ate completar.
   experienceLevel     String?
   playFrequency       String?

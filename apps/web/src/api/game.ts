@@ -53,4 +53,6 @@ export const userApi = {
     apiRequest<{ user: PublicUser }>('/onboarding', { method: 'POST', body: input }).then((r) => r.user),
   setEmailReminders: (emailReminders: boolean) =>
     apiRequest<{ user: PublicUser }>('/preferences', { method: 'PATCH', body: { emailReminders } }).then((r) => r.user),
+  setShowcase: (badges: string[]) =>
+    apiRequest<{ user: PublicUser }>('/showcase', { method: 'PUT', body: { badges } }).then((r) => r.user),
 };
