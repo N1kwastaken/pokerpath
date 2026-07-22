@@ -15,6 +15,7 @@ import { LessonPlayer } from '../components/LessonPlayer.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
 import { IconX, IconCheck } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
+import { useScrollLock } from '../lib/useScrollLock.js';
 
 /**
  * Fase do MODO CONVIDADO (Mundo 0 sem conta). Aulas usam o LessonPlayer;
@@ -42,6 +43,9 @@ export function GuestStagePage() {
   const [choice, setChoice] = useState<Action | null>(null);
   const [summary, setSummary] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(() => tableTutorialPending());
+
+  // Só no treino: a aula rola (texto longo) e travar deixaria a lição presa.
+  useScrollLock(!!data && !data.stage.isLesson);
 
   const exercises = data?.exercises ?? [];
   const ordered = useMemo(() => {

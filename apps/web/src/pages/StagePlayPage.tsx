@@ -23,6 +23,7 @@ import { stageGroup } from '../lib/stageGroup.js';
 import { Explanation } from '../components/Explanation.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
 import { sound } from '../lib/sound.js';
+import { useScrollLock } from '../lib/useScrollLock.js';
 
 // Apenas 3 ações no treino (PRD 7.1): Fold / Call / Raise.
 // Cores FIXAS e distintas por ação: fold vermelho, call azul, raise roxo.
@@ -63,6 +64,10 @@ export function StagePlayPage() {
   // isso que o resumo celebra (a recompensa que fecha o hábito diário).
   const [streakBefore] = useState(() => user?.currentStreak ?? 0);
   const { data, isLoading, error } = useStage(stageId, resume);
+  // Trava a rolagem SÓ no treino: a tela de exercício é fixa e a página de
+  // baixo não pode rolar junto. AULA rola de propósito (é texto longo), então
+  // travar ali deixaria a lição inacessível.
+  useScrollLock(!!data && !data.stage.isLesson);
   const { data: energy } = useEnergy();
 
   const [phase, setPhase] = useState<Phase>('playing');

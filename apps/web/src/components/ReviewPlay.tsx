@@ -8,6 +8,7 @@ import { LogoLoader } from './LogoLoader.js';
 import { Explanation } from './Explanation.js';
 import { IconX, IconCheck } from './Icons.js';
 import { sound } from '../lib/sound.js';
+import { useScrollLock } from '../lib/useScrollLock.js';
 
 /**
  * Rejogar os erros. Cada acerto aqui é gravado no servidor e FAZ o erro sair da
@@ -23,6 +24,8 @@ const ACT: { key: Action; label: string; color: string }[] = [
 ];
 
 export function ReviewPlay({ onClose }: { onClose: () => void }) {
+  // A lista de erros atrás continuava rolando junto com o dedo.
+  useScrollLock();
   const qc = useQueryClient();
   const { data: exercises, isLoading } = useQuery({ queryKey: ['reviewPlay'], queryFn: gameApi.reviewPlay, staleTime: 0 });
   const [idx, setIdx] = useState(0);

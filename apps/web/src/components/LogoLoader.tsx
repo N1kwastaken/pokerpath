@@ -17,8 +17,15 @@ export function LogoLoader({ label = 'Carregando...', inline = false }: { label?
               <stop offset="100%" stopColor="rgb(var(--primary) / 0.15)" />
             </linearGradient>
           </defs>
-          <circle cx="50" cy="50" r="44" fill="none" stroke="rgb(var(--line))" strokeWidth="6" />
-          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#logoloader)" strokeWidth="6" strokeLinecap="round" strokeDasharray="80 210" />
+          {/* O TRILHO precisa ser visível. Medido: geometria do anel, do arco e
+              do tile é idêntica (dx=dy=0), mas com o trilho em --line o
+              contraste contra o fundo é 1.44:1 — some. Sobrava só a meia-lua
+              girando, e meia-lua sem círculo em volta LÊ como descentralizada.
+              primary/50% dá 2.31:1: o círculo aparece e ancora o centro. */}
+          <circle cx="50" cy="50" r="44" fill="none" stroke="rgb(var(--primary) / 0.5)" strokeWidth="6" />
+          {/* Arco maior (140° em vez de 104°): quanto mais o arco lembra um
+              anel, menos ele parece um borrão jogado para um lado. */}
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#logoloader)" strokeWidth="6" strokeLinecap="round" strokeDasharray="108 200" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           {/* sem shadow-pop: a animação já escreve box-shadow, e as duas
