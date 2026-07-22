@@ -16,25 +16,30 @@ function hueFor(seed: string): string {
   return PALETTE[h % PALETTE.length];
 }
 
-export function Avatar({ name, size = 44, color, ring }: {
+export function Avatar({ name, size = 44, color, ring, src }: {
   name: string;
   size?: number;
   /** Força a cor (o próprio usuário usa a cor escolhida do app). */
   color?: string;
   /** Anel externo — marca "você" na lista. */
   ring?: boolean;
+  /** Foto de perfil (data URI). Sem ela, cai na inicial colorida. */
+  src?: string | null;
 }) {
   const letter = name.trim().charAt(0).toUpperCase() || '?';
+  const box = `flex shrink-0 items-center justify-center overflow-hidden rounded-full font-black text-white ${
+    ring ? 'ring-2 ring-primary ring-offset-2 ring-offset-bg' : ''
+  }`;
   return (
     <span
       aria-hidden
-      className={`flex shrink-0 items-center justify-center rounded-full font-black text-white ${ring ? 'ring-2 ring-primary ring-offset-2 ring-offset-bg' : ''}`}
+      className={box}
       style={{
         width: size, height: size, fontSize: size * 0.42,
-        background: color ?? hueFor(name),
+        background: src ? 'rgb(var(--card2))' : color ?? hueFor(name),
       }}
     >
-      {letter}
+      {src ? <img src={src} alt="" className="h-full w-full object-cover" /> : letter}
     </span>
   );
 }

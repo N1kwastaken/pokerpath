@@ -54,6 +54,11 @@ model User {
   // limite) é do servidor, nunca do cliente.
   showcaseBadges      String?
 
+  // Foto de perfil como data URI (96x96, JPEG ~4KB). Guardar no banco em vez
+  // de storage externo é deliberado: não há bucket contratado, e nesse
+  // tamanho o custo é menor que o de manter um serviço de arquivos.
+  avatar              String?
+
   // Respostas do onboarding (PRD 4.1) -- opcionais ate completar.
   experienceLevel     String?
   playFrequency       String?

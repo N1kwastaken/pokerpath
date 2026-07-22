@@ -41,6 +41,7 @@ export function toPublicUser(
     // qualquer corrida de escrita — recompensa de streak não pode regredir.
     maxStreak: Math.max(sv.current, streak?.maxStreak ?? 0),
     showcaseBadges: parseShowcase(user.showcaseBadges),
+    avatar: user.avatar,
     emailReminders: user.emailReminders,
     onboardingCompleted: user.onboardingCompleted,
     createdAt: user.createdAt.toISOString(),

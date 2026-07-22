@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { SHOWCASE_MAX, achievementBadgeId, streakBadgeId, STREAK_BADGE_DAYS } from '@pokerpath/shared';
@@ -6,9 +6,10 @@ import { useAuth } from '../auth/AuthContext.js';
 import { useAchievements } from '../hooks/useGame.js';
 import { userApi } from '../api/game.js';
 import { sound } from '../lib/sound.js';
+import { fileToAvatar } from '../lib/avatarFile.js';
 import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
 import { Avatar } from '../components/Avatar.js';
-import { IconChevron, IconSettings, IconCheck } from '../components/Icons.js';
+import { IconChevron, IconSettings, IconCheck, IconCamera } from '../components/Icons.js';
 
 /**
  * Perfil — CARTÃO DE IDENTIDADE, não painel de controle.
@@ -21,11 +22,29 @@ export function ProfilePage() {
   const { user, setUser } = useAuth();
   const { data: achievements } = useAchievements();
   const [picking, setPicking] = useState(false);
+  const [avatarErr, setAvatarErr] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const showcaseMut = useMutation({
     mutationFn: (badges: string[]) => userApi.setShowcase(badges),
     onSuccess: (u) => setUser(u),
   });
+
+  const avatarMut = useMutation({
+    mutationFn: (avatar: string | null) => userApi.setAvatar(avatar),
+    onSuccess: (u) => { sound.correct(); setUser(u); setAvatarErr(null); },
+    onError: (e: unknown) => setAvatarErr(e instanceof Error ? e.message : 'Não deu para salvar a foto.'),
+  });
+
+  /** Reduz no aparelho antes de enviar (a foto da galeria tem megabytes). */
+  async function pickAvatar(file: File) {
+    setAvatarErr(null);
+    try {
+      avatarMut.mutate(await fileToAvatar(file));
+    } catch (e) {
+      setAvatarErr(e instanceof Error ? e.message : 'Não foi possível ler a imagem.');
+    }
+  }
 
   if (!user) return null;
   const unlockedAch = (achievements ?? []).filter((a) => a.unlocked);
@@ -48,10 +67,17 @@ export function ProfilePage() {
 
   return (
     <div className="pb-8">
-      {/* ── Banner + avatar (a "capa" da conta) ── */}
-      <div className="relative">
+      {/* ── Banner + avatar (a "capa" da conta) ──
+          O banner SANGRA até a borda física: desfaz o padding de safe-area do
+          AppShell com margem negativa e devolve o mesmo valor como padding
+          interno, então a arte sobe até em cima mas a engrenagem não fica
+          embaixo do relógio do sistema. */}
+      <div
+        className="relative"
+        style={{ marginTop: 'calc(env(safe-area-inset-top) * -1)', paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div
-          className="h-28 w-full"
+          className="h-32 w-full"
           style={{
             background:
               'linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary2)) 55%, rgb(var(--card)) 100%)',
@@ -66,20 +92,38 @@ export function ProfilePage() {
         {/* engrenagem: a manutenção agora mora atrás deste botão */}
         <Link
           to="/settings" aria-label="Configurações"
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm active:scale-95"
+          className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm active:scale-95"
+          style={{ top: 'calc(env(safe-area-inset-top) + 1rem)' }}
         >
           <IconSettings size={20} />
         </Link>
 
-        {/* avatar sobreposto, com anel na cor do app */}
+        {/* avatar sobreposto — toque troca a foto */}
         <div className="absolute -bottom-10 left-5">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-bg p-1.5">
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={avatarMut.isPending}
+            aria-label="Trocar foto de perfil"
+            className="group relative flex h-24 w-24 items-center justify-center rounded-full bg-bg p-1.5 active:scale-95 disabled:opacity-70"
+          >
             {/* O próprio usuário usa a COR DO APP (a que ele escolheu); os
                 outros ganham cor derivada do nome, no Avatar. */}
-            <Avatar name={user.name} size={84} color="rgb(var(--primary))" />
-          </div>
+            <Avatar name={user.name} size={84} color="rgb(var(--primary))" src={user.avatar} />
+            <span className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-card text-title ring-2 ring-bg">
+              <IconCamera size={15} />
+            </span>
+          </button>
         </div>
       </div>
+
+      <input
+        ref={fileRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = ''; // permite reescolher o MESMO arquivo depois
+          if (f) pickAvatar(f);
+        }}
+      />
 
       <div className="px-5 pt-12">
         <div className="flex items-start gap-2">
@@ -92,6 +136,16 @@ export function ProfilePage() {
               )}
             </h1>
             <p className="truncate text-sm text-subtle">{user.levelName} · {user.email}</p>
+            {avatarErr && <p className="mt-1 text-xs font-semibold text-error" role="alert">{avatarErr}</p>}
+            {user.avatar && (
+              <button
+                onClick={() => { sound.click(); avatarMut.mutate(null); }}
+                disabled={avatarMut.isPending}
+                className="mt-1 text-xs font-bold text-subtle underline underline-offset-2 active:opacity-70"
+              >
+                Remover foto
+              </button>
+            )}
           </div>
           {/* vitrine ao lado do nome, como num cartão de perfil */}
           {showcase.length > 0 && (

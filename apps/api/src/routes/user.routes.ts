@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { onboardingSchema, ownsBadge, SHOWCASE_MAX } from '@pokerpath/shared';
+import { onboardingSchema, ownsBadge, SHOWCASE_MAX, isValidAvatar, AVATAR_MAX_CHARS } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
 import { BadRequestError, NotFoundError } from '../lib/errors.js';
 import { toPublicUser } from '../services/user.serializer.js';
@@ -9,6 +9,7 @@ import { toPublicUser } from '../services/user.serializer.js';
  *   POST /onboarding   — salva as 3 respostas e marca o onboarding concluído (PRD 4.1)
  *   PATCH /preferences — preferências da conta (hoje: lembrete por e-mail)
  *   PUT   /showcase    — badges exibidos no perfil (posse validada aqui)
+ *   PUT   /avatar      — foto de perfil (data URI pequeno, ou null para remover)
  */
 export async function userRoutes(app: FastifyInstance) {
   app.addHook('onRequest', app.authenticate);
@@ -56,6 +57,32 @@ export async function userRoutes(app: FastifyInstance) {
     const user = await prisma.user.update({
       where: { id: request.user.sub },
       data: { showcaseBadges: JSON.stringify(badges) },
+      include: { streak: true },
+    });
+    return reply.send({ user: toPublicUser(user, user.streak) });
+  });
+
+  /**
+   * Foto de perfil. `null` remove e volta para a inicial do nome.
+   *
+   * O servidor não decodifica a imagem (sem dependência de processamento);
+   * ele garante FORMATO e TAMANHO, que é o que impede a coluna de virar
+   * armazenamento de dados arbitrários.
+   */
+  app.put<{ Body: { avatar?: unknown } | null }>('/avatar', async (request, reply) => {
+    const raw = request.body?.avatar;
+    if (raw !== null && typeof raw !== 'string') {
+      throw new BadRequestError('avatar deve ser um data URI ou null', 'VALIDATION_ERROR');
+    }
+    if (typeof raw === 'string' && !isValidAvatar(raw)) {
+      throw new BadRequestError(
+        `Imagem inválida ou grande demais (limite ${AVATAR_MAX_CHARS} caracteres).`,
+        'AVATAR_INVALID',
+      );
+    }
+    const user = await prisma.user.update({
+      where: { id: request.user.sub },
+      data: { avatar: raw },
       include: { streak: true },
     });
     return reply.send({ user: toPublicUser(user, user.streak) });

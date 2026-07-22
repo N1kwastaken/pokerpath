@@ -85,7 +85,7 @@ export function FriendsPage() {
     {
       id: user.id, name: user.name, totalXp: user.totalXp, level: user.level,
       levelName: user.levelName, currentStreak: user.currentStreak, isDev: user.isDev,
-      showcaseBadges: user.showcaseBadges ?? [], me: true,
+      showcaseBadges: user.showcaseBadges ?? [], avatar: user.avatar ?? null, me: true,
     },
   ].sort((a, b) => b.totalXp - a.totalXp);
 
@@ -175,7 +175,7 @@ function RankRow({ row, pos, achievements, accent, onRemove }: {
       <span className="w-6 shrink-0 text-center text-sm font-black tabular-nums text-subtle">
         {pos <= 3 ? <span className="text-lg">{MEDALS[pos - 1]}</span> : `${pos}º`}
       </span>
-      <Avatar name={row.name} size={38} ring={accent} />
+      <Avatar name={row.name} size={38} ring={accent} src={row.avatar} />
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 truncate font-bold text-title">
           <span className="truncate">{row.name}</span>

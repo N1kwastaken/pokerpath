@@ -55,4 +55,6 @@ export const userApi = {
     apiRequest<{ user: PublicUser }>('/preferences', { method: 'PATCH', body: { emailReminders } }).then((r) => r.user),
   setShowcase: (badges: string[]) =>
     apiRequest<{ user: PublicUser }>('/showcase', { method: 'PUT', body: { badges } }).then((r) => r.user),
+  setAvatar: (avatar: string | null) =>
+    apiRequest<{ user: PublicUser }>('/avatar', { method: 'PUT', body: { avatar } }).then((r) => r.user),
 };

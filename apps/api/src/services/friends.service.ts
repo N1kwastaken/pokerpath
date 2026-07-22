@@ -30,6 +30,7 @@ function toFriendView(u: User & { streak: Streak | null }): FriendView {
     currentStreak: viewStreak(u.streak).current,
     isDev: u.isDev,
     showcaseBadges: parseShowcase(u.showcaseBadges),
+    avatar: u.avatar,
   };
 }
 

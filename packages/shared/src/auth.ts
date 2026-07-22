@@ -74,6 +74,8 @@ export interface PublicUser {
   maxStreak: number;
   /** Badges escolhidos para a vitrine do perfil (máx. 2, ordem preservada). */
   showcaseBadges: string[];
+  /** Foto de perfil como data URI (null = usa a inicial do nome). */
+  avatar: string | null;
   /** Recebe o lembrete diário de streak por e-mail. */
   emailReminders: boolean;
   onboardingCompleted: boolean;
@@ -91,6 +93,20 @@ export interface FriendView {
   isDev: boolean;
   /** A vitrine dele — é o que faz escolher badge valer a pena. */
   showcaseBadges: string[];
+  avatar: string | null;
+}
+
+/**
+ * Limite da foto de perfil. O cliente reduz para 96px antes de enviar; o
+ * servidor não decodifica a imagem, então o que ele PODE garantir é o
+ * formato e o tamanho — o bastante para a coluna não virar armazenamento
+ * genérico de dados arbitrários.
+ */
+export const AVATAR_MAX_CHARS = 14_000;
+export const AVATAR_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+export function isValidAvatar(v: string): boolean {
+  return v.length <= AVATAR_MAX_CHARS && AVATAR_RE.test(v);
 }
 
 export interface FriendsResponse {
