@@ -54,7 +54,14 @@ export default {
         'fade-in': { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         'fade-up': { from: { opacity: '0', transform: 'translateY(20px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         'slide-up': { from: { opacity: '0', transform: 'translateY(40px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-        'logo-glow': { '0%,100%': { filter: 'drop-shadow(0 0 0 rgba(22,163,74,0))', transform: 'scale(1)' }, '50%': { filter: 'drop-shadow(0 0 18px rgba(22,163,74,0.55))', transform: 'scale(1.05)' } },
+        // box-shadow, NÃO filter: drop-shadow() usa a silhueta do elemento
+        // JUNTO com o box-shadow dele (que é deslocado para baixo), e o brilho
+        // herdava esse deslocamento. E a cor sai do accent — era verde fixo,
+        // então um app roxo ganhava um halo verde.
+        'logo-glow': {
+          '0%,100%': { boxShadow: '0 0 0 0 rgb(var(--primary) / 0)', transform: 'scale(1)' },
+          '50%': { boxShadow: '0 0 22px 2px rgb(var(--primary) / 0.5)', transform: 'scale(1.05)' },
+        },
         'spin-in': { from: { transform: 'rotate(-180deg) scale(0.3)', opacity: '0' }, to: { transform: 'rotate(0) scale(1)', opacity: '1' } },
         // Idle do mascote: subir/descer puro parecia peça de máquina. Com um
         // balanço leve e fora de fase (o giro vira nos quartos, não no meio) o
