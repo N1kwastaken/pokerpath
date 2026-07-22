@@ -10,7 +10,7 @@ import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
 import { GtoBars } from '../components/GtoBars.js';
 import { Mascot } from '../components/Mascot.js';
-import { Glossarized } from '../components/Glossarized.js';
+import { Explanation } from '../components/Explanation.js';
 import { LessonPlayer } from '../components/LessonPlayer.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
 import { IconX, IconCheck } from '../components/Icons.js';
@@ -162,9 +162,9 @@ export function GuestStagePage() {
                   <p className={`font-extrabold ${wasCorrect ? 'text-primary' : 'text-error'}`}>
                     {wasCorrect ? 'Correto' : `Incorreto — era ${actionLabel(current.correctAction)}`}
                   </p>
-                  {current.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={current.explanation} /></p>}
                 </div>
               </div>
+              {current.explanation && <Explanation text={current.explanation} />}
               <GtoBars freq={current.frequencies} chosen={choice ?? undefined} correct={current.correctAction} aggressor={aggressor} />
             </div>
             <button className="btn-primary mt-3 w-full shrink-0" onClick={next}>

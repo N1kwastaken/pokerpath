@@ -5,7 +5,7 @@ import { gameApi } from '../api/game.js';
 import { PokerTable } from './PokerTable.js';
 import { GtoBars } from './GtoBars.js';
 import { LogoLoader } from './LogoLoader.js';
-import { Glossarized } from './Glossarized.js';
+import { Explanation } from './Explanation.js';
 import { IconX, IconCheck } from './Icons.js';
 import { sound } from '../lib/sound.js';
 
@@ -116,9 +116,9 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
                 <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
                   {result.correct ? 'Corrigido!' : `Ainda não — era ${actLabel(result.correctAction)}`}
                 </p>
-                {result.explanation && <p className="text-xs leading-snug text-text"><Glossarized text={result.explanation} /></p>}
               </div>
             </div>
+            {result.explanation && <Explanation text={result.explanation} />}
             <GtoBars freq={result.frequencies} chosen={chosen ?? undefined} correct={result.correctAction} aggressor={aggressor} />
             </div>
             <button className="btn-primary mt-3 w-full shrink-0" onClick={next}>Continuar</button>
