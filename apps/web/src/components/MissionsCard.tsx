@@ -25,24 +25,40 @@ export function MissionsCard() {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
 
+  // Códigos já resgatados NESTA sessão. O estado do servidor é a autoridade,
+  // mas até ele responder um refetch pode devolver claimed=false e o botão
+  // "Resgatar" volta a aparecer — daí o duplo-clique. Este conjunto é a trava.
+  const [claiming, setClaiming] = useState<Set<string>>(new Set());
+
   const claim = useMutation({
     mutationFn: (code: string) => gameApi.claimMission(code),
     // Resgate INSTANTÂNEO: som + confete + "Resgatado" na hora; o servidor grava
     // e reconcilia XP/nível em segundo plano (autoridade do servidor).
-    onMutate: (code) => {
+    onMutate: async (code) => {
+      // Sem isto, um GET /missions que já estava em voo responde DEPOIS do
+      // update otimista e reescreve claimed=false por cima dele.
+      await queryClient.cancelQueries({ queryKey: ['missions'] });
+      setClaiming((s) => new Set(s).add(code));
       sound.levelUp();
       setCelebrate((c) => c + 1);
-      const m = missions?.find((x) => x.code === code);
+      const previous = queryClient.getQueryData<MissionView[]>(['missions']);
+      const m = previous?.find((x) => x.code === code);
       queryClient.setQueryData<MissionView[]>(['missions'], (old) =>
         old?.map((x) => (x.code === code ? { ...x, claimed: true } : x)),
       );
       if (user && m) setUser({ ...user, totalXp: user.totalXp + m.xpReward });
+      return { previous };
     },
     onSuccess: (res) => {
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
       queryClient.invalidateQueries({ queryKey: ['missions'] });
     },
-    onError: () => { queryClient.invalidateQueries({ queryKey: ['missions'] }); },
+    onError: (_err, code, ctx) => {
+      // Desfaz o otimismo; a trava sai junto para o botão voltar a funcionar.
+      if (ctx?.previous) queryClient.setQueryData(['missions'], ctx.previous);
+      setClaiming((s) => { const n = new Set(s); n.delete(code); return n; });
+      queryClient.invalidateQueries({ queryKey: ['missions'] });
+    },
   });
 
   if (isLoading || !missions || missions.length === 0) return null;
@@ -55,13 +71,13 @@ export function MissionsCard() {
   return (
     <section className="mt-2">
       {celebrate > 0 && <Confetti key={celebrate} count={40} />}
-      {daily.length > 0 && <Group title="Diárias" timer={dailyLeft} items={daily} pending={claim.isPending} onClaim={(c) => claim.mutate(c)} />}
-      {weekly.length > 0 && <Group title="Semanais" timer={weeklyLeft} items={weekly} pending={claim.isPending} onClaim={(c) => claim.mutate(c)} />}
+      {daily.length > 0 && <Group title="Diárias" timer={dailyLeft} items={daily} claiming={claiming} onClaim={(c) => claim.mutate(c)} />}
+      {weekly.length > 0 && <Group title="Semanais" timer={weeklyLeft} items={weekly} claiming={claiming} onClaim={(c) => claim.mutate(c)} />}
     </section>
   );
 }
 
-function Group({ title, timer, items, pending, onClaim }: { title: string; timer: string; items: MissionView[]; pending: boolean; onClaim: (code: string) => void }) {
+function Group({ title, timer, items, claiming, onClaim }: { title: string; timer: string; items: MissionView[]; claiming: Set<string>; onClaim: (code: string) => void }) {
   return (
     <div className="mb-4">
       <div className="mb-2 flex items-center justify-between">
@@ -69,7 +85,7 @@ function Group({ title, timer, items, pending, onClaim }: { title: string; timer
         <span className="rounded-md bg-black/20 px-2 py-0.5 text-[10px] font-bold tabular-nums text-subtle">⏳ {timer}</span>
       </div>
       <div className="card divide-y divide-line">
-        {items.map((m) => <Row key={m.code} m={m} pending={pending} onClaim={() => onClaim(m.code)} />)}
+        {items.map((m) => <Row key={m.code} m={m} claimed={m.claimed || claiming.has(m.code)} onClaim={() => onClaim(m.code)} />)}
       </div>
     </div>
   );
@@ -90,7 +106,7 @@ function Level({ d }: { d: MissionView['difficulty'] }) {
   );
 }
 
-function Row({ m, onClaim, pending }: { m: MissionView; onClaim: () => void; pending: boolean }) {
+function Row({ m, onClaim, claimed }: { m: MissionView; onClaim: () => void; claimed: boolean }) {
   const pct = m.target ? Math.round((m.progress / m.target) * 100) : 0;
   return (
     <div className="p-4">
@@ -102,12 +118,12 @@ function Row({ m, onClaim, pending }: { m: MissionView; onClaim: () => void; pen
           </div>
           <p className="mt-0.5 text-xs text-subtle">{m.progress}/{m.target} · +{m.xpReward} XP</p>
         </div>
-        {m.claimed ? (
+        {claimed ? (
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-bold text-primary">
             <IconCheck size={14} /> Resgatado
           </span>
         ) : m.completed ? (
-          <button onClick={onClaim} disabled={pending} className="shrink-0 rounded-full bg-gold px-4 py-1.5 text-xs font-bold text-black active:scale-95">
+          <button onClick={onClaim} className="shrink-0 rounded-full bg-gold px-4 py-1.5 text-xs font-bold text-black active:scale-95">
             Resgatar +{m.xpReward}
           </button>
         ) : null}
