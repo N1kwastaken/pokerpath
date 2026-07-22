@@ -1,4 +1,4 @@
-# @pokerpathbrasil — kit de lançamento
+# @pokerpathbr — kit de lançamento
 
 Tudo aqui sai da identidade do app (mesmas cores, fontes e conteúdo validado do
 seed). As artes são geradas por `brand/generate.py`.
@@ -14,7 +14,7 @@ seed). As artes são geradas por `brand/generate.py`.
 | --- | --- |
 | **Foto** | `brand/logo-square-1080.png` |
 | **Nome** | `PokerPath \| Aprender Poker` |
-| **Usuário** | `@pokerpathbrasil` |
+| **Usuário** | `@pokerpathbr` |
 | **Categoria** | Educação *(não use "Jogos/Cassino" — associa a aposta e limita alcance e anúncio)* |
 | **Link** | o domínio próprio assim que existir; por enquanto o do app |
 

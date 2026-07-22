@@ -157,7 +157,7 @@ def main():
   <header>
     <img src="{img_uri(logo)}" alt="PokerPath" />
     <div>
-      <h1>Kit de artes — @pokerpathbrasil</h1>
+      <h1>Kit de artes — @pokerpathbr</h1>
       <p>Foto de perfil, destaques e stories. Todos em PNG, prontos pra subir.</p>
     </div>
   </header>

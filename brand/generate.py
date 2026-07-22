@@ -1,4 +1,4 @@
-"""Gera as artes do Instagram (@pokerpathbrasil) a partir da identidade do app.
+"""Gera as artes do Instagram (@pokerpathbr) a partir da identidade do app.
 
 Cores e fontes saem do próprio produto (index.css / tailwind.config.js), então a
 página fica visualmente colada no app. Roda com:  python brand/generate.py
