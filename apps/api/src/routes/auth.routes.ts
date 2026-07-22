@@ -8,6 +8,7 @@ import {
   resetPasswordSchema,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
+import { betaSignup } from '../lib/beta.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
 import {
   BadRequestError,
@@ -51,12 +52,15 @@ export async function authRoutes(app: FastifyInstance) {
 
     const passwordHash = await hashPassword(password);
 
-    // Cria usuário e streak vazio juntos.
+    // Cria usuário e streak vazio juntos. `isDev` vem EXPLÍCITO do ambiente
+    // (ver lib/beta.ts): assim o launch é uma variável no Render, não uma
+    // migration que recria a tabela users.
     const user = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
+        isDev: betaSignup(),
         streak: { create: {} },
       },
       include: { streak: true },

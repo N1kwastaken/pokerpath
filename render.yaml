@@ -29,6 +29,11 @@ services:
       # se ele não estiver presente, o link do reset apontaria para localhost.
       - key: WEB_ORIGIN
         value: https://pokerpath.onrender.com
+      # Beta aberto: contas novas nascem com Premium liberado (isDev=true).
+      # NO LANÇAMENTO, trocar para "false" — quem já se cadastrou MANTÉM o
+      # Premium, porque o campo é gravado no cadastro e não recalculado.
+      - key: BETA_SIGNUP
+        value: "true"
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET

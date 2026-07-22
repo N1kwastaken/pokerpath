@@ -127,6 +127,17 @@ export function SettingsPage() {
         </Link>
       </Section>
 
+      <Section title="Legal">
+        <Link to="/privacidade" className="flex w-full items-center justify-between p-4 active:bg-card2">
+          <span className="font-medium text-title">Política de Privacidade</span>
+          <IconChevron size={16} className="text-subtle" />
+        </Link>
+        <Link to="/termos" className="flex w-full items-center justify-between p-4 active:bg-card2">
+          <span className="font-medium text-title">Termos de Uso</span>
+          <IconChevron size={16} className="text-subtle" />
+        </Link>
+      </Section>
+
       <button
         onClick={logout}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-error/30 bg-error/10 py-3.5 font-semibold text-error transition-colors hover:bg-error/15 active:scale-[0.98]"

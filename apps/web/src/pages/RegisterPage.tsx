@@ -86,6 +86,14 @@ export function RegisterPage() {
           value={email} onChange={(e) => setEmail(e.target.value)} />
         <PasswordField value={password} onChange={setPassword} placeholder="Senha (mín. 8 caracteres)" autoComplete="new-password" />
         {error && <p className="text-sm text-error">{error}</p>}
+        {/* O aceite acontece AQUI: é o momento em que a conta nasce. Sem esta
+            linha, os documentos existiriam sem ninguém nunca ter concordado. */}
+        <p className="mt-1 text-center text-[11px] leading-snug text-subtle">
+          Ao criar a conta você concorda com os{' '}
+          <Link to="/termos" className="font-semibold text-primary underline underline-offset-2">Termos de Uso</Link>
+          {' '}e a{' '}
+          <Link to="/privacidade" className="font-semibold text-primary underline underline-offset-2">Política de Privacidade</Link>.
+        </p>
         <button className="btn-primary mt-2 w-full text-lg" disabled={submitting}>
           {submitting ? 'Criando conta...' : 'Criar conta grátis'}
         </button>
