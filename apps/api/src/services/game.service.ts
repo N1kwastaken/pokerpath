@@ -436,10 +436,12 @@ export async function submitAnswer(
       : prisma.exercise.count({ where: { stageId: stage.id } }),
   ]);
 
-  // Limite diário no plano FREE (PRD 13.2). Contas DEV = premium.
-  if (isFree && todayCount >= FREE_DAILY_EXERCISE_LIMIT) {
+  // Limite diário no plano FREE (PRD 13.2). Contas DEV = premium. O bônus de
+  // fase perfeita entra aqui: é o que faz a energia devolvida valer de fato.
+  const dailyLimit = FREE_DAILY_EXERCISE_LIMIT + todaysEnergyBonus(user);
+  if (isFree && todayCount >= dailyLimit) {
     throw new ForbiddenError(
-      `Limite diário de ${FREE_DAILY_EXERCISE_LIMIT} exercícios atingido. Assine o Premium para jogar sem limites.`,
+      `Limite diário de ${dailyLimit} exercícios atingido. Assine o Premium para jogar sem limites.`,
       DAILY_LIMIT_CODE,
     );
   }
@@ -484,6 +486,12 @@ export async function submitAnswer(
   const perfectRun =
     sessionTarget > 0 && exercisesDone >= sessionTarget && correctAnswers === exercisesDone;
   const perfectAt = existing?.perfectAt ?? (perfectRun ? new Date() : null);
+
+  // Fase perfeita DEVOLVE a energia gasta nela. Só na primeira vez que a fase
+  // é limpa sem erro (`perfectAt` ainda vazio) — senão bastaria rejogar a fase
+  // mais fácil do jogo para ter energia infinita de graça.
+  const energyRestored = perfectRun && !existing?.perfectAt ? exercisesDone : 0;
+  const energyBonus = energyRestored + todaysEnergyBonus(user);
 
   // ── Conclusão do mundo (PRD 4.5): checada ANTES das escritas, em 1 consulta —
   // "existe alguma OUTRA fase deste mundo ainda não completa?".
@@ -550,7 +558,12 @@ export async function submitAnswer(
         perfectAt,
       },
     }),
-    prisma.user.update({ where: { id: userId }, data: { totalXp } }),
+    prisma.user.update({
+      where: { id: userId },
+      data: energyRestored > 0
+        ? { totalXp, energyBonus, energyBonusDate: new Date() }
+        : { totalXp },
+    }),
     prisma.streak.upsert({
       where: { userId },
       update: {
@@ -607,6 +620,7 @@ export async function submitAnswer(
     },
     stageCompleted,
     worldCompleted,
+    energyRestored,
     frequencies: parseFrequencies(exercise.frequencies),
   };
 }
@@ -854,14 +868,50 @@ export async function debugCompleteAll(userId: string): Promise<{ ok: true; coun
   return { ok: true, count: stages.length };
 }
 
+/**
+ * Bônus de energia que vale HOJE.
+ *
+ * A energia não é um saldo guardado: ela é `limite − respostas de hoje`. Então
+ * "devolver energia" não tem o que creditar — o que existe é este bônus, que
+ * SOMA ao limite do dia. Como o bônus carrega a data, num dia diferente ele
+ * simplesmente não conta (sem rotina de zeragem à meia-noite).
+ */
+function todaysEnergyBonus(u: { energyBonus: number; energyBonusDate: Date | null }): number {
+  return u.energyBonusDate && u.energyBonusDate >= startOfToday() ? u.energyBonus : 0;
+}
+
+/**
+ * Soma energia ao bônus de HOJE (marcos, e o que mais vier a dar energia).
+ * Lê antes de escrever porque o bônus de ontem tem que ser descartado, não
+ * incrementado — `increment` do Prisma somaria em cima do valor velho.
+ */
+export async function addEnergyBonus(userId: string, amount: number): Promise<void> {
+  if (amount <= 0) return;
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { energyBonus: true, energyBonusDate: true },
+  });
+  if (!u) return;
+  await prisma.user.update({
+    where: { id: userId },
+    data: { energyBonus: todaysEnergyBonus(u) + amount, energyBonusDate: new Date() },
+  });
+}
+
 // ─── Energia diária (Premium = infinita) ───────────────────────
 export async function getEnergy(userId: string): Promise<EnergyState> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true, email: true, isDev: true } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { plan: true, email: true, isDev: true, energyBonus: true, energyBonusDate: true },
+  });
   if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
-  const max = FREE_DAILY_EXERCISE_LIMIT;
   if (effectivePlan(user) === 'PREMIUM' || isGodmodeEmail(user.email)) {
+    const max = FREE_DAILY_EXERCISE_LIMIT;
     return { max, used: 0, remaining: max, infinite: true };
   }
+  // O bônus entra no MÁXIMO, não no restante: assim a barra continua coerente
+  // (restante = max − usado) em vez de mostrar mais energia do que cabe nela.
+  const max = FREE_DAILY_EXERCISE_LIMIT + todaysEnergyBonus(user);
   const used = await prisma.userAnswer.count({ where: { userId, createdAt: { gte: startOfToday() } } });
   return { max, used, remaining: Math.max(0, max - used), infinite: false };
 }

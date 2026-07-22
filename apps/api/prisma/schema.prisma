@@ -41,6 +41,14 @@ model User {
   // Opt-out do lembrete diário de streak (e-mail sem descadastro é spam).
   emailReminders      Boolean  @default(true)
 
+  // Energia devolvida por fase perfeita. A energia em si NÃO é um saldo: ela é
+  // calculada (limite − respostas de hoje). Como não há o que debitar, o
+  // "devolver" vira um bônus que SOMA ao limite do dia. `energyBonusDate`
+  // guarda o dia a que o bônus pertence — em outro dia ele vale 0 sem
+  // precisar de rotina de limpeza.
+  energyBonus         Int      @default(0)
+  energyBonusDate     DateTime?
+
   // Respostas do onboarding (PRD 4.1) -- opcionais ate completar.
   experienceLevel     String?
   playFrequency       String?
@@ -54,6 +62,7 @@ model User {
   achievements        UserAchievement[]
   streak              Streak?
   missions            UserMission[]
+  milestones          UserMilestone[]
   refreshTokens       RefreshToken[]
   passwordResets      PasswordResetToken[]
   friendships         Friendship[]      @relation("userFriendships")
@@ -291,6 +300,21 @@ model Mission {
   users       UserMission[]
 
   @@map("missions")
+}
+
+// Marco resgatado. Só a data do resgate mora aqui — o PROGRESSO do marco é
+// derivado (fases concluídas, acertos, streak), nunca um contador paralelo
+// que pode divergir da realidade. O código vem de MILESTONES no shared.
+model UserMilestone {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  claimedAt DateTime @default(now())
+
+  @@unique([userId, code])
+  @@index([userId])
+  @@map("user_milestones")
 }
 
 model UserMission {

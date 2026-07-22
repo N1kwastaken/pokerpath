@@ -108,6 +108,11 @@ export function ProfilePage() {
         <IconChevron size={18} className="text-subtle" />
       </Link>
 
+      <Link to="/milestones" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
+        <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">🪜</span> Marcos</span>
+        <IconChevron size={18} className="text-subtle" />
+      </Link>
+
       <Link to="/glossary" className="mt-3 flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
         <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">📖</span> Glossário</span>
         <IconChevron size={18} className="text-subtle" />

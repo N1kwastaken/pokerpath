@@ -1,7 +1,9 @@
 import type {
   AnswerInput, AnswerResult, OnboardingInput, PublicUser,
   StagePlay, WorldDetail, WorldSummary, StatsResult, RangeGrid, LessonResult,
-  AchievementView, MissionView, MissionClaimResult, ReviewItem, ReviewAnswerResult,
+  AchievementView, MissionView, MissionClaimResult,
+  MilestoneView,
+  MilestoneClaimResult, ReviewItem, ReviewAnswerResult,
   PublicExercise, EnergyState, FriendsResponse, FriendView,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
@@ -38,6 +40,8 @@ export const gameApi = {
   achievements: () => apiRequest<{ achievements: AchievementView[] }>('/achievements').then((r) => r.achievements),
   missions: () => apiRequest<{ missions: MissionView[] }>('/missions').then((r) => r.missions),
   claimMission: (code: string) => apiRequest<MissionClaimResult>(`/missions/${code}/claim`, { method: 'POST' }),
+  milestones: () => apiRequest<{ milestones: MilestoneView[] }>('/milestones').then((r) => r.milestones),
+  claimMilestone: (code: string) => apiRequest<MilestoneClaimResult>(`/milestones/${code}/claim`, { method: 'POST' }),
   resetProgress: () => apiRequest<{ ok: true }>('/progress/reset', { method: 'POST' }),
   debugSetPlan: (plan: 'FREE' | 'PREMIUM') => apiRequest<{ ok: true; plan: string }>('/debug/plan', { method: 'POST', body: { plan } }),
   debugAddXp: (amount: number) => apiRequest<{ ok: true; totalXp: number }>('/debug/xp', { method: 'POST', body: { amount } }),

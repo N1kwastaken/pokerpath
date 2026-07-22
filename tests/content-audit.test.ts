@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { WORLDS, MISSIONS } from '../apps/api/prisma/seed.js';
+import { MILESTONES, MILESTONE_TRACKS } from '../packages/shared/src/gamification.js';
 import { RANGE_DEFS, raiseSet, labelOfHand, rangeDefFor } from '../apps/api/prisma/ranges.js';
 
 /** Auditoria além dos testes existentes: procura mãos erradas, ranges incoerentes,
@@ -132,6 +133,67 @@ describe('missões', () => {
     for (const t of ['DAILY', 'WEEKLY']) {
       if (!(maxOf(t, 'EASY') < maxOf(t, 'HARD'))) bad.push(`${t}: fácil paga tanto quanto difícil`);
     }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('marcos', () => {
+  // Marco é DEGRAU: dentro da trilha o alvo tem que subir e a recompensa
+  // junto. Um degrau fora de ordem faria a escada mostrar o marco maior como
+  // "próximo" antes do menor — sem erro nenhum, só confusão.
+  it('dentro de cada trilha, alvo e recompensa sobem juntos', () => {
+    const bad: string[] = [];
+    for (const track of MILESTONE_TRACKS) {
+      const items = MILESTONES.filter((m) => m.track === track);
+      for (let i = 1; i < items.length; i++) {
+        if (items[i].target <= items[i - 1].target) bad.push(`${track}: ${items[i].code} não sobe o alvo`);
+        if (items[i].xpReward <= items[i - 1].xpReward) bad.push(`${track}: ${items[i].code} não paga mais XP`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('todo marco tem código único, alvo positivo e trilha válida', () => {
+    const seen = new Set<string>();
+    const bad: string[] = [];
+    for (const m of MILESTONES) {
+      if (seen.has(m.code)) bad.push(`${m.code}: código repetido`);
+      seen.add(m.code);
+      if (!(m.target > 0)) bad.push(`${m.code}: alvo ${m.target}`);
+      if (!MILESTONE_TRACKS.includes(m.track)) bad.push(`${m.code}: trilha ${m.track}`);
+      if (m.xpReward <= 0) bad.push(`${m.code}: XP ${m.xpReward}`);
+      if (m.energyReward < 0) bad.push(`${m.code}: energia ${m.energyReward}`);
+    }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('formato das explicações', () => {
+  // Título + tópicos numa string só (ver Explanation.tsx). Uma explicação que
+  // volte ao formato de frase única não quebra nada — só volta a ser ilegível.
+  it('toda explicação tem título e pelo menos 2 tópicos', () => {
+    const bad: string[] = [];
+    for (const { ex, stage } of all) {
+      const [head, ...rest] = ex.explanation.split('\n');
+      const bullets = rest.filter((l) => l.startsWith('• '));
+      if (!head.endsWith(':')) bad.push(`${stage.title}/${ex.heroHand}: título sem ":" → "${head}"`);
+      if (bullets.length < 2) bad.push(`${stage.title}/${ex.heroHand}: ${bullets.length} tópico(s)`);
+      if (bullets.length !== rest.length) bad.push(`${stage.title}/${ex.heroHand}: linha que não é tópico`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('o negrito *assim* está sempre fechado', () => {
+    const bad = all
+      .filter(({ ex }) => (ex.explanation.match(/\*/g) ?? []).length % 2 !== 0)
+      .map(({ ex, stage }) => `${stage.title}/${ex.heroHand}: asterisco solto`);
+    expect(bad).toEqual([]);
+  });
+
+  it('nenhuma explicação passa de 360 caracteres (senão o cartão rola)', () => {
+    const bad = all
+      .filter(({ ex }) => ex.explanation.length > 360)
+      .map(({ ex, stage }) => `${stage.title}/${ex.heroHand}: ${ex.explanation.length} chars`);
     expect(bad).toEqual([]);
   });
 });

@@ -28,6 +28,9 @@ export function useRange(filters: RangeFilters, opts?: { enabled?: boolean }) {
 export function useAchievements() {
   return useQuery({ queryKey: ['achievements'], queryFn: gameApi.achievements });
 }
+export function useMilestones() {
+  return useQuery({ queryKey: ['milestones'], queryFn: gameApi.milestones });
+}
 export function useMissions() {
   return useQuery({ queryKey: ['missions'], queryFn: gameApi.missions });
 }

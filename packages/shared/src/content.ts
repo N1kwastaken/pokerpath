@@ -226,6 +226,11 @@ export interface AnswerResult {
   /** Verdadeiro quando esta resposta concluiu o mundo inteiro. */
   worldCompleted: boolean;
   /**
+   * Energia devolvida por ter limpado a fase sem errar nenhuma (0 = nada a
+   * comemorar). Vale uma vez por fase: rejogar não devolve de novo.
+   */
+  energyRestored: number;
+  /**
    * Frequências GTO da decisão (reveladas só após responder).
    *
    * `null` quando não existe chart por trás do spot (postflop, 4-bet, squeeze):

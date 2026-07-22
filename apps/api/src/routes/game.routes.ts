@@ -29,6 +29,7 @@ import {
   getMissions,
   claimMission,
 } from '../services/gamification.service.js';
+import { getMilestones, claimMilestone } from '../services/milestone.service.js';
 
 /**
  * Rotas do loop de jogo (PRD 5, 6, 7, 15.3).
@@ -191,6 +192,14 @@ export async function gameRoutes(app: FastifyInstance) {
 
   app.post<{ Params: { code: string } }>('/missions/:code/claim', async (request) => {
     return claimMission(request.user.sub, request.params.code);
+  });
+
+  app.get('/milestones', async (request) => {
+    return { milestones: await getMilestones(request.user.sub) };
+  });
+
+  app.post<{ Params: { code: string } }>('/milestones/:code/claim', async (request) => {
+    return claimMilestone(request.user.sub, request.params.code);
   });
 
   // ─── Amigos (código curto → amizade mútua) ────────────────
