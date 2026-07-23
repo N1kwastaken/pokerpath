@@ -10,6 +10,71 @@ const all = WORLDS.flatMap((w) => w.stages.flatMap((s) => s.exercises.map((ex) =
 const rfi = (pos: string) => RANGE_DEFS.find((d) => d.scenario === 'RFI' && d.position === pos)!;
 const CARD = /[2-9TJQKA][♠♥♦♣]/g;
 
+// ─── Avaliador de mão (7 cartas → categoria feita 0..8) ────────
+// Duas explicações erradas nasceram de mão MAL ROTULADA (projeto chamado de
+// mão feita, etc.). Este avaliador deixa o teste checar força real vs. texto.
+const RANKS = '23456789TJQKA';
+type PCard = { r: number; s: string };
+const cards = (str: string | null | undefined): PCard[] => (str?.match(CARD) ?? []).map((c) => ({ r: RANKS.indexOf(c[0]), s: c[1] }));
+function combos5(a: PCard[]): PCard[][] {
+  const out: PCard[][] = [];
+  const rec = (start: number, acc: PCard[]) => {
+    if (acc.length === 5) { out.push(acc); return; }
+    for (let i = start; i < a.length; i++) rec(i + 1, [...acc, a[i]]);
+  };
+  rec(0, []);
+  return out;
+}
+function catOf5(cs: PCard[]): number {
+  const rs = cs.map((c) => c.r).sort((a, b) => b - a);
+  const flush = cs.every((c) => c.s === cs[0].s);
+  const uniq = [...new Set(rs)]; if (uniq.includes(12)) uniq.push(-1);
+  const sorted = [...new Set(uniq)].sort((a, b) => a - b);
+  let straight = false;
+  for (let i = 0; i <= sorted.length - 5; i++) if (sorted[i + 4] - sorted[i] === 4) straight = true;
+  const cnt = new Map<number, number>(); for (const r of rs) cnt.set(r, (cnt.get(r) ?? 0) + 1);
+  const g = [...cnt.values()].sort((a, b) => b - a); const c1 = g[0], c2 = g[1] ?? 0;
+  if (flush && straight) return 8;
+  if (c1 === 4) return 7;
+  if (c1 === 3 && c2 >= 2) return 6;
+  if (flush) return 5;
+  if (straight) return 4;
+  if (c1 === 3) return 3;
+  if (c1 === 2 && c2 === 2) return 2;
+  if (c1 === 2) return 1;
+  return 0;
+}
+const madeCat = (hero: string, board: string | null | undefined): number =>
+  Math.max(...combos5([...cards(hero), ...cards(board)]).map(catOf5));
+
+const postflop = all.filter(({ ex }) => ['C_BET', 'TURN', 'RIVER'].includes(ex.category));
+
+describe('coerência mão × explicação (postflop)', () => {
+  it('mão SEM PAR não é descrita como mão feita', () => {
+    // "sequência feita", "mão forte", "top pair"… numa mão que nem par tem é
+    // rótulo errado (foi o bug: projeto chamado de mão feita).
+    const feita = /sequência feita|mão forte|trinca|dois pares|overpair|top pair|full house|na frente da maior parte/i;
+    const bad = postflop
+      .filter(({ ex }) => madeCat(ex.heroHand, ex.board) === 0 && feita.test(ex.explanation))
+      .map(({ ex, stage }) => `${stage.title}/${ex.heroHand}|${ex.board}`);
+    expect(bad).toEqual([]);
+  });
+
+  it('não se dá FOLD com dois pares ou mais enfrentando aposta', () => {
+    const bad = postflop
+      .filter(({ ex }) => ex.villainAction !== 'Check' && ex.correctAction === 'FOLD' && madeCat(ex.heroHand, ex.board) >= 2)
+      .map(({ ex, stage }) => `${stage.title}/${ex.heroHand}|${ex.board}`);
+    expect(bad).toEqual([]);
+  });
+
+  it('não se dá CHECK atrás com full house ou mais (spot de agressor)', () => {
+    const bad = postflop
+      .filter(({ ex }) => ex.villainAction === 'Check' && ex.correctAction === 'CALL' && madeCat(ex.heroHand, ex.board) >= 6)
+      .map(({ ex, stage }) => `${stage.title}/${ex.heroHand}|${ex.board}`);
+    expect(bad).toEqual([]);
+  });
+});
+
 describe('ranges RFI — coerência de poker', () => {
   it('monotonicidade: o que abre cedo tem que abrir tarde (UTG⊆MP⊆CO⊆BTN)', () => {
     const order = ['UTG', 'MP', 'CO', 'BTN'];
