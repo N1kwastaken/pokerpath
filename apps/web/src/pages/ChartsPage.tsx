@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconFolder } from '../components/Icons.js';
 import { Link } from 'react-router-dom';
 import { GAME_TYPES, TABLE_SIZES, STACK_OPTIONS, POSITIONS } from '@pokerpath/shared';
 import { useRange } from '../hooks/useGame.js';
@@ -130,7 +131,7 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
           </div>
         ) : (
           <div className="card p-8 text-center">
-            <p className="text-3xl">🗂️</p>
+            <IconFolder size={30} className="mx-auto text-subtle" />
             <p className="mt-2 font-semibold text-title">Sem dados para esse filtro</p>
             <p className="mt-1 text-sm text-subtle">
               Por enquanto temos Cash · 6-max · 100BB: abertura de UTG/MP/CO/BTN/SB e defesa do BTN (vs UTG/MP/CO) e do BB (vs BTN).

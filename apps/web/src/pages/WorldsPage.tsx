@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import type { WorldSummary } from '@pokerpath/shared';
 import { useWorlds } from '../hooks/useGame.js';
 import { LogoLoader } from '../components/LogoLoader.js';
-import { IconCheck, IconLock } from '../components/Icons.js';
+import { IconCheck, IconLock, IconFlag } from '../components/Icons.js';
 
 /**
  * Trilha de Mundos — caminho contínuo ASCENDENTE (estilo Duolingo) no tema
@@ -37,7 +37,7 @@ export function WorldsPage() {
         <>
           {/* Cume */}
           <div className="mb-1 flex flex-col items-center">
-            <span className="text-3xl">🏁</span>
+            <IconFlag size={30} className="text-primary" />
             <span className={`mt-1 rounded-full px-3 py-1 text-[11px] font-bold ${allDone ? 'text-black' : 'border border-line text-subtle'}`} style={allDone ? { backgroundColor: GOLD } : undefined}>
               Mestre do Pré-flop
             </span>

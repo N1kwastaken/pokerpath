@@ -15,7 +15,7 @@ const STEPS: { title: string; text: string }[] = [
   { title: 'Você na mesa', text: 'O selo {cor} diz onde VOCÊ está sentado (ex.: BTN = botão, a melhor cadeira). Os outros jogadores aparecem ao redor.' },
   { title: 'O pote', text: 'No centro fica o POTE: as fichas em disputa. É isso que você quer ganhar.' },
   { title: 'Os botões', text: 'FOLD = desistir da mão. CALL = pagar uma aposta. RAISE = aumentar. Nas primeiras fases só existem duas respostas certas: Raise (mão forte) ou Fold (mão fraca).' },
-  { title: 'Colou? Sem problema', text: 'No topo da fase, o botão 📊 abre o GRÁFICO da sua posição — pode consultar sempre. E qualquer termo sublinhado (tipo range) abre o glossário ao tocar.' },
+  { title: 'Colou? Sem problema', text: 'No topo da fase, o botão de gráfico abre o GRÁFICO da sua posição — pode consultar sempre. E qualquer termo sublinhado (tipo range) abre o glossário ao tocar.' },
   { title: 'Errou? Tudo bem!', text: 'Cada resposta vem com a explicação do porquê — errar aqui é grátis e faz parte do treino. Vamos à sua primeira mão!' },
 ];
 
@@ -54,7 +54,7 @@ export function TableTutorial({ onDone }: { onDone: () => void }) {
           <div className="flex gap-1">
             {STEPS.map((_, k) => <span key={k} className={`h-1.5 rounded-full ${k === i ? 'w-5 bg-primary' : 'w-1.5 bg-line'}`} />)}
           </div>
-          <button onClick={next} className="btn-primary px-5 py-2 text-sm">{last ? 'Jogar! 🎉' : 'Próximo'}</button>
+          <button onClick={next} className="btn-primary px-5 py-2 text-sm">{last ? 'Jogar!' : 'Próximo'}</button>
         </div>
       </div>
     </div>

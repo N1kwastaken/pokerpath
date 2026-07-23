@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconSeedling, IconDice, IconCard, IconBook, IconTrendUp, IconTarget, IconGrad, IconMoon, IconSun } from '../components/Icons.js';
 import { useNavigate } from 'react-router-dom';
 import { Mascot } from '../components/Mascot.js';
 import { LessonHandTable } from '../components/LessonHandTable.js';
@@ -14,14 +15,14 @@ export type SetupData = { name: string; experience: string; goal: string };
 export const SETUP_KEY = 'pp.setup';
 
 const EXP_OPTIONS = [
-  { key: 'beginner', label: 'Nunca joguei', emoji: '🌱' },
-  { key: 'recreational', label: 'Jogo de vez em quando', emoji: '🎲' },
-  { key: 'intermediate', label: 'Jogo bastante', emoji: '🃏' },
+  { key: 'beginner', label: 'Nunca joguei', icon: <IconSeedling size={20} /> },
+  { key: 'recreational', label: 'Jogo de vez em quando', icon: <IconDice size={20} /> },
+  { key: 'intermediate', label: 'Jogo bastante', icon: <IconCard size={20} /> },
 ];
 const GOAL_OPTIONS = [
-  { key: 'learn', label: 'Aprender do zero', emoji: '📚' },
-  { key: 'improve', label: 'Parar de perder dinheiro', emoji: '📈' },
-  { key: 'review', label: 'Afiar meu jogo', emoji: '🎯' },
+  { key: 'learn', label: 'Aprender do zero', icon: <IconBook size={20} /> },
+  { key: 'improve', label: 'Parar de perder dinheiro', icon: <IconTrendUp size={20} /> },
+  { key: 'review', label: 'Afiar meu jogo', icon: <IconTarget size={20} /> },
 ];
 
 /** Ilustração hiperminimalista de uma tela do app (mesa + cartas + botões). */
@@ -115,13 +116,13 @@ export function SetupPage() {
               {EXP_OPTIONS.map((o) => (
                 <button key={o.key} onClick={() => { sound.click(); setExperience(o.key); }}
                   className={`chip w-full text-left ${experience === o.key ? 'chip-on' : 'chip-off'}`}>
-                  {o.emoji} {o.label}
+                  <span className="flex items-center gap-2.5">{o.icon} {o.label}</span>
                 </button>
               ))}
             </div>
             {experience && experience !== 'beginner' && (
               <p className="mt-4 rounded-2xl border border-gold/40 bg-gold/10 p-3 text-sm text-text">
-                🎓 Boa! Então logo após criar a conta você fará a <b>prova de nivelamento</b> — 12 perguntas rápidas pra pular direto pro seu nível.
+                <IconGrad size={15} className="mr-1.5 inline align-[-2px]" />Boa! Então logo após criar a conta você fará a <b>prova de nivelamento</b> — 12 perguntas rápidas pra pular direto pro seu nível.
               </p>
             )}
           </div>
@@ -134,7 +135,7 @@ export function SetupPage() {
               {GOAL_OPTIONS.map((o) => (
                 <button key={o.key} onClick={() => { sound.click(); setGoal(o.key); }}
                   className={`chip w-full text-left ${goal === o.key ? 'chip-on' : 'chip-off'}`}>
-                  {o.emoji} {o.label}
+                  <span className="flex items-center gap-2.5">{o.icon} {o.label}</span>
                 </button>
               ))}
             </div>
@@ -151,7 +152,7 @@ export function SetupPage() {
                   className={`rounded-3xl p-1.5 transition-all ${theme === m ? 'ring-4 ring-primary' : 'opacity-70'}`}>
                   <ThemePreview mode={m} />
                   <p className={`mt-2 pb-1 text-sm font-bold ${theme === m ? 'text-primary' : 'text-subtle'}`}>
-                    {m === 'dark' ? '🌙 Escuro' : '☀️ Claro'}
+                    {m === 'dark' ? <span className="flex items-center justify-center gap-1.5"><IconMoon size={15} /> Escuro</span> : <span className="flex items-center justify-center gap-1.5"><IconSun size={15} /> Claro</span>}
                   </p>
                 </button>
               ))}
@@ -167,7 +168,7 @@ export function SetupPage() {
             {demoPick ? (
               <div className={`mt-3 rounded-2xl border p-4 ${demoPick === 'RAISE' ? 'border-primary/40 bg-primary/10' : 'border-error/40 bg-error/10'}`}>
                 <p className={`font-bold ${demoPick === 'RAISE' ? 'text-primary' : 'text-error'}`}>
-                  {demoPick === 'RAISE' ? 'Isso! 🎉 Com AA, sempre aumente.' : 'Quase! AA é a melhor mão — o certo era aumentar (Raise).'}
+                  {demoPick === 'RAISE' ? 'Isso! Com AA, sempre aumente.' : 'Quase! AA é a melhor mão — o certo era aumentar (Raise).'}
                 </p>
                 <p className="mt-0.5 text-sm text-text">Viu como funciona? É assim que você vai aprender: jogando.</p>
               </div>

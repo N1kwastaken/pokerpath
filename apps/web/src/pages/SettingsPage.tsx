@@ -7,7 +7,7 @@ import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } fro
 import { sound } from '../lib/sound.js';
 import { a11y } from '../lib/a11y.js';
 import { gameApi, userApi } from '../api/game.js';
-import { IconLogout, IconChevron } from '../components/Icons.js';
+import { IconLogout, IconChevron, IconLock, IconWrench } from '../components/Icons.js';
 
 /**
  * Configurações — tudo que era "preferências" empilhado no perfil.
@@ -68,7 +68,7 @@ export function SettingsPage() {
                     onClick={() => { sound.click(); applyAccent(a.key); setAccent(a.key); }}
                     className={`relative h-7 w-7 rounded-full transition-transform ${accent === a.key ? 'scale-110 ring-2 ring-title' : isUnlocked ? 'opacity-70' : 'opacity-30'}`}
                     style={{ backgroundColor: a.hex }}>
-                    {!isUnlocked && <span className="absolute inset-0 flex items-center justify-center text-[11px]">🔒</span>}
+                    {!isUnlocked && <span className="absolute inset-0 flex items-center justify-center"><IconLock size={13} className="text-white" /></span>}
                   </button>
                 );
               })}
@@ -147,7 +147,7 @@ export function SettingsPage() {
 
       {/* ── Painel de debug (godmode) ── */}
       <div className="mt-8 rounded-2xl border border-dashed border-line bg-card2 p-4">
-        <p className="text-xs font-bold uppercase tracking-wide text-subtle">🛠️ Debug (godmode)</p>
+        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-subtle"><IconWrench size={14} /> Debug (godmode)</p>
 
         <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Plano</p>
         <div className="mt-1 grid grid-cols-2 gap-2">

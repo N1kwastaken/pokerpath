@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { IconSeedling, IconDice, IconFlame } from '../components/Icons.js';
 import { useNavigate } from 'react-router-dom';
 import type { ExperienceLevel, Goal, PlayFrequency } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { userApi, gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
 
-const EXPERIENCE: { value: ExperienceLevel; label: string }[] = [
-  { value: 'beginner', label: '🌱 Nunca joguei' }, { value: 'recreational', label: '🎲 Casualmente' },
-  { value: 'intermediate', label: '♠ Com frequência' }, { value: 'advanced', label: '🔥 Experiente' },
+const EXPERIENCE: { value: ExperienceLevel; label: string; icon: React.ReactNode }[] = [
+  { value: 'beginner', label: 'Nunca joguei', icon: <IconSeedling size={18} /> }, { value: 'recreational', label: 'Casualmente', icon: <IconDice size={18} /> },
+  { value: 'intermediate', label: 'Com frequência', icon: <span className="text-base leading-none">♠</span> }, { value: 'advanced', label: 'Experiente', icon: <IconFlame size={18} /> },
 ];
 const FREQUENCY: { value: PlayFrequency; label: string }[] = [
   { value: 'never', label: 'Nunca' }, { value: 'sometimes', label: 'Às vezes' },
@@ -49,7 +50,7 @@ export function OnboardingPage() {
       </header>
 
       <Group title="Qual seu nível?">
-        {EXPERIENCE.map((o) => <Choice key={o.value} on={experienceLevel === o.value} onClick={() => setExperience(o.value)}>{o.label}</Choice>)}
+        {EXPERIENCE.map((o) => <Choice key={o.value} on={experienceLevel === o.value} onClick={() => setExperience(o.value)}><span className="flex items-center gap-2">{o.icon} {o.label}</span></Choice>)}
       </Group>
       <Group title="Com que frequência joga?">
         {FREQUENCY.map((o) => <Choice key={o.value} on={playFrequency === o.value} onClick={() => setFrequency(o.value)}>{o.label}</Choice>)}

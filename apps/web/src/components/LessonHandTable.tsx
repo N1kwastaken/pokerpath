@@ -1,4 +1,5 @@
 import type { Position } from '@pokerpath/shared';
+import { IconBolt } from '../components/Icons.js';
 import { Card } from './Card.js';
 
 /**
@@ -37,7 +38,7 @@ export function LessonHandTable({ position, hand, board, facing }: {
     <div>
       {facing && (
         <p className="mb-2 text-center">
-          <span className="rounded-full border border-line bg-card px-3 py-1 text-xs font-bold text-title">⚡ {facing}</span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-line bg-card px-3 py-1 text-xs font-bold text-title"><IconBolt size={13} className="text-gold" /> {facing}</span>
         </p>
       )}
       <div className="relative mx-auto aspect-[10/8] w-full max-w-xs">

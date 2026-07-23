@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { IconMail, IconFolder } from '../components/Icons.js';
 import { Link } from 'react-router-dom';
 import { forgotPasswordSchema } from '@pokerpath/shared';
 import { authApi } from '../api/auth.js';
@@ -39,7 +40,7 @@ export function ForgotPasswordPage() {
 
       {sent ? (
         <div className="mt-8 rounded-2xl border border-primary/40 bg-primary/10 p-5 text-center">
-          <p className="text-3xl">📬</p>
+          <IconMail size={30} className="mx-auto text-primary" />
           <p className="mt-2 font-semibold text-title">Confira seu e-mail</p>
           <p className="mt-1 text-sm text-text">
             Se <b>{email}</b> tiver conta, você vai receber um link de recuperação. Ele vale por 30 minutos.
@@ -47,7 +48,7 @@ export function ForgotPasswordPage() {
           {/* O aviso de spam é essencial, não decorativo: o e-mail cai lá com
               frequência, e sem isso a pessoa acha que nada foi enviado. */}
           <p className="mt-3 rounded-xl bg-gold/10 px-3 py-2 text-sm font-semibold text-gold">
-            📁 Não chegou? Olhe no <b>spam</b> ou em <b>promoções</b> — costuma cair lá.
+            <IconFolder size={13} className="mr-1 inline align-[-2px]" />Não chegou? Olhe no <b>spam</b> ou em <b>promoções</b> — costuma cair lá.
           </p>
           <Link to="/login" className="mt-4 inline-block font-bold text-primary">Voltar ao login</Link>
         </div>

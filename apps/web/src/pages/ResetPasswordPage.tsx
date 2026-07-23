@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { IconCheckCircle } from '../components/Icons.js';
 import { Link, useSearchParams } from 'react-router-dom';
 import { resetPasswordSchema } from '@pokerpath/shared';
 import { authApi } from '../api/auth.js';
@@ -50,7 +51,7 @@ export function ResetPasswordPage() {
         </div>
       ) : done ? (
         <div className="mt-8 rounded-2xl border border-primary/40 bg-primary/10 p-5 text-center">
-          <p className="text-3xl">✅</p>
+          <IconCheckCircle size={30} className="mx-auto text-primary" />
           <p className="mt-2 font-semibold text-title">Senha redefinida!</p>
           <p className="mt-1 text-sm text-text">Agora é só entrar com a senha nova.</p>
           <Link to="/login" className="btn-primary mt-4 inline-block px-6">Ir para o login</Link>

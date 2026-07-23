@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { IconCheck } from '../components/Icons.js';
+import { IconCheck, IconBolt, IconChart, IconFlame, IconCrown, IconGift, IconNoAds } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
 
 const BENEFITS = [
   ['♠', 'Postflop completo dos níveis Intermediário e Avançado'],
-  ['⚡', 'Energia infinita — exercícios ilimitados por dia'],
-  ['📊', 'Estatísticas detalhadas por categoria'],
-  ['🔥', 'Recuperação de streak (1/semana)'],
-  ['🚫', 'Sem anúncios'],
+  [<IconBolt size={16} />, 'Energia infinita — exercícios ilimitados por dia'],
+  [<IconChart size={16} />, 'Estatísticas detalhadas por categoria'],
+  [<IconFlame size={16} />, 'Recuperação de streak (1/semana)'],
+  [<IconNoAds size={16} />, 'Sem anúncios'],
 ] as const;
 
 /**
@@ -32,7 +32,7 @@ export function PremiumPage() {
           className="pointer-events-none absolute inset-x-0 top-0 h-32"
           style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.28) 0%, transparent 70%)' }}
         />
-        <div className="relative animate-float text-5xl">👑</div>
+        <IconCrown size={52} className="relative mx-auto animate-float text-gold" />
         <h1 className="relative mt-2 text-3xl font-black text-title">
           PokerPath <span className="text-gold">Premium</span>
         </h1>
@@ -40,7 +40,7 @@ export function PremiumPage() {
       </div>
 
       <div className="animate-slide-up mt-4 rounded-2xl border border-gold/40 bg-gold/10 p-4 text-center" style={stag(1)}>
-        <p className="font-extrabold text-gold">🎁 14 dias por nossa conta</p>
+        <p className="flex items-center justify-center gap-2 font-extrabold text-gold"><IconGift size={18} /> 14 dias por nossa conta</p>
         <p className="mt-1 text-xs text-text">Teste tudo de graça. Cancele quando quiser, sem custo.</p>
       </div>
 

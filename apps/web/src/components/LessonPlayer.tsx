@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconBook } from './Icons.js';
 import { Link } from 'react-router-dom';
 import type { Position } from '@pokerpath/shared';
 import { useRange } from '../hooks/useGame.js';
@@ -64,7 +65,7 @@ export function LessonPlayer({ title, concept, onExit, onFinish, finishing = fal
     <div className="flex min-h-dvh flex-col px-6 py-8">
       <div className="flex items-center justify-between">
         <button onClick={onExit} className="text-sm font-medium text-subtle">Sair</button>
-        <Link to={glossaryTo} className="text-sm font-medium text-primary">📖 Glossário</Link>
+        <Link to={glossaryTo} className="flex items-center gap-1.5 text-sm font-medium text-primary"><IconBook size={16} /> Glossário</Link>
       </div>
 
       <div className="mt-4 flex items-center gap-3">

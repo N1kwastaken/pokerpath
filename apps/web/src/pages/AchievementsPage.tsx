@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { IconTrophy } from '../components/Icons.js';
 import type { AchievementView } from '@pokerpath/shared';
 import { useAchievements } from '../hooks/useGame.js';
 import { LogoLoader } from '../components/LogoLoader.js';
@@ -26,7 +27,7 @@ export function AchievementsPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-subtle">Desbloqueadas</p>
                 <p className="mt-1 text-4xl font-bold text-title">{unlocked}<span className="text-xl text-subtle">/{total}</span></p>
               </div>
-              <span className="text-4xl">🏆</span>
+              <IconTrophy size={40} className="text-gold" />
             </div>
             <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-card2">
               <div className="h-full origin-left rounded-full bg-gold animate-grow-x" style={{ width: `${pct}%` }} />

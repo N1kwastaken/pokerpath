@@ -1,4 +1,5 @@
 import { Card } from './Card.js';
+import { IconFlame } from './Icons.js';
 
 /**
  * "Vitrine": renderiza a própria UI do produto (chart GTO, barras, mesa,
@@ -70,7 +71,7 @@ function ProgressLure() {
     <div className="w-full max-w-[230px] space-y-3 rounded-xl border border-line bg-card p-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-title">Nível 3 · Reg</span>
-        <span className="rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-title">7🔥</span>
+        <span className="flex items-center gap-0.5 rounded-full bg-card2 px-2 py-0.5 text-xs font-bold text-title">7<IconFlame size={12} className="text-gold" /></span>
       </div>
       <div className="h-2.5 overflow-hidden rounded-full bg-black/30"><div className="h-full rounded-full bg-gold" style={{ width: '64%' }} /></div>
       <div className="flex items-center justify-center gap-2 pt-1">

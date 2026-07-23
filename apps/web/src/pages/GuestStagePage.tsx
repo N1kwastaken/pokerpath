@@ -13,7 +13,7 @@ import { Mascot } from '../components/Mascot.js';
 import { Explanation } from '../components/Explanation.js';
 import { LessonPlayer } from '../components/LessonPlayer.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
-import { IconX, IconCheck } from '../components/Icons.js';
+import { IconX, IconCheck, IconBulb } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
 import { useScrollLock } from '../lib/useScrollLock.js';
 
@@ -93,7 +93,7 @@ export function GuestStagePage() {
         </div>
         {passed && (
           <p className="mt-5 rounded-2xl border border-primary/30 bg-primary/10 p-3 text-sm text-text">
-            💡 Com uma conta grátis, isso valeria <b>+XP</b>, streak e conquistas — e seu progresso daqui vai junto.
+            <IconBulb size={14} className="mr-1 inline align-[-2px] text-gold" />Com uma conta grátis, isso valeria <b>+XP</b>, streak e conquistas — e seu progresso daqui vai junto.
           </p>
         )}
         <div className="mt-6 w-full space-y-3">

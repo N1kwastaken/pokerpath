@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { IconEye, IconGrad } from '../components/Icons.js';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo.js';
 import { LureVisual } from '../components/LureVisual.js';
@@ -75,10 +76,10 @@ export function IntroPage({ review = false }: { review?: boolean }) {
         ) : (
           <div className="space-y-3">
             <button className="btn-primary w-full text-lg" onClick={() => finish('/setup')}>Começar grátis →</button>
-            <button className="btn-soft w-full" onClick={() => finish('/g')}>Explorar sem conta 👀</button>
+            <button className="btn-soft w-full" onClick={() => finish('/g')}><span className="flex items-center justify-center gap-2">Explorar sem conta <IconEye size={18} /></span></button>
             <button className="btn-ghost w-full" onClick={() => finish('/login')}>Já tenho conta</button>
             <p className="text-center text-xs text-subtle">
-              🎓 Já joga poker? Ao criar a conta você faz a <b>prova de nivelamento</b> e pula direto pro seu nível.
+              <IconGrad size={14} className="mr-1.5 inline align-[-2px]" />Já joga poker? Ao criar a conta você faz a <b>prova de nivelamento</b> e pula direto pro seu nível.
             </p>
           </div>
         )

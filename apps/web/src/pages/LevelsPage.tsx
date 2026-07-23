@@ -4,7 +4,7 @@ import { USER_LEVELS, levelProgress } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { gameApi } from '../api/game.js';
 import { ACCENTS, unlockedAccents, unlockLabel } from '../lib/accent.js';
-import { IconCheck, IconLock } from '../components/Icons.js';
+import { IconCheck, IconLock, IconCrown, IconTrophy, IconPalette } from '../components/Icons.js';
 
 /**
  * Níveis e recompensas.
@@ -53,7 +53,7 @@ export function LevelsPage() {
             <b className="text-primary">{prog.next.name}</b>
           </p>
         ) : (
-          <p className="mt-2 text-sm font-semibold text-gold">Nível máximo — você chegou ao topo 👑</p>
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-sm font-semibold text-gold">Nível máximo — você chegou ao topo <IconCrown size={16} /></p>
         )}
       </div>
 
@@ -86,7 +86,7 @@ export function LevelsPage() {
       <h2 className="mb-2 mt-7 text-sm font-bold uppercase tracking-wide text-subtle">O que você desbloqueia</h2>
 
       <div className="card p-4">
-        <p className="font-bold text-title">🎨 Cores do app</p>
+        <p className="flex items-center gap-2 font-bold text-title"><IconPalette size={18} className="text-primary" /> Cores do app</p>
         <p className="mt-0.5 text-xs text-subtle">Liberadas ao concluir cada mundo — não pelo XP.</p>
         <div className="mt-3 space-y-2">
           {ACCENTS.map((a) => {
@@ -107,7 +107,7 @@ export function LevelsPage() {
       </div>
 
       <div className="card mt-3 p-4">
-        <p className="font-bold text-title">🏆 Conquistas</p>
+        <p className="flex items-center gap-2 font-bold text-title"><IconTrophy size={18} className="text-gold" /> Conquistas</p>
         <p className="mt-0.5 text-xs text-subtle">Cada uma tem seu próprio feito — também não dependem do XP.</p>
         <div className="mt-3 space-y-2">
           {(achievements ?? []).map((a) => (

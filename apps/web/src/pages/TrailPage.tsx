@@ -4,7 +4,7 @@ import type { WorldDetail, StageSummary } from '@pokerpath/shared';
 import { useTrail } from '../hooks/useGame.js';
 import { useAuth } from '../auth/AuthContext.js';
 import { LogoLoader } from '../components/LogoLoader.js';
-import { IconCheck, IconLock, IconBook, IconTarget, IconStar } from '../components/Icons.js';
+import { IconCheck, IconLock, IconBook, IconTarget, IconStar, IconGrad, IconFlag } from '../components/Icons.js';
 import { stageGroup, categoryColor, categoryDesc } from '../lib/stageGroup.js';
 
 /**
@@ -141,13 +141,13 @@ export function TrailPage() {
               <h2 className="truncate text-lg font-extrabold">{selected.name}</h2>
             </div>
             <span className="ml-3 shrink-0 rounded-full bg-black/25 px-2.5 py-1 text-xs font-bold">
-              {selected.premiumLocked ? '🔒 Premium' : `${selected.stages.filter((s) => s.status === 'COMPLETED').length}/${selected.stages.length}`}
+              {selected.premiumLocked ? <span className="flex items-center gap-1"><IconLock size={12} /> Premium</span> : `${selected.stages.filter((s) => s.status === 'COMPLETED').length}/${selected.stages.length}`}
             </span>
           </div>
           {selected.order === 0 && selected.stages.some((s) => s.status !== 'COMPLETED') && (
             <button onClick={() => navigate('/placement')}
               className="mb-2 w-full rounded-lg border border-white/15 bg-black/25 py-2 text-xs font-bold text-white/80 active:scale-[0.99]">
-              🎓 Já sei jogar — fazer a prova de nivelamento
+              <IconGrad size={14} className="mr-1.5 inline align-[-2px]" />Já sei jogar — fazer a prova de nivelamento
             </button>
           )}
 
@@ -178,7 +178,7 @@ function WorldTrail({ world, currentId, completedId, currentRef, onOpen, isFree 
   const multi = groups.length > 1;
   return (
     <div className="mt-3 flex flex-col items-center px-1 py-4">
-      <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-white/50">🏁 Fim do mundo</p>
+      <p className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-white/50"><IconFlag size={13} /> Fim do mundo</p>
       {[...groups].reverse().map((grp) => {
         const done = grp.stages.filter((s) => s.status === 'COMPLETED').length;
         const catColor = multi ? categoryColor(grp.name) : world.color;

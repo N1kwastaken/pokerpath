@@ -10,7 +10,7 @@ import { fileToAvatar } from '../lib/avatarFile.js';
 import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
 import { Avatar } from '../components/Avatar.js';
-import { IconChevron, IconSettings, IconCheck, IconCamera } from '../components/Icons.js';
+import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy, IconLadder, IconUsers, IconBook, IconStar } from '../components/Icons.js';
 
 /**
  * Perfil — CARTÃO DE IDENTIDADE, não painel de controle.
@@ -226,43 +226,43 @@ export function ProfilePage() {
         {/* ── Números ── */}
         <div className="mt-5 grid grid-cols-3 gap-3">
           <Mini value={user.totalXp.toLocaleString('pt-BR')} label="XP total" />
-          <Mini value={`${user.currentStreak}🔥`} label="Sequência" />
+          <Mini value={`${user.currentStreak}`} icon={<IconFlame size={16} className="text-gold" />} label="Sequência" />
           <Mini value={`${user.maxStreak}`} label="Recorde" />
         </div>
 
         {/* ── Navegação ── */}
         <nav className="mt-5 space-y-3">
-          <NavLink to="/achievements" icon="🏆" label="Conquistas" />
-          <NavLink to="/milestones" icon="🪜" label="Marcos" />
-          <NavLink to="/friends" icon="👥" label="Amigos" />
-          <NavLink to="/glossary" icon="📖" label="Glossário" />
+          <NavLink to="/achievements" icon={<IconTrophy size={20} className="text-gold" />} label="Conquistas" />
+          <NavLink to="/milestones" icon={<IconLadder size={20} className="text-primary" />} label="Marcos" />
+          <NavLink to="/friends" icon={<IconUsers size={20} className="text-primary" />} label="Amigos" />
+          <NavLink to="/glossary" icon={<IconBook size={20} className="text-primary" />} label="Glossário" />
         </nav>
 
         {user.isDev ? (
-          <div className="mt-4 w-full rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center text-sm font-semibold text-accent">
-            ⭐ Conta DEV — Premium liberado como beta tester. Obrigado por testar!
+          <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center text-sm font-semibold text-accent">
+            <IconStar size={16} className="shrink-0" /> Conta DEV — Premium liberado como beta tester. Obrigado por testar!
           </div>
         ) : (
-          <Link to="/premium" className="btn-primary mt-4 w-full">⭐ Conhecer o Premium</Link>
+          <Link to="/premium" className="btn-primary mt-4 w-full"><IconStar size={18} /> Conhecer o Premium</Link>
         )}
       </div>
     </div>
   );
 }
 
-function NavLink({ to, icon, label }: { to: string; icon: string; label: string }) {
+function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
   return (
     <Link to={to} className="flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
-      <span className="flex items-center gap-2 font-medium text-title"><span className="text-lg">{icon}</span> {label}</span>
+      <span className="flex items-center gap-2.5 font-medium text-title">{icon} {label}</span>
       <IconChevron size={18} className="text-subtle" />
     </Link>
   );
 }
 
-function Mini({ value, label }: { value: string; label: string }) {
+function Mini({ value, label, icon }: { value: string; label: string; icon?: React.ReactNode }) {
   return (
     <div className="card p-3 text-center">
-      <p className="text-lg font-bold tabular-nums text-title">{value}</p>
+      <p className="flex items-center justify-center gap-1 text-lg font-bold tabular-nums text-title">{value}{icon}</p>
       <p className="truncate text-[11px] text-subtle">{label}</p>
     </div>
   );

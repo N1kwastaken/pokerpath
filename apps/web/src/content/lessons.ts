@@ -184,7 +184,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
     t(`Posição manda: quanto mais tarde, mais mãos você abre.`),
     h('BTN', 'Q♣J♦', 'RAISE', `QJo abre no botão…`),
     h('UTG', 'Q♣J♦', 'FOLD', `…mas a mesma QJo é fold de UTG.`),
-    t(`Pronto para o teste final! 🚀`),
+    t(`Pronto para o teste final!`),
   ],
 
   'Ler o gráfico': [
@@ -197,7 +197,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
     quiz(`AKs (A e K do mesmo naipe) fica onde no gráfico?`, ['Acima da diagonal', 'Abaixo da diagonal'], 0,
       `Mesmo naipe (suited) = acima da diagonal. Naipes diferentes (offsuit) = abaixo.`),
     t(`Última convenção: "TT+" quer dizer "par de dez OU MELHOR" (TT, JJ, QQ…). É assim que os ranges são escritos.`),
-    t(`E o melhor: você NÃO precisa decorar nada. Dentro de qualquer fase, toque no botão 📊 no topo para abrir o gráfico da sua posição — e nos termos sublinhados para o glossário.`),
+    t(`E o melhor: você NÃO precisa decorar nada. Dentro de qualquer fase, toque no botão de gráfico no topo para abrir o gráfico da sua posição — e nos termos sublinhados para o glossário.`),
   ],
 
   // ── Mundos 2–5 ─────────────────────────────────────────────
@@ -436,7 +436,7 @@ export const LESSONS: Record<string, LessonStep[]> = {
 };
 
 export const DEFAULT_LESSON: LessonStep[] = [
-  t(`Raise com as mãos fortes, Fold com as fracas. Observe a posição. Você consegue! 🎴`),
+  t(`Raise com as mãos fortes, Fold com as fracas. Observe a posição. Você consegue!`),
 ];
 
 export function lessonFor(concept: string): LessonStep[] {

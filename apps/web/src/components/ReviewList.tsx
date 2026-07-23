@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconTarget, IconRefresh } from './Icons.js';
 import type { ReviewItem, Action } from '@pokerpath/shared';
 import { useReview } from '../hooks/useGame.js';
 import { LogoLoader } from './LogoLoader.js';
@@ -36,7 +37,7 @@ export function ReviewList() {
   if (!data || data.length === 0) {
     return (
       <div className="card p-8 text-center">
-        <p className="text-3xl">🎯</p>
+        <IconTarget size={30} className="mx-auto text-primary" />
         <p className="mt-2 font-semibold text-title">Nada para revisar</p>
         <p className="mt-1 text-sm text-subtle">As mãos que você errar aparecem aqui para reforçar.</p>
       </div>
@@ -47,7 +48,7 @@ export function ReviewList() {
       {playing && <ReviewPlay onClose={() => setPlaying(false)} />}
       {/* Rejogar: acertar aqui limpa o erro da lista. */}
       <button onClick={() => setPlaying(true)} className="btn-primary flex w-full items-center justify-center gap-2 text-base">
-        🔁 Rejogar meus erros <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-black">{data.length}</span>
+        <IconRefresh size={16} className="mr-1.5 inline align-[-3px]" />Rejogar meus erros <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-black">{data.length}</span>
       </button>
       <p className="text-xs text-subtle">Ou estude abaixo — o porquê de cada erro e o range certo.</p>
       {data.map((it) => <ReviewCard key={it.id} item={it} />)}

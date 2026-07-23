@@ -11,7 +11,7 @@ import { Mascot } from '../components/Mascot.js';
 import { Avatar } from '../components/Avatar.js';
 import { ProfileBadge } from '../components/ProfileBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
-import { IconX } from '../components/Icons.js';
+import { IconX, IconMedal, IconFlame } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
 
 /**
@@ -23,7 +23,6 @@ import { sound } from '../lib/sound.js';
  */
 type Row = FriendView & { me: boolean };
 
-const MEDALS = ['🥇', '🥈', '🥉'];
 
 export function FriendsPage() {
   const navigate = useNavigate();
@@ -39,7 +38,7 @@ export function FriendsPage() {
     mutationFn: (c: string) => gameApi.addFriend(c),
     onSuccess: (f) => {
       sound.correct();
-      setMsg({ ok: true, text: `${f.name} agora é seu amigo! 🤝` });
+      setMsg({ ok: true, text: `${f.name} agora é seu amigo!` });
       setCode('');
       queryClient.invalidateQueries({ queryKey: ['friends'] });
     },
@@ -134,7 +133,7 @@ export function FriendsPage() {
           {/* A frase que dá sentido ao placar: onde você está e o que falta. */}
           <div className="mt-6 rounded-2xl border border-line bg-card2 px-4 py-3 text-sm">
             {myPos === 1 ? (
-              <p className="font-bold text-title">🥇 Você lidera entre {rows.length} — segure o topo.</p>
+              <p className="flex items-center gap-1.5 font-bold text-title"><IconMedal place={1} size={18} /> Você lidera entre {rows.length} — segure o topo.</p>
             ) : (
               <p className="text-text">
                 Você está em <b className="text-title">{myPos}º de {rows.length}</b> ·{' '}
@@ -174,7 +173,7 @@ function RankRow({ row, pos, achievements, accent, onRemove }: {
       accent ? 'border-primary/60 bg-primary/10' : 'border-line bg-card'
     }`}>
       <span className="w-6 shrink-0 text-center text-sm font-black tabular-nums text-subtle">
-        {pos <= 3 ? <span className="text-lg">{MEDALS[pos - 1]}</span> : `${pos}º`}
+        {pos <= 3 ? <IconMedal place={pos as 1 | 2 | 3} size={22} /> : `${pos}º`}
       </span>
       <Avatar name={row.name} size={38} ring={accent} src={row.avatar} />
       <div className="min-w-0 flex-1">
@@ -193,7 +192,7 @@ function RankRow({ row, pos, achievements, accent, onRemove }: {
       </div>
       <div className="shrink-0 text-right">
         <p className="text-sm font-black tabular-nums text-title">{row.totalXp.toLocaleString('pt-BR')}</p>
-        <p className="text-xs tabular-nums text-subtle">{row.currentStreak}🔥</p>
+        <p className="flex items-center justify-end gap-0.5 text-xs tabular-nums text-subtle">{row.currentStreak}<IconFlame size={12} className="text-gold" /></p>
       </div>
       {onRemove && (
         <button onClick={onRemove} className="shrink-0 text-subtle active:scale-90" aria-label={`Remover ${row.name}`}>

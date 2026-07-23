@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { IconTarget, IconTrophy, IconFlame } from './Icons.js';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, PublicExercise, ReviewAnswerResult } from '@pokerpath/shared';
 import { gameApi } from '../api/game.js';
@@ -73,7 +74,7 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
     const perfect = list.length > 0 && right === list.length;
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-bg px-6 text-center">
-        <p className="text-6xl">{list.length === 0 ? '🎯' : perfect ? '🏆' : '💪'}</p>
+        <div className="flex justify-center">{list.length === 0 ? <IconTarget size={64} className="text-primary" /> : perfect ? <IconTrophy size={64} className="text-gold" /> : <IconFlame size={64} className="text-gold" />}</div>
         <h2 className="text-2xl font-black text-title">
           {list.length === 0 ? 'Nada para rejogar' : `${right}/${list.length} corrigidos`}
         </h2>

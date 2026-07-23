@@ -16,7 +16,7 @@ import { CountUp } from '../components/CountUp.js';
 import { StreakBadge, tierForDays } from '../components/StreakBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
 import { GtoBars } from '../components/GtoBars.js';
-import { IconX, IconCheck, IconBolt } from '../components/Icons.js';
+import { IconX, IconCheck, IconBolt, IconFlame, IconHome, IconChart, IconTrophy } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
 import { LessonPlayer } from '../components/LessonPlayer.js';
@@ -311,7 +311,7 @@ export function StagePlayPage() {
           <>
             <div className="relative animate-spin-in">
               <span className="absolute inset-0 -z-10 rounded-full bg-gold/25 blur-2xl" aria-hidden />
-              <span className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold bg-gold/15 text-6xl shadow-pop">🏆</span>
+              <span className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold bg-gold/15 shadow-pop"><IconTrophy size={56} className="text-gold" /></span>
             </div>
             <h1 className="mt-5 text-3xl font-black text-title">Mundo completo!</h1>
             <p className="mt-1 text-sm font-semibold text-gold">Todas as fases fechadas. O próximo mundo é seu.</p>
@@ -355,7 +355,7 @@ export function StagePlayPage() {
             {tierForDays(user!.currentStreak) ? (
               <StreakBadge tier={tierForDays(user!.currentStreak)!} size={44} />
             ) : (
-              <span className="animate-flame text-3xl">🔥</span>
+              <IconFlame size={30} className="animate-flame text-gold" />
             )}
             <div className="text-left">
               <p className="text-lg font-extrabold text-gold">
@@ -375,7 +375,7 @@ export function StagePlayPage() {
         </div>
         <div className="mt-8 w-full space-y-3">
           {worldDone ? (
-            <button className="btn-primary w-full" onClick={goHome}>🏠 Voltar ao início</button>
+            <button className="btn-primary w-full" onClick={goHome}><IconHome size={18} /> Voltar ao início</button>
           ) : passed ? (
             <>
               <button className="btn-primary w-full" onClick={backToWorld}>Continuar</button>
@@ -420,11 +420,11 @@ export function StagePlayPage() {
         {showCheat && (
           <button onClick={() => { setSheetOpen(true); setSheetPrev(false); }}
             className="shrink-0 rounded-2xl bg-card2 px-2.5 py-1.5 text-base" aria-label="Ver range">
-            📊
+            <IconChart size={20} />
           </button>
         )}
         {energy && <span className="flex shrink-0 items-center gap-1 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-call"><IconBolt size={18} />{energy.infinite ? '∞' : energy.remaining}</span>}
-        {user && <span className="flex shrink-0 items-center gap-0.5 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-title">{user.currentStreak}<span className="text-sm">🔥</span></span>}
+        {user && <span className="flex shrink-0 items-center gap-1 rounded-2xl bg-card2 px-2.5 py-1.5 text-lg font-black text-title">{user.currentStreak}<IconFlame size={16} className="text-gold" /></span>}
       </div>
 
       {/* Mesa em posição FIXA (mesmo jogando e no feedback, sem pulo). Gap de
@@ -480,7 +480,7 @@ export function StagePlayPage() {
               transition={{ type: 'spring', stiffness: 400, damping: 12 }}
               className="flex items-center justify-center gap-1.5 rounded-xl bg-gold/15 py-1.5 text-sm font-black text-gold"
             >
-              <span className="animate-flame">🔥</span> {combo} seguidas — combo!
+              <IconFlame size={16} className="animate-flame" /> {combo} seguidas — combo!
             </motion.div>
           )}
 

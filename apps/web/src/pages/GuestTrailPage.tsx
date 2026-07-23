@@ -4,7 +4,7 @@ import { guestApi } from '../api/guest.js';
 import { guestDone } from '../lib/guestProgress.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Mascot } from '../components/Mascot.js';
-import { IconCheck } from '../components/Icons.js';
+import { IconCheck, IconGrad, IconBook, IconLock } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
 
 /**
@@ -42,7 +42,7 @@ export function GuestTrailPage() {
           <p className="font-bold text-title">Já jogou poker antes?</p>
           <p className="text-sm text-subtle">Crie a conta e faça a prova de nivelamento — pule direto pro seu nível.</p>
         </div>
-        <span className="text-xl">🎓</span>
+        <IconGrad size={22} className="text-primary" />
       </Link>
 
       {/* Fases do Mundo 0 */}
@@ -60,13 +60,13 @@ export function GuestTrailPage() {
             >
               <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 text-lg font-black
                 ${isDone ? 'border-gold bg-gold text-white' : isOpen ? 'border-primary bg-primary text-white' : 'border-line bg-card2 text-subtle'}`}>
-                {isDone ? <IconCheck size={20} /> : s.isLesson ? '📖' : '♠'}
+                {isDone ? <IconCheck size={20} /> : s.isLesson ? <IconBook size={18} /> : '♠'}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold text-title">{s.title}</span>
                 <span className="block truncate text-sm text-subtle">{s.description}</span>
               </span>
-              {!isOpen && <span className="text-lg">🔒</span>}
+              {!isOpen && <IconLock size={18} />}
             </button>
           );
         })}

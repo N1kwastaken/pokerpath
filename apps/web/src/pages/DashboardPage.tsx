@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext.js';
 import { useEnergy, useTrail } from '../hooks/useGame.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { MissionsCard } from '../components/MissionsCard.js';
-import { IconChevron, IconBolt } from '../components/Icons.js';
+import { IconChevron, IconBolt, IconStar, IconCrown, IconFlame, IconSparkles } from '../components/Icons.js';
 
 /** Home — enxuta e game-like: um CTA grande para voltar à mão, sem cards corporativos. */
 export function DashboardPage() {
@@ -35,7 +35,7 @@ export function DashboardPage() {
       {/* Barra de recursos — streak e energia no lugar do nome; nível à direita.
           Energia em destaque (é o que trava/libera o jogo). */}
       <header className="mb-4 flex items-center gap-2.5">
-        <StatChip icon="🔥" value={`${user.currentStreak}`} label="ofensiva" alert={user.streakAtRisk} lit={user.streakPlayedToday && user.currentStreak > 0} />
+        <StatChip iconNode={<IconFlame size={22} className={`${user.streakPlayedToday && user.currentStreak > 0 ? 'animate-flame ' : ''}text-gold`} />} value={`${user.currentStreak}`} label="ofensiva" alert={user.streakAtRisk} lit={user.streakPlayedToday && user.currentStreak > 0} />
         {energy && (
           <StatChip
             iconNode={<IconBolt size={22} />}
@@ -50,7 +50,7 @@ export function DashboardPage() {
           onClick={() => navigate('/levels')}
           className="ml-auto flex items-center gap-1.5 rounded-2xl bg-card px-3.5 py-2.5 active:scale-95"
         >
-          <span className="text-base font-black text-gold">★</span>
+          <IconStar size={16} className="text-gold" />
           <span className="text-base font-black tabular-nums text-title">{user.totalXp.toLocaleString('pt-BR')}</span>
           <span className="text-[10px] font-bold uppercase tracking-wide text-subtle">XP</span>
         </button>
@@ -62,7 +62,7 @@ export function DashboardPage() {
         <div className="mb-1.5 flex items-baseline justify-between">
           <span className="text-base font-extrabold text-title">{user.levelName}</span>
           <span className="text-[11px] font-bold text-subtle">
-            {prog.next ? <>{prog.xpToNext.toLocaleString('pt-BR')} XP p/ {prog.next.name}</> : <>Nível máximo 👑</>}
+            {prog.next ? <>{prog.xpToNext.toLocaleString('pt-BR')} XP p/ {prog.next.name}</> : <span className="flex items-center gap-1">Nível máximo <IconCrown size={13} className="text-gold" /></span>}
           </span>
         </div>
         <div className="h-2.5 overflow-hidden rounded-full bg-card2">
@@ -76,7 +76,7 @@ export function DashboardPage() {
           onClick={() => navigate('/worlds')}
           className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 p-3.5 text-left active:scale-[0.99]"
         >
-          <span className="animate-flame text-2xl">🔥</span>
+          <IconFlame size={26} className="animate-flame text-gold" />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-extrabold text-title">
               Seu streak de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'} acaba hoje
@@ -88,7 +88,7 @@ export function DashboardPage() {
       )}
       {!user.streakAtRisk && user.streakPlayedToday && user.currentStreak > 0 && (
         <p className="mb-5 text-center text-xs font-semibold text-primary">
-          🔥 Dia garantido — streak de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'}
+          <IconFlame size={13} className="mr-1 inline align-[-2px] text-primary" />Dia garantido — streak de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'}
         </p>
       )}
 
@@ -120,7 +120,7 @@ export function DashboardPage() {
         // Sem fase pendente: NÃO pode ser um beco sem saída — quem terminou
         // tudo é justamente quem mais volta. Manda para a revisão.
         <button onClick={() => navigate('/review')} className="btn3d w-full rounded-2xl bg-primary p-5 text-left text-white">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/80">Tudo em dia 🎉</p>
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/80">Tudo em dia <IconSparkles size={14} /></p>
           <h2 className="mt-1 flex items-center gap-2 text-4xl font-black leading-none">
             Revisar <IconChevron size={30} className="mt-0.5" />
           </h2>

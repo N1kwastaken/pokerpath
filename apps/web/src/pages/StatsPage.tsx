@@ -1,4 +1,5 @@
 import type { CategoryStat } from '@pokerpath/shared';
+import { IconChart, IconFlame, IconTarget } from '../components/Icons.js';
 import { useStats } from '../hooks/useGame.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 
@@ -19,7 +20,7 @@ export function StatsPage() {
         <div className="card"><LogoLoader inline /></div>
       ) : !data || data.totalAnswered === 0 ? (
         <div className="card p-8 text-center">
-          <p className="text-3xl">📊</p>
+          <IconChart size={30} className="mx-auto text-subtle" />
           <p className="mt-2 font-semibold text-title">Ainda sem dados</p>
           <p className="mt-1 text-sm text-subtle">Responda alguns exercícios para ver sua precisão por categoria.</p>
         </div>
@@ -39,8 +40,8 @@ export function StatsPage() {
 
           {/* Recordes — dão o que perseguir (ofensiva de dias e combo de acertos). */}
           <div className="mb-5 grid grid-cols-2 gap-3">
-            <Record icon="🔥" value={data.maxDayStreak} label="Maior ofensiva" unit={data.maxDayStreak === 1 ? 'dia' : 'dias'} />
-            <Record icon="🎯" value={data.bestAnswerStreak} label="Melhor sequência" unit="acertos" />
+            <Record iconNode={<IconFlame size={22} className="text-gold" />} value={data.maxDayStreak} label="Maior ofensiva" unit={data.maxDayStreak === 1 ? 'dia' : 'dias'} />
+            <Record iconNode={<IconTarget size={22} className="text-primary" />} value={data.bestAnswerStreak} label="Melhor sequência" unit="acertos" />
           </div>
 
           {/* Por categoria */}
@@ -54,10 +55,10 @@ export function StatsPage() {
   );
 }
 
-function Record({ icon, value, label, unit }: { icon: string; value: number; label: string; unit: string }) {
+function Record({ iconNode, value, label, unit }: { iconNode: React.ReactNode; value: number; label: string; unit: string }) {
   return (
     <div className="card flex items-center gap-3 p-4">
-      <span className="text-3xl leading-none">{icon}</span>
+      <span className="text-3xl leading-none">{iconNode}</span>
       <div className="min-w-0">
         <p className="text-2xl font-black tabular-nums text-title">{value} <span className="text-sm font-bold text-subtle">{unit}</span></p>
         <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-subtle">{label}</p>
