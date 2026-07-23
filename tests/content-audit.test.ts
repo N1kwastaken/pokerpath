@@ -199,6 +199,19 @@ describe('vitrine de badges', () => {
   });
 });
 
+describe('river não fala em projeto', () => {
+  // No river não vem mais carta: "open-ended", "semi-blefe", "outs", "pode
+  // acertar depois" são lógica de flop/turn e viram erro pedagógico. Um river
+  // ou tem mão FEITA, ou é blefe puro/desistência — nunca um projeto.
+  it('nenhuma explicação de river menciona projeto/semi-blefe/outs', () => {
+    const proibido = /open-ended|semi-blefe|acertar depois|flush draw|cartas que te d[ãa]o|gutshot|projeto de flush/i;
+    const bad = all
+      .filter(({ ex }) => ex.category === 'RIVER' && proibido.test(ex.explanation))
+      .map(({ ex, stage }) => `${stage.title}/${ex.heroHand}`);
+    expect(bad).toEqual([]);
+  });
+});
+
 describe('formato das explicações', () => {
   // Título + tópicos numa string só (ver Explanation.tsx). Uma explicação que
   // volte ao formato de frase única não quebra nada — só volta a ser ilegível.
