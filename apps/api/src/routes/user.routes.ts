@@ -4,16 +4,18 @@ import {
   nameSchema, usernameSchema,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
-import { BadRequestError, ConflictError, NotFoundError } from '../lib/errors.js';
+import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../lib/errors.js';
+import { verifyPassword } from '../lib/password.js';
 import { toPublicUser, usernameNextChangeAt } from '../services/user.serializer.js';
 
 /**
  * Rotas do usuário autenticado.
- *   POST  /onboarding   — salva as 3 respostas e marca o onboarding concluído
- *   PATCH /preferences  — preferências da conta (hoje: lembrete por e-mail)
- *   PATCH /name         — nome de exibição (livre, sempre)
- *   PUT   /username      — @ único (1x a cada 30 dias, unicidade validada)
- *   PUT   /showcase     — badges exibidos no perfil (posse validada aqui)
+ *   POST   /onboarding   — salva as 3 respostas e marca o onboarding concluído
+ *   PATCH  /preferences  — preferências da conta (hoje: lembrete por e-mail)
+ *   PATCH  /name         — nome de exibição (livre, sempre)
+ *   PUT    /username     — @ único (1x a cada 30 dias, unicidade validada)
+ *   DELETE /account      — exclusão da conta (LGPD): pede senha, apaga tudo
+ *   PUT    /showcase     — badges exibidos no perfil (posse validada aqui)
  *   PUT   /avatar       — foto de perfil (data URI pequeno, ou null para remover)
  */
 export async function userRoutes(app: FastifyInstance) {
@@ -82,6 +84,29 @@ export async function userRoutes(app: FastifyInstance) {
       // Corrida: dois pedidos com o mesmo @ ao mesmo tempo → a unique pega.
       throw new ConflictError('Esse @ já está em uso.', 'USERNAME_TAKEN');
     }
+  });
+
+  /**
+   * Exclusão de conta (direito da LGPD). Irreversível, então pede a SENHA de
+   * novo — um token roubado não pode apagar a conta sem ela. O delete cascateia
+   * para todo o dado do usuário (progresso, respostas, amizades, tokens…) via
+   * os onDelete: Cascade do schema.
+   */
+  app.delete<{ Body: { password?: unknown } | null }>('/account', async (request, reply) => {
+    const password = request.body?.password;
+    if (typeof password !== 'string' || password.length === 0) {
+      throw new BadRequestError('Confirme sua senha para excluir a conta.', 'VALIDATION_ERROR');
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.sub },
+      select: { passwordHash: true },
+    });
+    if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
+    if (!(await verifyPassword(password, user.passwordHash))) {
+      throw new UnauthorizedError('Senha incorreta.', 'INVALID_CREDENTIALS');
+    }
+    await prisma.user.delete({ where: { id: request.user.sub } });
+    return reply.status(204).send();
   });
 
   app.patch<{ Body: { emailReminders?: boolean } | null }>('/preferences', async (request, reply) => {

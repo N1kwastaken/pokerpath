@@ -61,4 +61,6 @@ export const userApi = {
     apiRequest<{ user: PublicUser }>('/name', { method: 'PATCH', body: { name } }).then((r) => r.user),
   setUsername: (username: string) =>
     apiRequest<{ user: PublicUser }>('/username', { method: 'PUT', body: { username } }).then((r) => r.user),
+  deleteAccount: (password: string) =>
+    apiRequest<void>('/account', { method: 'DELETE', body: { password } }),
 };

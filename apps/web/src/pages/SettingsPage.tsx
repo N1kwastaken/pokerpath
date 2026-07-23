@@ -6,6 +6,8 @@ import { useTheme } from '../lib/theme.js';
 import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
 import { a11y } from '../lib/a11y.js';
+import { ApiError } from '../lib/api.js';
+import { tokenStorage } from '../lib/tokenStorage.js';
 import { gameApi, userApi } from '../api/game.js';
 import { IconLogout, IconChevron, IconLock, IconWrench } from '../components/Icons.js';
 
@@ -145,6 +147,13 @@ export function SettingsPage() {
         <IconLogout size={18} /> Sair da conta
       </button>
 
+      {/* ── Zona de perigo: exclusão de conta (LGPD) ── */}
+      <DeleteAccount />
+
+      <p className="mt-4 text-center text-[11px] text-subtle">
+        <Link to="/privacidade" className="underline">Privacidade</Link> · <Link to="/termos" className="underline">Termos</Link>
+      </p>
+
       {/* ── Painel de debug (godmode) ── */}
       <div className="mt-8 rounded-2xl border border-dashed border-line bg-card2 p-4">
         <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-subtle"><IconWrench size={14} /> Debug (godmode)</p>
@@ -183,6 +192,70 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-subtle">{title}</h2>
       <div className="card divide-y divide-line">{children}</div>
     </section>
+  );
+}
+
+/**
+ * Exclusão de conta (LGPD). Pede a senha porque é irreversível — token roubado
+ * não apaga a conta. Ao concluir, limpa a sessão local (a conta já não existe,
+ * então não dá para chamar logout no servidor) e volta à landing.
+ */
+function DeleteAccount() {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const del = useMutation({
+    mutationFn: (pw: string) => userApi.deleteAccount(pw),
+    onSuccess: () => {
+      // A conta já não existe: limpa a sessão local e recarrega do zero (o
+      // reload reinicializa o auth a partir do storage vazio → landing).
+      tokenStorage.clear();
+      window.location.href = '/';
+    },
+  });
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-3 w-full rounded-2xl py-3 text-center text-sm font-semibold text-subtle underline underline-offset-2 active:opacity-70"
+      >
+        Excluir minha conta
+      </button>
+    );
+  }
+  return (
+    <div className="mt-3 rounded-2xl border border-error/40 bg-error/10 p-4">
+      <p className="font-bold text-error">Excluir a conta é permanente.</p>
+      <p className="mt-1 text-xs text-text">
+        Apaga XP, fases, conquistas, sequência, amigos e sua foto. Não dá para desfazer.
+        Confirme com sua senha.
+      </p>
+      <input
+        type="password" value={password} placeholder="Sua senha" autoComplete="current-password"
+        onChange={(e) => setPassword(e.target.value)}
+        className="field mt-3"
+      />
+      {del.isError && (
+        <p className="mt-2 text-xs font-semibold text-error" role="alert">
+          {del.error instanceof ApiError ? del.error.message : 'Não foi possível excluir.'}
+        </p>
+      )}
+      <div className="mt-3 flex gap-2">
+        <button
+          onClick={() => { setOpen(false); setPassword(''); }}
+          className="btn-soft flex-1"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => del.mutate(password)}
+          disabled={!password || del.isPending}
+          className="flex-1 rounded-2xl bg-error py-3.5 font-bold text-white disabled:opacity-50"
+        >
+          {del.isPending ? 'Excluindo...' : 'Excluir conta'}
+        </button>
+      </div>
+    </div>
   );
 }
 
