@@ -14,6 +14,7 @@ import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
 import { CountUp } from '../components/CountUp.js';
 import { StreakBadge, tierForDays } from '../components/StreakBadge.js';
+import { AchievementBadge } from '../components/AchievementBadge.js';
 import { GtoBars } from '../components/GtoBars.js';
 import { IconX, IconCheck, IconBolt } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
@@ -491,7 +492,7 @@ export function StagePlayPage() {
             <div className="space-y-1.5">
               {result.newAchievements.map((a) => (
                 <div key={a.name} className="flex items-center gap-2.5 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2">
-                  <span className="animate-spin-in text-2xl">{a.icon}</span>
+                  <span className="animate-spin-in"><AchievementBadge code={a.code} size={34} /></span>
                   <div className="min-w-0 text-left leading-tight">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-gold">Conquista desbloqueada</p>
                     <p className="truncate text-sm font-extrabold text-title">{a.name}</p>

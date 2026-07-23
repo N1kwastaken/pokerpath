@@ -8,6 +8,7 @@ import { userApi } from '../api/game.js';
 import { sound } from '../lib/sound.js';
 import { fileToAvatar } from '../lib/avatarFile.js';
 import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
+import { AchievementBadge } from '../components/AchievementBadge.js';
 import { Avatar } from '../components/Avatar.js';
 import { IconChevron, IconSettings, IconCheck, IconCamera } from '../components/Icons.js';
 
@@ -130,9 +131,12 @@ export function ProfilePage() {
           <div className="min-w-0 flex-1">
             <h1 className="flex items-center gap-2 text-2xl font-black text-title">
               <span className="truncate">{user.name}</span>
+              {/* DEV agora é o brasão prata (mesma família das conquistas),
+                  não mais uma pílula de texto solta ao lado do nome. */}
               {user.isDev && (
-                <span title="Beta tester: premium liberado"
-                  className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent">DEV</span>
+                <span title="Beta tester — Premium liberado" className="shrink-0">
+                  <AchievementBadge code="DEV" size={26} />
+                </span>
               )}
             </h1>
             <p className="truncate text-sm text-subtle">{user.levelName} · {user.email}</p>

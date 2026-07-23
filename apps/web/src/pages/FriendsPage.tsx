@@ -10,6 +10,7 @@ import { LogoLoader } from '../components/LogoLoader.js';
 import { Mascot } from '../components/Mascot.js';
 import { Avatar } from '../components/Avatar.js';
 import { ProfileBadge } from '../components/ProfileBadge.js';
+import { AchievementBadge } from '../components/AchievementBadge.js';
 import { IconX } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
 
@@ -180,7 +181,7 @@ function RankRow({ row, pos, achievements, accent, onRemove }: {
         <p className="flex items-center gap-1.5 truncate font-bold text-title">
           <span className="truncate">{row.name}</span>
           {accent && <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-primary">você</span>}
-          {row.isDev && <span className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-1.5 text-[9px] font-black uppercase text-accent">DEV</span>}
+          {row.isDev && <span className="shrink-0" title="Beta tester"><AchievementBadge code="DEV" size={16} /></span>}
         </p>
         <p className="flex items-center gap-1.5 text-xs text-subtle">
           <span className="truncate">{row.levelName}</span>
