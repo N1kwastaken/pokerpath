@@ -28,6 +28,11 @@ datasource db {
 model User {
   id                  String   @id @default(uuid())
   name                String
+  // @username único, mostrado abaixo do nome. Guardado em minúsculo, então a
+  // unicidade já é case-insensitive. `usernameChangedAt` marca a última troca
+  // — a regra dos 30 dias é aplicada por cima dele (null = pode trocar já).
+  username            String?  @unique
+  usernameChangedAt   DateTime?
   email               String   @unique
   passwordHash        String
   plan                String   @default("FREE")

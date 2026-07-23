@@ -10,7 +10,8 @@ import { fileToAvatar } from '../lib/avatarFile.js';
 import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
 import { Avatar } from '../components/Avatar.js';
-import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy, IconLadder, IconUsers, IconBook, IconStar } from '../components/Icons.js';
+import { IdentityEditor } from '../components/IdentityEditor.js';
+import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy, IconLadder, IconUsers, IconBook, IconStar, IconPencil } from '../components/Icons.js';
 
 /**
  * Perfil — CARTÃO DE IDENTIDADE, não painel de controle.
@@ -23,6 +24,7 @@ export function ProfilePage() {
   const { user, setUser } = useAuth();
   const { data: achievements } = useAchievements();
   const [picking, setPicking] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [avatarErr, setAvatarErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -138,8 +140,18 @@ export function ProfilePage() {
                   <AchievementBadge code="DEV" size={26} />
                 </span>
               )}
+              <button
+                onClick={() => { sound.click(); setEditing((v) => !v); }}
+                aria-label="Editar nome e @" className="ml-auto shrink-0 text-subtle active:scale-90"
+              >
+                <IconPencil size={18} />
+              </button>
             </h1>
-            <p className="truncate text-sm text-subtle">{user.levelName} · {user.email}</p>
+            {/* Nome grande em cima; @ logo abaixo (identidade estilo rede social). */}
+            {user.username
+              ? <p className="truncate text-sm font-semibold text-subtle">@{user.username}</p>
+              : <button onClick={() => { sound.click(); setEditing(true); }} className="text-sm font-semibold text-primary">+ escolher seu @</button>}
+            <p className="mt-0.5 truncate text-xs text-subtle">{user.levelName}</p>
             {avatarErr && <p className="mt-1 text-xs font-semibold text-error" role="alert">{avatarErr}</p>}
             {user.avatar && (
               <button
@@ -162,6 +174,8 @@ export function ProfilePage() {
             </div>
           )}
         </div>
+
+        {editing && <div className="mt-4"><IdentityEditor onClose={() => setEditing(false)} /></div>}
 
         {/* ── Vitrine ── */}
         <section className="mt-5">

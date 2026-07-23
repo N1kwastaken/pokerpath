@@ -83,7 +83,7 @@ export function FriendsPage() {
   const rows: Row[] = [
     ...data.friends.map((f) => ({ ...f, me: false })),
     {
-      id: user.id, name: user.name, totalXp: user.totalXp, level: user.level,
+      id: user.id, name: user.name, username: user.username, totalXp: user.totalXp, level: user.level,
       levelName: user.levelName, currentStreak: user.currentStreak, isDev: user.isDev,
       showcaseBadges: user.showcaseBadges ?? [], avatar: user.avatar ?? null, me: true,
     },
@@ -183,7 +183,8 @@ function RankRow({ row, pos, achievements, accent, onRemove }: {
           {row.isDev && <span className="shrink-0" title="Beta tester"><AchievementBadge code="DEV" size={16} /></span>}
         </p>
         <p className="flex items-center gap-1.5 text-xs text-subtle">
-          <span className="truncate">{row.levelName}</span>
+          {/* @ quando existe; senão o nível. É a identidade estável do amigo. */}
+          <span className="truncate">{row.username ? `@${row.username}` : row.levelName}</span>
           {/* A vitrine dele — é o que faz escolher badge valer alguma coisa. */}
           {row.showcaseBadges.slice(0, 2).map((id) => (
             <ProfileBadge key={id} id={id} achievements={achievements} size={16} />

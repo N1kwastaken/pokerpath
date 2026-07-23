@@ -1,6 +1,17 @@
 import type { User, Streak } from '@prisma/client';
-import { resolveLevel, type PublicUser, type Plan } from '@pokerpath/shared';
+import { resolveLevel, USERNAME_COOLDOWN_DAYS, type PublicUser, type Plan } from '@pokerpath/shared';
 import { viewStreak } from './streak.service.js';
+
+/**
+ * Quando o @ poderá ser trocado de novo. `null` = já pode (nunca trocou, ou os
+ * 30 dias já passaram). Computar aqui, e não no cliente, mantém o relógio no
+ * servidor — a UI só exibe o que este cálculo devolve.
+ */
+export function usernameNextChangeAt(changedAt: Date | null): string | null {
+  if (!changedAt) return null;
+  const next = changedAt.getTime() + USERNAME_COOLDOWN_DAYS * 86_400_000;
+  return next <= Date.now() ? null : new Date(next).toISOString();
+}
 
 /**
  * Converte um User do banco no formato público (sem hash de senha).
@@ -28,6 +39,8 @@ export function toPublicUser(
   return {
     id: user.id,
     name: user.name,
+    username: user.username,
+    usernameNextChangeAt: usernameNextChangeAt(user.usernameChangedAt),
     email: user.email,
     plan: user.plan as Plan,
     isDev: user.isDev,

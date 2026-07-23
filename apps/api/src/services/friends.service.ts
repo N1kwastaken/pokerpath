@@ -29,6 +29,7 @@ function toFriendView(u: User & { streak: Streak | null }): FriendView {
     // Streak efetivo: um amigo que sumiu não pode aparecer com o elo antigo.
     currentStreak: viewStreak(u.streak).current,
     isDev: u.isDev,
+    username: u.username,
     showcaseBadges: parseShowcase(u.showcaseBadges),
     avatar: u.avatar,
   };

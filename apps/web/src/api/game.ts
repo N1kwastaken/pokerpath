@@ -57,4 +57,8 @@ export const userApi = {
     apiRequest<{ user: PublicUser }>('/showcase', { method: 'PUT', body: { badges } }).then((r) => r.user),
   setAvatar: (avatar: string | null) =>
     apiRequest<{ user: PublicUser }>('/avatar', { method: 'PUT', body: { avatar } }).then((r) => r.user),
+  setName: (name: string) =>
+    apiRequest<{ user: PublicUser }>('/name', { method: 'PATCH', body: { name } }).then((r) => r.user),
+  setUsername: (username: string) =>
+    apiRequest<{ user: PublicUser }>('/username', { method: 'PUT', body: { username } }).then((r) => r.user),
 };

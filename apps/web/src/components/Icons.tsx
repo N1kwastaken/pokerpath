@@ -129,6 +129,9 @@ export const IconPalette = ({ size = 24, className }: P) => (
 export const IconNoAds = ({ size = 24, className }: P) => (
   <svg {...base(size, className)}><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>
 );
+export const IconPencil = ({ size = 24, className }: P) => (
+  <svg {...base(size, className)}><path d="M16.5 4.5l3 3L8 19l-4 1 1-4Z" /><path d="M14.5 6.5l3 3" /></svg>
+);
 export const IconCard = ({ size = 24, className }: P) => (
   <svg {...base(size, className)}><rect x="6.5" y="3.5" width="11" height="17" rx="2.2" /><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none" /></svg>
 );

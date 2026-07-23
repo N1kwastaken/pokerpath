@@ -23,6 +23,34 @@ export const nameSchema = z
   .min(2, 'O nome deve ter pelo menos 2 caracteres')
   .max(60, 'O nome deve ter no máximo 60 caracteres');
 
+/**
+ * @username — o identificador único (o "@" que aparece embaixo do nome).
+ *
+ * Regras deliberadas: minúsculas apenas, começa com letra, 3–20 chars de
+ * `a-z 0-9 _`. Guardado em minúsculo, então a unicidade do banco já é
+ * case-insensitive (não existem dois `@Joao` e `@joao`). Diferente do NOME
+ * (livre, com acento e espaço), o @ é técnico e estável.
+ */
+export const USERNAME_COOLDOWN_DAYS = 30;
+export const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, 'O @ deve ter pelo menos 3 caracteres')
+  .max(20, 'O @ deve ter no máximo 20 caracteres')
+  .regex(/^[a-z][a-z0-9_]*$/, 'Use apenas letras, números e _, começando com letra');
+
+/** Base de @ a partir de um texto livre (nome/e-mail) — para gerar o padrão. */
+export function slugifyUsername(seed: string): string {
+  const base = seed
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // tira acento
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/^[0-9]+/, ''); // @ não começa com número
+  if (base.length >= 3) return base.slice(0, 15);
+  return (base + 'player').slice(0, 15); // curto demais → completa
+}
+
 export const registerSchema = z.object({
   name: nameSchema,
   email: emailSchema,
@@ -56,6 +84,10 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export interface PublicUser {
   id: string;
   name: string;
+  /** @username único (null = ainda não escolheu). Mostrado abaixo do nome. */
+  username: string | null;
+  /** Quando o @ poderá ser trocado de novo (null = já pode). Regra de 30 dias. */
+  usernameNextChangeAt: string | null;
   email: string;
   plan: 'FREE' | 'PREMIUM';
   /** Beta tester pré-launch: premium liberado + badge DEV. */
@@ -86,6 +118,7 @@ export interface PublicUser {
 export interface FriendView {
   id: string;
   name: string;
+  username: string | null;
   totalXp: number;
   level: number;
   levelName: string;

@@ -17,6 +17,7 @@ import {
   NotFoundError,
 } from '../lib/errors.js';
 import { toPublicUser } from '../services/user.serializer.js';
+import { generateUniqueUsername } from '../services/username.service.js';
 import { sendMail, passwordResetMail, welcomeMail } from '../services/mail.service.js';
 import { env } from '../config/env.js';
 
@@ -52,12 +53,17 @@ export async function authRoutes(app: FastifyInstance) {
 
     const passwordHash = await hashPassword(password);
 
+    // @ padrão a partir do nome (a pessoa troca depois se quiser). Feito ANTES
+    // do create para o handle já nascer com a conta.
+    const username = await generateUniqueUsername(name || email);
+
     // Cria usuário e streak vazio juntos. `isDev` vem EXPLÍCITO do ambiente
     // (ver lib/beta.ts): assim o launch é uma variável no Render, não uma
     // migration que recria a tabela users.
     const user = await prisma.user.create({
       data: {
         name,
+        username,
         email,
         passwordHash,
         isDev: betaSignup(),
