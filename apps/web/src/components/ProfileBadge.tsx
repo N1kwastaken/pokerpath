@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { AchievementView } from '@pokerpath/shared';
 import { StreakBadge, tierForTarget } from './StreakBadge.js';
 import { AchievementBadge } from './AchievementBadge.js';
@@ -28,6 +29,34 @@ export function ProfileBadge({ id, achievements, size = 44, assumeOwned = false 
   const a = achievements.find((x) => x.code === id.slice(4));
   if (!a && !assumeOwned) return null;
   return <AchievementBadge code={a?.code ?? id.slice(4)} size={size} />;
+}
+
+/**
+ * Rótulo visível acionado por toque. O badge continua sendo o controle; o
+ * balão fica ancorado nele para não deslocar os outros itens da vitrine.
+ */
+export function BadgeBubble({ label, open, children }: {
+  label: string;
+  open: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <span className="relative inline-flex isolate">
+      {open && (
+        <span
+          role="status"
+          className="pointer-events-none absolute bottom-[calc(100%+0.55rem)] left-1/2 z-30 w-max max-w-48 -translate-x-1/2 rounded-lg bg-title px-2.5 py-1.5 text-center text-xs font-bold leading-tight text-bg shadow-lg"
+        >
+          {label}
+          <span
+            aria-hidden="true"
+            className="absolute left-1/2 top-full -translate-x-1/2 border-x-4 border-t-4 border-x-transparent border-t-title"
+          />
+        </span>
+      )}
+      {children}
+    </span>
+  );
 }
 
 /** Nome legível do badge (tooltip, seletor). */

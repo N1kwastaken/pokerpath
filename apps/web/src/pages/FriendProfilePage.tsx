@@ -5,11 +5,10 @@ import type { AchievementView, FriendBadgeView } from '@pokerpath/shared';
 import { gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
 import { sound } from '../lib/sound.js';
-import { speakLabel } from '../lib/speech.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Avatar } from '../components/Avatar.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
-import { ProfileBadge } from '../components/ProfileBadge.js';
+import { BadgeBubble, ProfileBadge } from '../components/ProfileBadge.js';
 import { PathWatermark } from '../components/BrandMark.js';
 import { IconFlame, IconTrophy } from '../components/Icons.js';
 
@@ -20,7 +19,7 @@ import { IconFlame, IconTrophy } from '../components/Icons.js';
 export function FriendProfilePage() {
   const navigate = useNavigate();
   const { friendId } = useParams();
-  const [badgeNote, setBadgeNote] = useState<string | null>(null);
+  const [openBadge, setOpenBadge] = useState<string | null>(null);
   const profileQuery = useQuery({
     queryKey: ['friend-profile', friendId],
     queryFn: () => gameApi.friendProfile(friendId!),
@@ -63,10 +62,9 @@ export function FriendProfilePage() {
     .map((id) => friend.badges.find((badge) => badge.id === id))
     .filter((badge): badge is FriendBadgeView => !!badge);
 
-  function announceBadge(badge: FriendBadgeView | { name: string }) {
+  function showBadge(key: string) {
     sound.click();
-    speakLabel(badge.name);
-    setBadgeNote(badge.name);
+    setOpenBadge((current) => current === key ? null : key);
   }
 
   return (
@@ -110,7 +108,14 @@ export function FriendProfilePage() {
           ) : (
             <div className="card flex flex-wrap gap-3 p-4">
               {showcased.map((id) => (
-                <BadgeButton key={id.id} badge={id} achievements={friendAchievements} onClick={() => announceBadge(id)} size={46} />
+                <BadgeButton
+                  key={id.id}
+                  badge={id}
+                  achievements={friendAchievements}
+                  open={openBadge === `showcase:${id.id}`}
+                  onClick={() => showBadge(`showcase:${id.id}`)}
+                  size={46}
+                />
               ))}
             </div>
           )}
@@ -126,37 +131,54 @@ export function FriendProfilePage() {
           ) : (
             <div className="card flex flex-wrap gap-3 p-4">
               {friend.isDev && (
-                <button
-                  onClick={() => announceBadge({ name: 'Conta DEV' })}
-                  className="rounded-full active:scale-95"
-                  aria-label="Badge: Conta DEV"
-                  title="Conta DEV"
-                >
-                  <AchievementBadge code="DEV" size={44} />
-                </button>
+                <BadgeBubble label="Conta DEV" open={openBadge === 'dev'}>
+                  <button
+                    type="button"
+                    onClick={() => showBadge('dev')}
+                    className="rounded-full active:scale-95"
+                    aria-label="Mostrar nome da conquista: Conta DEV"
+                    aria-expanded={openBadge === 'dev'}
+                  >
+                    <AchievementBadge code="DEV" size={44} />
+                  </button>
+                </BadgeBubble>
               )}
               {friend.badges.map((badge) => (
-                <BadgeButton key={badge.id} badge={badge} achievements={friendAchievements} onClick={() => announceBadge(badge)} />
+                <BadgeButton
+                  key={badge.id}
+                  badge={badge}
+                  achievements={friendAchievements}
+                  open={openBadge === `all:${badge.id}`}
+                  onClick={() => showBadge(`all:${badge.id}`)}
+                />
               ))}
             </div>
           )}
-          {badgeNote && <p className="mt-2 text-sm font-semibold text-primary" role="status">{badgeNote}</p>}
         </section>
       </div>
     </div>
   );
 }
 
-function BadgeButton({ badge, achievements, onClick, size = 44 }: {
+function BadgeButton({ badge, achievements, onClick, open, size = 44 }: {
   badge: FriendBadgeView;
   achievements: AchievementView[];
   onClick: () => void;
+  open: boolean;
   size?: number;
 }) {
   return (
-    <button onClick={onClick} className="rounded-full active:scale-95" aria-label={`Ouvir o nome da badge: ${badge.name}`} title={`Ouvir: ${badge.name}`}>
-      <ProfileBadge id={badge.id} achievements={achievements} size={size} />
-    </button>
+    <BadgeBubble label={badge.name} open={open}>
+      <button
+        type="button"
+        onClick={onClick}
+        className="rounded-full active:scale-95"
+        aria-label={`Mostrar nome da conquista: ${badge.name}`}
+        aria-expanded={open}
+      >
+        <ProfileBadge id={badge.id} achievements={achievements} size={size} />
+      </button>
+    </BadgeBubble>
   );
 }
 

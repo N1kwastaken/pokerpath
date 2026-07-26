@@ -6,7 +6,6 @@ import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
 import { IconCheck } from '../components/Icons.js';
 import { PasswordField } from '../components/PasswordField.js';
-import { PokerPathMark } from '../components/BrandMark.js';
 
 /** Tela de login (repaginada) com "lembrar de mim". */
 export function LoginPage() {
@@ -38,7 +37,7 @@ export function LoginPage() {
       <Link to="/welcome?replay=1" className="mb-6 self-start text-sm font-medium text-subtle">← Voltar</Link>
 
       <div className="flex flex-col items-center text-center">
-        <div className="brand-tile flex h-16 w-16 items-center justify-center rounded-3xl"><PokerPathMark size={43} className="text-white" /></div>
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-primary shadow-pop"><img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" /></div>
         <h1 className="mt-5 text-3xl font-bold text-title">Bem-vindo de volta</h1>
         <p className="mt-1 text-subtle">Entre para continuar treinando.</p>
       </div>

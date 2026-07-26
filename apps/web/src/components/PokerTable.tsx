@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Position, PublicExercise } from '@pokerpath/shared';
 import { Card } from './Card.js';
-import { PathWatermark, PokerPathMark } from './BrandMark.js';
+import { PathWatermark } from './BrandMark.js';
 
 /**
  * Mesa 6-max — HUD escuro estilo GTO Wizard. Os assentos dos vilões ROTACIONAM
@@ -105,7 +105,7 @@ export function PokerTable({ ex, simple = false }: {
       <div className="absolute inset-7 rounded-[42%] border border-white/10" />
       <PathWatermark className="pointer-events-none absolute left-[8%] top-[19%] h-[43%] w-[84%] text-white/[0.09]" />
       <div className="pointer-events-none absolute left-1/2 top-[21%] -translate-x-1/2 text-white/[0.08]">
-        <PokerPathMark size={100} className="text-white" cutColor="rgb(var(--primary))" />
+        <img src="/logo-mark-white.png" alt="" className="h-24 w-24 object-contain" />
       </div>
 
       {/* Pot */}

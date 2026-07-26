@@ -6,9 +6,8 @@ import { useAuth } from '../auth/AuthContext.js';
 import { useAchievements, useWorldRewards } from '../hooks/useGame.js';
 import { gameApi, userApi } from '../api/game.js';
 import { sound } from '../lib/sound.js';
-import { speakLabel } from '../lib/speech.js';
 import { fileToAvatar } from '../lib/avatarFile.js';
-import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
+import { BadgeBubble, ProfileBadge, badgeName } from '../components/ProfileBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
 import { Avatar } from '../components/Avatar.js';
 import { PathWatermark } from '../components/BrandMark.js';
@@ -29,6 +28,7 @@ export function ProfilePage() {
   const queryClient = useQueryClient();
   const [picking, setPicking] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [openBadge, setOpenBadge] = useState<string | null>(null);
   const [avatarErr, setAvatarErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +76,10 @@ export function ProfilePage() {
       // Cheio? o novo empurra o mais antigo — evita "desmarque um primeiro".
       : [...showcase, id].slice(-SHOWCASE_MAX);
     showcaseMut.mutate(next);
+  }
+
+  function showBadge(key: string) {
+    setOpenBadge((current) => current === key ? null : key);
   }
 
   return (
@@ -179,18 +183,23 @@ export function ProfilePage() {
           {/* vitrine ao lado do nome, como num cartão de perfil */}
           {showcase.length > 0 && (
             <div className="flex shrink-0 gap-1.5 pt-1">
-              {showcase.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  title={`Ouvir: ${badgeName(id, achievements ?? [])}`}
-                  aria-label={`Ouvir o nome da badge: ${badgeName(id, achievements ?? [])}`}
-                  onClick={() => { sound.click(); speakLabel(badgeName(id, achievements ?? [])); }}
-                  className="rounded-full active:scale-95"
-                >
-                  <ProfileBadge id={id} achievements={achievements ?? []} size={38} />
-                </button>
-              ))}
+              {showcase.map((id) => {
+                const name = badgeName(id, achievements ?? []);
+                const badgeKey = `top:${id}`;
+                return (
+                  <BadgeBubble key={id} label={name} open={openBadge === badgeKey}>
+                    <button
+                      type="button"
+                      aria-label={`Mostrar nome da conquista: ${name}`}
+                      aria-expanded={openBadge === badgeKey}
+                      onClick={() => { sound.click(); showBadge(badgeKey); }}
+                      className="rounded-full active:scale-95"
+                    >
+                      <ProfileBadge id={id} achievements={achievements ?? []} size={38} />
+                    </button>
+                  </BadgeBubble>
+                );
+              })}
             </div>
           )}
         </div>
@@ -224,20 +233,25 @@ export function ProfilePage() {
                 <div className="flex flex-wrap gap-3">
                   {owned.map((id) => {
                     const on = showcase.includes(id);
+                    const name = badgeName(id, achievements ?? []);
+                    const badgeKey = `picker:${id}`;
                     return (
-                      <button
-                        key={id}
-                        onClick={() => { speakLabel(badgeName(id, achievements ?? [])); toggleBadge(id); }}
-                        title={`Ouvir e ${on ? 'remover' : 'adicionar'}: ${badgeName(id, achievements ?? [])}`}
-                        aria-pressed={on}
-                        className={`relative rounded-full transition-transform ${on ? 'scale-105' : 'opacity-55'}`}>
-                        <ProfileBadge id={id} achievements={achievements ?? []} size={48} />
-                        {on && (
-                          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-bg">
-                            <IconCheck size={11} />
-                          </span>
-                        )}
-                      </button>
+                      <BadgeBubble key={id} label={name} open={openBadge === badgeKey}>
+                        <button
+                          type="button"
+                          onClick={() => { showBadge(badgeKey); toggleBadge(id); }}
+                          aria-label={`${on ? 'Remover' : 'Adicionar'} à vitrine e mostrar nome: ${name}`}
+                          aria-expanded={openBadge === badgeKey}
+                          aria-pressed={on}
+                          className={`relative rounded-full transition-transform ${on ? 'scale-105' : 'opacity-55'}`}>
+                          <ProfileBadge id={id} achievements={achievements ?? []} size={48} />
+                          {on && (
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white ring-2 ring-bg">
+                              <IconCheck size={11} />
+                            </span>
+                          )}
+                        </button>
+                      </BadgeBubble>
                     );
                   })}
                 </div>
@@ -250,18 +264,24 @@ export function ProfilePage() {
             </button>
           ) : (
             <div className="card flex items-center gap-3 p-4">
-              {showcase.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => { sound.click(); speakLabel(badgeName(id, achievements ?? [])); }}
-                  aria-label={`Ouvir o nome da badge: ${badgeName(id, achievements ?? [])}`}
-                  className="flex items-center gap-2 rounded-xl text-left active:scale-[0.98]"
-                >
-                  <ProfileBadge id={id} achievements={achievements ?? []} size={40} />
-                  <span className="text-sm font-semibold text-title">{badgeName(id, achievements ?? [])}</span>
-                </button>
-              ))}
+              {showcase.map((id) => {
+                const name = badgeName(id, achievements ?? []);
+                const badgeKey = `showcase:${id}`;
+                return (
+                  <BadgeBubble key={id} label={name} open={openBadge === badgeKey}>
+                    <button
+                      type="button"
+                      onClick={() => { sound.click(); showBadge(badgeKey); }}
+                      aria-label={`Mostrar nome da conquista: ${name}`}
+                      aria-expanded={openBadge === badgeKey}
+                      className="flex items-center gap-2 rounded-xl text-left active:scale-[0.98]"
+                    >
+                      <ProfileBadge id={id} achievements={achievements ?? []} size={40} />
+                      <span className="text-sm font-semibold text-title">{name}</span>
+                    </button>
+                  </BadgeBubble>
+                );
+              })}
             </div>
           )}
         </section>

@@ -6,7 +6,7 @@ import { useEconomy, useEnergy, useTrail } from '../hooks/useGame.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { MissionsCard } from '../components/MissionsCard.js';
 import { IconChevron, IconBolt, IconStar, IconCrown, IconFlame, IconSparkles } from '../components/Icons.js';
-import { PathWatermark, PokerPathMark, ProgressMedallion } from '../components/BrandMark.js';
+import { PathWatermark, ProgressMedallion } from '../components/BrandMark.js';
 
 /** Home — enxuta e game-like: um CTA grande para voltar à mão, sem cards corporativos. */
 export function DashboardPage() {
@@ -38,8 +38,8 @@ export function DashboardPage() {
           Energia em destaque (é o que trava/libera o jogo). */}
       <header className="mb-5">
         <div className="flex items-center gap-3">
-          <div className="brand-tile flex h-11 w-11 items-center justify-center rounded-2xl">
-            <PokerPathMark size={30} className="text-white" />
+          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-pop">
+            <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Mesa de treino</p>

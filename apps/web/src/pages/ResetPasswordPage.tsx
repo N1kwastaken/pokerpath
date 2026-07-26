@@ -5,7 +5,6 @@ import { resetPasswordSchema } from '@pokerpath/shared';
 import { authApi } from '../api/auth.js';
 import { ApiError } from '../lib/api.js';
 import { PasswordField } from '../components/PasswordField.js';
-import { PokerPathMark } from '../components/BrandMark.js';
 
 /** Redefinição de senha via link do e-mail (?token=...). */
 export function ResetPasswordPage() {
@@ -39,7 +38,7 @@ export function ResetPasswordPage() {
       <Link to="/login" className="mb-6 self-start text-sm font-medium text-subtle">← Voltar ao login</Link>
 
       <div className="flex flex-col items-center text-center">
-        <div className="brand-tile flex h-16 w-16 items-center justify-center rounded-3xl"><PokerPathMark size={43} className="text-white" /></div>
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-primary shadow-pop"><img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" /></div>
         <h1 className="mt-5 text-3xl font-bold text-title">Nova senha</h1>
         <p className="mt-1 text-subtle">Escolha a nova senha da sua conta.</p>
       </div>

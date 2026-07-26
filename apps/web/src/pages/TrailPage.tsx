@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { IconCheck, IconLock, IconBook, IconTarget, IconStar, IconGrad, IconFlag } from '../components/Icons.js';
 import { stageGroup, categoryColor, categoryDesc } from '../lib/stageGroup.js';
-import { PathWatermark, PokerPathMark } from '../components/BrandMark.js';
+import { PathWatermark } from '../components/BrandMark.js';
 
 /**
  * Trilha de UM mundo por vez (Preflop/Flop/Turn/River), sub-dividida em
@@ -112,8 +112,8 @@ export function TrailPage() {
       }}
     >
       <header className="mb-4 flex items-center gap-3">
-        <div className="brand-tile flex h-10 w-10 items-center justify-center rounded-2xl">
-          <PokerPathMark size={27} className="text-white" />
+        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-pop">
+          <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
         </div>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Sua jornada</p>

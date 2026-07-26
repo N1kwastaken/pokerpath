@@ -1,32 +1,3 @@
-/**
- * Marca vetorial do PokerPath.
- *
- * A espada vira uma rota ascendente: poker (naipe) + evolução (caminho), sem
- * depender de PNG em telas de alta densidade. `cutColor` abre a trilha dentro
- * do símbolo e pode acompanhar qualquer accent do app.
- */
-export function PokerPathMark({
-  size = 48,
-  className,
-  cutColor = 'rgb(var(--primary))',
-}: {
-  size?: number;
-  className?: string;
-  cutColor?: string;
-}) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" className={className} aria-hidden>
-      <path
-        d="M32 5.5C26.7 14 12.5 19.2 12.5 33.3c0 9.5 7.5 16.4 16.1 15.7L23.5 58h17L35.4 49c8.6.7 16.1-6.2 16.1-15.7C51.5 19.2 37.3 14 32 5.5Z"
-        fill="currentColor"
-      />
-      <path d="M21 40.2c4.8-1 8.6-4.5 10.4-9.2 1.2-3.2 3.4-5.4 7.2-7" stroke={cutColor} strokeWidth="4.2" strokeLinecap="round" />
-      <path d="m35.8 20.5 4 3.4-5.1 1.3" fill={cutColor} />
-      <circle cx="21" cy="40.2" r="2.1" fill={cutColor} />
-    </svg>
-  );
-}
-
 /** Marca d'água para feltro, banners e cards de progresso. */
 export function PathWatermark({ className }: { className?: string }) {
   return (

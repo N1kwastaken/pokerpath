@@ -1,9 +1,6 @@
-import { PokerPathMark } from './BrandMark.js';
-
 /**
  * Logo do PokerPath com animação.
- * A marca (espada com a seta do "path" subindo) fica num tile verde chapado e
- * pulsa com um brilho verde (logo-glow); o wordmark aparece ao lado.
+ * Usa a marca original em PNG dentro do tile verde e preserva o wordmark.
  * `animated` liga/desliga o brilho contínuo.
  */
 export function Logo({
@@ -15,12 +12,11 @@ export function Logo({
   withWordmark?: boolean;
   animated?: boolean;
 }) {
-  // A espada ocupa quase todo o tile — o símbolo é a marca, não a moldura.
   const mark = {
-    sm: { tile: 'h-8 w-8 rounded-xl', svg: 23 },
-    md: { tile: 'h-11 w-11 rounded-2xl', svg: 31 },
-    lg: { tile: 'h-[4.5rem] w-[4.5rem] rounded-[1.4rem]', svg: 50 },
-    xl: { tile: 'h-28 w-28 rounded-[2rem]', svg: 78 },
+    sm: 'h-8 w-8 rounded-xl',
+    md: 'h-11 w-11 rounded-2xl',
+    lg: 'h-[4.5rem] w-[4.5rem] rounded-[1.4rem]',
+    xl: 'h-28 w-28 rounded-[2rem]',
   }[size];
   const word = {
     sm: 'text-lg',
@@ -31,15 +27,14 @@ export function Logo({
 
   return (
     <div className="flex items-center gap-3">
-      {/* Tile chapado com a marca branca (espada + seta). Segue a cor do app
-          (bg-primary/accent) — muda junto quando o usuário troca a cor. */}
+      {/* Marca original branca sobre o tile na cor do app. */}
       <div
-        className={`brand-tile flex ${mark.tile} items-center justify-center ${
+        className={`flex ${mark} items-center justify-center overflow-hidden bg-primary ${
           animated ? 'animate-logo-glow' : ''
         }`}
         aria-hidden
       >
-        <PokerPathMark size={mark.svg} className="text-white" />
+        <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
       </div>
       {withWordmark && (
         <span className={`font-display font-bold tracking-[-0.05em] text-title ${word}`}>
