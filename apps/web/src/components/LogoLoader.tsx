@@ -1,3 +1,5 @@
+import { PokerPathMark } from './BrandMark.js';
+
 /**
  * Animação de carregamento com a logo: a espada pulsa no centro de um anel
  * giratório com gradiente, sobre o wordmark e três pontinhos. Theme-aware.
@@ -30,8 +32,8 @@ export function LogoLoader({ label = 'Carregando...', inline = false }: { label?
         <div className="absolute inset-0 flex items-center justify-center">
           {/* sem shadow-pop: a animação já escreve box-shadow, e as duas
               declarações brigando eram o que descentralizava o brilho. */}
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-primary animate-logo-glow">
-            <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
+          <div className="brand-tile flex h-14 w-14 items-center justify-center animate-logo-glow">
+            <PokerPathMark size={37} className="text-white" />
           </div>
         </div>
       </div>

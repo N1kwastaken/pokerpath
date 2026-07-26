@@ -4,7 +4,8 @@ import type {
   AchievementView, MissionView, MissionClaimResult,
   MilestoneView,
   MilestoneClaimResult, ReviewItem, ReviewAnswerResult,
-  PublicExercise, EnergyState, FriendsResponse, FriendView,
+  PublicExercise, EnergyState, FriendsResponse, FriendProfileView, FriendView,
+  WorldRewardView, EconomyState, ItemUnlockResult,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
 
@@ -25,6 +26,8 @@ export const gameApi = {
     apiRequest<LessonResult>(`/stages/${stageId}/complete`, { method: 'POST', body: { perfect } }),
   stats: () => apiRequest<StatsResult>('/stats'),
   energy: () => apiRequest<EnergyState>('/energy'),
+  economy: () => apiRequest<EconomyState>('/economy'),
+  unlockEnergyItem: (code: string) => apiRequest<ItemUnlockResult>(`/items/${code}/unlock`, { method: 'POST' }),
   review: () => apiRequest<{ review: ReviewItem[] }>('/review').then((r) => r.review),
   reviewPlay: () => apiRequest<{ exercises: PublicExercise[] }>('/review/play').then((r) => r.exercises),
   reviewAnswer: (input: AnswerInput) => apiRequest<ReviewAnswerResult>('/review/answer', { method: 'POST', body: input }),
@@ -36,16 +39,27 @@ export const gameApi = {
     ).then((r) => r.range),
   friends: () => apiRequest<FriendsResponse>('/friends'),
   addFriend: (code: string) => apiRequest<{ friend: FriendView }>('/friends', { method: 'POST', body: { code } }).then((r) => r.friend),
+  addFriendByUsername: (username: string) =>
+    apiRequest<{ friend: FriendView }>('/friends', { method: 'POST', body: { username } }).then((r) => r.friend),
+  friendProfile: (friendId: string) =>
+    apiRequest<{ friend: FriendProfileView }>(`/friends/${encodeURIComponent(friendId)}`).then((r) => r.friend),
   removeFriend: (friendId: string) => apiRequest<{ ok: true }>(`/friends/${friendId}`, { method: 'DELETE' }),
   achievements: () => apiRequest<{ achievements: AchievementView[] }>('/achievements').then((r) => r.achievements),
   missions: () => apiRequest<{ missions: MissionView[] }>('/missions').then((r) => r.missions),
   claimMission: (code: string) => apiRequest<MissionClaimResult>(`/missions/${code}/claim`, { method: 'POST' }),
   milestones: () => apiRequest<{ milestones: MilestoneView[] }>('/milestones').then((r) => r.milestones),
   claimMilestone: (code: string) => apiRequest<MilestoneClaimResult>(`/milestones/${code}/claim`, { method: 'POST' }),
-  resetProgress: () => apiRequest<{ ok: true }>('/progress/reset', { method: 'POST' }),
-  debugSetPlan: (plan: 'FREE' | 'PREMIUM') => apiRequest<{ ok: true; plan: string }>('/debug/plan', { method: 'POST', body: { plan } }),
+  worldRewards: () => apiRequest<{ rewards: WorldRewardView[] }>('/rewards').then((r) => r.rewards),
+  equipWorldReward: (code: string) =>
+    apiRequest<{ rewards: WorldRewardView[] }>(`/rewards/${code}/equip`, { method: 'PUT' }).then((r) => r.rewards),
+  resetProgress: () => apiRequest<{ ok: true }>('/debug/progress/reset', { method: 'POST' }),
+  debugSetPlan: (plan: 'FREE' | 'PREMIUM', simulation = plan === 'FREE') =>
+    apiRequest<{ ok: true; plan: string; simulation: boolean }>('/debug/plan', { method: 'POST', body: { plan, simulation } }),
   debugAddXp: (amount: number) => apiRequest<{ ok: true; totalXp: number }>('/debug/xp', { method: 'POST', body: { amount } }),
   debugCompleteAll: () => apiRequest<{ ok: true; count: number }>('/debug/complete-all', { method: 'POST' }),
+  debugSetCoins: (amount: number) => apiRequest<{ ok: true; coins: number }>('/debug/coins', { method: 'POST', body: { amount } }),
+  debugGrantEnergyItem: (code: string) => apiRequest<{ ok: true; code: string }>(`/debug/items/${encodeURIComponent(code)}`, { method: 'POST' }),
+  debugResetEconomy: () => apiRequest<{ ok: true }>('/debug/economy/reset', { method: 'POST' }),
 };
 
 export const userApi = {

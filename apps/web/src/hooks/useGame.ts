@@ -19,6 +19,9 @@ export function useStats() {
 export function useEnergy() {
   return useQuery({ queryKey: ['energy'], queryFn: gameApi.energy });
 }
+export function useEconomy() {
+  return useQuery({ queryKey: ['economy'], queryFn: gameApi.economy });
+}
 export function useReview() {
   return useQuery({ queryKey: ['review'], queryFn: gameApi.review });
 }
@@ -33,4 +36,7 @@ export function useMilestones() {
 }
 export function useMissions() {
   return useQuery({ queryKey: ['missions'], queryFn: gameApi.missions });
+}
+export function useWorldRewards() {
+  return useQuery({ queryKey: ['world-rewards'], queryFn: gameApi.worldRewards });
 }

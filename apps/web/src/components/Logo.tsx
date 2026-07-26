@@ -1,3 +1,5 @@
+import { PokerPathMark } from './BrandMark.js';
+
 /**
  * Logo do PokerPath com animação.
  * A marca (espada com a seta do "path" subindo) fica num tile verde chapado e
@@ -14,11 +16,11 @@ export function Logo({
   animated?: boolean;
 }) {
   // A espada ocupa quase todo o tile — o símbolo é a marca, não a moldura.
-  const spade = {
-    sm: 'h-7 w-7 text-[1.6rem]',
-    md: 'h-10 w-10 text-[2.3rem]',
-    lg: 'h-16 w-16 text-[3.7rem]',
-    xl: 'h-24 w-24 text-[5.6rem]',
+  const mark = {
+    sm: { tile: 'h-8 w-8 rounded-xl', svg: 23 },
+    md: { tile: 'h-11 w-11 rounded-2xl', svg: 31 },
+    lg: { tile: 'h-[4.5rem] w-[4.5rem] rounded-[1.4rem]', svg: 50 },
+    xl: { tile: 'h-28 w-28 rounded-[2rem]', svg: 78 },
   }[size];
   const word = {
     sm: 'text-lg',
@@ -32,16 +34,16 @@ export function Logo({
       {/* Tile chapado com a marca branca (espada + seta). Segue a cor do app
           (bg-primary/accent) — muda junto quando o usuário troca a cor. */}
       <div
-        className={`flex ${spade} items-center justify-center overflow-hidden rounded-2xl bg-primary ${
+        className={`brand-tile flex ${mark.tile} items-center justify-center ${
           animated ? 'animate-logo-glow' : ''
         }`}
         aria-hidden
       >
-        <img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" />
+        <PokerPathMark size={mark.svg} className="text-white" />
       </div>
       {withWordmark && (
-        <span className={`font-display font-bold tracking-tight text-ink ${word}`}>
-          Poker<span className="text-brand">Path</span>
+        <span className={`font-display font-bold tracking-[-0.05em] text-title ${word}`}>
+          Poker<span className="text-primary">Path</span>
         </span>
       )}
     </div>

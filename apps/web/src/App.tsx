@@ -21,12 +21,14 @@ import { MilestonesPage } from './pages/MilestonesPage.js';
 import { SettingsPage } from './pages/SettingsPage.js';
 import { PrivacyPage, TermsPage } from './pages/LegalPage.js';
 import { FriendsPage } from './pages/FriendsPage.js';
+import { FriendProfilePage } from './pages/FriendProfilePage.js';
 import { LevelsPage } from './pages/LevelsPage.js';
 import { GlossaryPage } from './pages/GlossaryPage.js';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.js';
 import { ResetPasswordPage } from './pages/ResetPasswordPage.js';
 import { PlacementPage } from './pages/PlacementPage.js';
 import { SetupPage } from './pages/SetupPage.js';
+import { EnergyLoadoutPage } from './pages/EnergyLoadoutPage.js';
 
 export function App() {
   return (
@@ -75,9 +77,11 @@ export function App() {
               <Route path="/privacidade" element={<PrivacyPage />} />
               <Route path="/termos" element={<TermsPage />} />
               <Route path="/friends" element={<FriendsPage />} />
+              <Route path="/friends/:friendId" element={<FriendProfilePage />} />
               <Route path="/levels" element={<LevelsPage />} />
               <Route path="/glossary" element={<GlossaryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/loadout" element={<EnergyLoadoutPage />} />
             </Route>
           </Route>
         </Route>

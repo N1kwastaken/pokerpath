@@ -10,6 +10,7 @@ import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
 import { gameApi, userApi } from '../api/game.js';
 import { IconLogout, IconChevron, IconLock, IconWrench } from '../components/Icons.js';
+import { ENERGY_ITEMS } from '@pokerpath/shared';
 
 /**
  * Configurações — tudo que era "preferências" empilhado no perfil.
@@ -42,9 +43,14 @@ export function SettingsPage() {
   });
 
   function run(fn: () => Promise<unknown>) { debugMut.mutate(fn); }
-  function confirmReset() {
+  function confirmProgressReset() {
     if (window.confirm('Reiniciar TODO o seu progresso? Apaga XP, fases, conquistas, missões e streak. Não dá para desfazer.')) {
       run(() => gameApi.resetProgress());
+    }
+  }
+  function confirmEconomyReset() {
+    if (window.confirm('Zerar fichas, itens de energia e o histórico de recompensas? Use apenas para testar.')) {
+      run(() => gameApi.debugResetEconomy());
     }
   }
 
@@ -119,7 +125,7 @@ export function SettingsPage() {
         <Link to="/premium" className="flex w-full items-center justify-between p-4 active:bg-card2">
           <span className="font-medium text-title">⭐ Premium</span>
           <span className="flex items-center gap-1 text-sm font-semibold text-subtle">
-            {user.plan === 'PREMIUM' || user.isDev ? 'Ativo' : 'Conhecer'}
+            {user.debugSimulation ? 'Simulando FREE' : user.plan === 'PREMIUM' || user.isDev ? 'Ativo' : 'Conhecer'}
             <IconChevron size={16} />
           </span>
         </Link>
@@ -154,34 +160,62 @@ export function SettingsPage() {
         <Link to="/privacidade" className="underline">Privacidade</Link> · <Link to="/termos" className="underline">Termos</Link>
       </p>
 
-      {/* ── Painel de debug (godmode) ── */}
-      <div className="mt-8 rounded-2xl border border-dashed border-line bg-card2 p-4">
-        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-subtle"><IconWrench size={14} /> Debug (godmode)</p>
+      {/* A API também protege cada rota. Esta condição apenas não expõe a
+          ferramenta para quem não faz parte da allow-list de desenvolvimento. */}
+      {user.debugEnabled && (
+        <div className="mt-8 rounded-2xl border border-dashed border-primary/45 bg-card2 p-4">
+          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary"><IconWrench size={14} /> Central de debug</p>
 
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Plano</p>
-        <div className="mt-1 grid grid-cols-2 gap-2">
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('FREE'))}>Definir FREE</DebugBtn>
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('PREMIUM'))}>Definir PREMIUM</DebugBtn>
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Plano</p>
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('FREE', true))}>Simular FREE</DebugBtn>
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('PREMIUM', false))}>Acesso DEV</DebugBtn>
+          </div>
+          <p className="mt-1 text-[11px] text-subtle">
+            {user.debugSimulation
+              ? 'Simulação ativa: energia e bloqueios FREE valem de verdade; a central continua acessível.'
+              : 'Acesso DEV ativo: conteúdo Premium, energia infinita e progressão liberada.'}
+          </p>
+
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">XP</p>
+          <div className="mt-1 grid grid-cols-3 gap-2">
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(100))}>+100</DebugBtn>
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(1000))}>+1000</DebugBtn>
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(-100000))}>Zerar</DebugBtn>
+          </div>
+
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Fichas</p>
+          <div className="mt-1 grid grid-cols-3 gap-2">
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetCoins(100))}>Definir 100</DebugBtn>
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetCoins(1000))}>Definir 1.000</DebugBtn>
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetCoins(0))}>Zerar</DebugBtn>
+          </div>
+
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Itens de energia</p>
+          <div className="mt-1 grid grid-cols-1 gap-2">
+            {ENERGY_ITEMS.map((item) => (
+              <DebugBtn key={item.code} disabled={busy} onClick={() => run(() => gameApi.debugGrantEnergyItem(item.code))}>
+                Liberar {item.name} (+{item.energyCapBonus})
+              </DebugBtn>
+            ))}
+            <button onClick={confirmEconomyReset} disabled={busy}
+              className="w-full rounded-xl border border-error/40 py-2.5 text-sm font-semibold text-error transition-colors hover:bg-error/10 active:scale-[0.98] disabled:opacity-50">
+              ↺ Zerar economia
+            </button>
+          </div>
+
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Progresso</p>
+          <div className="mt-1 grid grid-cols-1 gap-2">
+            <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugCompleteAll())}>✓ Completar todos os mundos</DebugBtn>
+            <button onClick={confirmProgressReset} disabled={busy}
+              className="w-full rounded-xl border border-error/40 py-2.5 text-sm font-semibold text-error transition-colors hover:bg-error/10 active:scale-[0.98] disabled:opacity-50">
+              ↺ Reiniciar progresso
+            </button>
+          </div>
+
+          <p className="mt-3 text-[11px] text-subtle">Operações afetam apenas a sua conta de desenvolvimento.</p>
         </div>
-
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">XP</p>
-        <div className="mt-1 grid grid-cols-3 gap-2">
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(100))}>+100</DebugBtn>
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(1000))}>+1000</DebugBtn>
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugAddXp(-100000))}>Zerar</DebugBtn>
-        </div>
-
-        <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Progresso</p>
-        <div className="mt-1 grid grid-cols-1 gap-2">
-          <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugCompleteAll())}>✓ Completar todos os mundos</DebugBtn>
-          <button onClick={confirmReset} disabled={busy}
-            className="w-full rounded-xl border border-error/40 py-2.5 text-sm font-semibold text-error transition-colors hover:bg-error/10 active:scale-[0.98] disabled:opacity-50">
-            ↺ Reiniciar progresso
-          </button>
-        </div>
-
-        <p className="mt-3 text-[11px] text-subtle">Visível para todos, mas as ações de plano/XP/completar só funcionam na sua conta godmode.</p>
-      </div>
+      )}
     </div>
   );
 }

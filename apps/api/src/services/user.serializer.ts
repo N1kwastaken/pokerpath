@@ -1,6 +1,7 @@
 import type { User, Streak } from '@prisma/client';
 import { resolveLevel, USERNAME_COOLDOWN_DAYS, type PublicUser, type Plan } from '@pokerpath/shared';
 import { viewStreak } from './streak.service.js';
+import { isDeveloperAccount } from '../lib/godmode.js';
 
 /**
  * Quando o @ poderá ser trocado de novo. `null` = já pode (nunca trocou, ou os
@@ -43,7 +44,11 @@ export function toPublicUser(
     usernameNextChangeAt: usernameNextChangeAt(user.usernameChangedAt),
     email: user.email,
     plan: user.plan as Plan,
-    isDev: user.isDev,
+    // Nunca exponha a flag bruta: bancos antigos podem tê-la como true para
+    // beta testers. Só as identidades explicitamente permitidas são DEV.
+    isDev: isDeveloperAccount(user),
+    debugEnabled: isDeveloperAccount(user),
+    debugSimulation: isDeveloperAccount(user) && user.devSimulation,
     totalXp: user.totalXp,
     level: level.level,
     levelName: level.name,

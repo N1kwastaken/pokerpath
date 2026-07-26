@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { levelProgress } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
-import { useEnergy, useTrail } from '../hooks/useGame.js';
+import { useEconomy, useEnergy, useTrail } from '../hooks/useGame.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { MissionsCard } from '../components/MissionsCard.js';
 import { IconChevron, IconBolt, IconStar, IconCrown, IconFlame, IconSparkles } from '../components/Icons.js';
+import { PathWatermark, PokerPathMark, ProgressMedallion } from '../components/BrandMark.js';
 
 /** Home — enxuta e game-like: um CTA grande para voltar à mão, sem cards corporativos. */
 export function DashboardPage() {
@@ -13,6 +14,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { data: trail } = useTrail();
   const { data: energy } = useEnergy();
+  const { data: economy } = useEconomy();
 
   // Cadastro de quem JÁ JOGA marca a prova de nivelamento como pendente —
   // o redirect acontece aqui porque o RegisterPage é desmontado pelo guard.
@@ -31,10 +33,20 @@ export function DashboardPage() {
   const pct = curWorld && curWorld.stages.length > 0 ? Math.round((curWorld.stages.filter((s) => s.status === 'COMPLETED').length / curWorld.stages.length) * 100) : 0;
 
   return (
-    <div className="px-5 py-7">
+    <div className="px-4 py-5">
       {/* Barra de recursos — streak e energia no lugar do nome; nível à direita.
           Energia em destaque (é o que trava/libera o jogo). */}
-      <header className="mb-4 flex items-center gap-2.5">
+      <header className="mb-5">
+        <div className="flex items-center gap-3">
+          <div className="brand-tile flex h-11 w-11 items-center justify-center rounded-2xl">
+            <PokerPathMark size={30} className="text-white" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Mesa de treino</p>
+            <h1 className="truncate text-xl font-black tracking-tight text-title">Olá, {user.name.split(' ')[0]}</h1>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center gap-2.5">
         <StatChip iconNode={<IconFlame size={22} className={`${user.streakPlayedToday && user.currentStreak > 0 ? 'animate-flame ' : ''}text-gold`} />} value={`${user.currentStreak}`} label="ofensiva" alert={user.streakAtRisk} lit={user.streakPlayedToday && user.currentStreak > 0} />
         {energy && (
           <StatChip
@@ -48,13 +60,24 @@ export function DashboardPage() {
             era redundância). Clicável: leva à escada de níveis. */}
         <button
           onClick={() => navigate('/levels')}
-          className="ml-auto flex items-center gap-1.5 rounded-2xl bg-card px-3.5 py-2.5 active:scale-95"
+          className="resource-chip ml-auto flex items-center gap-1.5 px-3 py-2 active:scale-95"
         >
           <IconStar size={16} className="text-gold" />
           <span className="text-base font-black tabular-nums text-title">{user.totalXp.toLocaleString('pt-BR')}</span>
           <span className="text-[10px] font-bold uppercase tracking-wide text-subtle">XP</span>
         </button>
+        </div>
       </header>
+
+      {economy && (
+        <button
+          onClick={() => navigate('/loadout')}
+          className="mb-5 flex w-full items-center justify-between rounded-2xl border border-line bg-card px-4 py-3 text-left active:scale-[0.99]"
+        >
+          <span className="flex items-center gap-2 text-sm font-bold text-title"><IconBolt size={18} className="text-call" /> Itens de energia</span>
+          <span className="flex items-center gap-1.5 text-xs font-black text-gold"><IconStar size={14} /> {economy.coins} fichas · cap {economy.energyCap}</span>
+        </button>
+      )}
 
       {/* Nível + XP fundidos: uma barra fina até o próximo nível (ocupa o lugar
           do antigo card grande + pill de XP). Toca para ver a escada. */}
@@ -96,9 +119,10 @@ export function DashboardPage() {
       {curWorld ? (
         <button
           onClick={() => navigate('/worlds')}
-          className="btn3d w-full rounded-2xl p-5 text-left text-white"
-          style={{ backgroundColor: curWorld.color }}
+          className="hero-surface surface-grid w-full p-5 text-left active:scale-[0.99]"
         >
+          <PathWatermark className="pointer-events-none absolute -right-10 bottom-1 h-36 w-72 text-white/25" />
+          <ProgressMedallion size={58} className="absolute right-4 top-4 text-white/90" />
           {/* A AÇÃO é o texto gigante ("Continuar"), não o nome do mundo — é o
               que deixa óbvio que o botão retoma o treino. O mundo/fase vira o
               rótulo pequeno em cima. */}
@@ -119,7 +143,8 @@ export function DashboardPage() {
       ) : (
         // Sem fase pendente: NÃO pode ser um beco sem saída — quem terminou
         // tudo é justamente quem mais volta. Manda para a revisão.
-        <button onClick={() => navigate('/review')} className="btn3d w-full rounded-2xl bg-primary p-5 text-left text-white">
+        <button onClick={() => navigate('/review')} className="hero-surface surface-grid w-full p-5 text-left active:scale-[0.99]">
+          <PathWatermark className="pointer-events-none absolute -right-10 bottom-1 h-36 w-72 text-white/25" />
           <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-white/80">Tudo em dia <IconSparkles size={14} /></p>
           <h2 className="mt-1 flex items-center gap-2 text-4xl font-black leading-none">
             Revisar <IconChevron size={30} className="mt-0.5" />
@@ -143,7 +168,7 @@ function StatChip({ icon, iconNode, value, label, alert, tone, lit }: {
   const valueColor = alert ? 'text-gold' : tone === 'energy' ? 'text-call' : 'text-title';
   // Sem outline: só um fundo suave (destaque em risco vira tom dourado no fundo).
   return (
-    <div className={`flex items-center gap-2 rounded-2xl px-3.5 py-2 ${alert ? 'bg-gold/15' : 'bg-card'}`}>
+    <div className={`resource-chip flex items-center gap-2 px-3.5 py-2 ${alert ? 'border-gold/40 bg-gold/15' : ''}`}>
       <span className={tone === 'energy' ? 'text-call' : ''}>
         {iconNode ?? <span className={`text-xl leading-none ${lit ? 'animate-flame inline-block' : ''}`}>{icon}</span>}
       </span>

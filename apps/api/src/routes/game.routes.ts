@@ -22,14 +22,22 @@ import {
   debugAddXp,
   debugCompleteAll,
 } from '../services/game.service.js';
-import { listFriends, addFriend, removeFriend } from '../services/friends.service.js';
-import { isGodmodeEmail, effectivePlan } from '../lib/godmode.js';
+import { listFriends, addFriend, addFriendByUsername, getFriendProfile, removeFriend } from '../services/friends.service.js';
+import { isDeveloperAccount, isDeveloperBypass, effectivePlan } from '../lib/godmode.js';
 import {
   getAchievements,
   getMissions,
   claimMission,
 } from '../services/gamification.service.js';
 import { getMilestones, claimMilestone } from '../services/milestone.service.js';
+import { equipWorldReward, getWorldRewards } from '../services/world-reward.service.js';
+import {
+  debugGrantEnergyItem,
+  debugResetEconomy,
+  debugSetCoins,
+  getEconomy,
+  unlockEnergyItem,
+} from '../services/economy.service.js';
 
 /**
  * Rotas do loop de jogo (PRD 5, 6, 7, 15.3).
@@ -42,20 +50,24 @@ import { getMilestones, claimMilestone } from '../services/milestone.service.js'
 export async function gameRoutes(app: FastifyInstance) {
   app.addHook('onRequest', app.authenticate);
 
-  /** Plano + godmode do usuário (controla gating premium e travas de debug). */
-  async function accountOf(userId: string): Promise<{ plan: string; godmode: boolean }> {
+  /** Plano + permissão DEV do usuário (controla gating e debug). */
+  async function accountOf(userId: string): Promise<{ plan: string; godmode: boolean; developer: boolean }> {
     const u = await prisma.user.findUnique({
       where: { id: userId },
-      select: { plan: true, email: true, isDev: true },
+      select: { plan: true, username: true, isDev: true, devSimulation: true },
     });
     if (!u) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
-    return { plan: effectivePlan(u), godmode: isGodmodeEmail(u.email) };
+    return {
+      plan: effectivePlan(u),
+      godmode: isDeveloperBypass(u),
+      developer: isDeveloperAccount(u),
+    };
   }
 
-  /** Bloqueia rotas de debug para contas que não são godmode. */
+  /** Bloqueia todas as mutações de debug fora da allow-list DEV. */
   async function assertGodmode(userId: string): Promise<void> {
-    const { godmode } = await accountOf(userId);
-    if (!godmode) throw new ForbiddenError('Apenas contas de debug.', 'NOT_GODMODE');
+    const { developer } = await accountOf(userId);
+    if (!developer) throw new ForbiddenError('Apenas contas de debug.', 'NOT_DEVELOPER');
   }
 
   app.get('/worlds', async (request) => {
@@ -123,6 +135,16 @@ export async function gameRoutes(app: FastifyInstance) {
     return getEnergy(request.user.sub);
   });
 
+  // Economia determinística: saldo só vem de fases perfeitas no servidor;
+  // esta rota apenas mostra carteira/catálogo e a outra desbloqueia item fixo.
+  app.get('/economy', async (request) => {
+    return getEconomy(request.user.sub);
+  });
+
+  app.post<{ Params: { code: string } }>('/items/:code/unlock', async (request) => {
+    return unlockEnergyItem(request.user.sub, request.params.code);
+  });
+
   app.get('/review', async (request) => {
     return { review: await getReview(request.user.sub) };
   });
@@ -160,13 +182,14 @@ export async function gameRoutes(app: FastifyInstance) {
     return placeAtLevel(request.user.sub, level);
   });
 
-  app.post('/progress/reset', async (request) => {
+  app.post('/debug/progress/reset', async (request) => {
+    await assertGodmode(request.user.sub);
     return resetProgress(request.user.sub);
   });
 
-  app.post<{ Body: { plan?: string } }>('/debug/plan', async (request) => {
+  app.post<{ Body: { plan?: string; simulation?: boolean } }>('/debug/plan', async (request) => {
     await assertGodmode(request.user.sub);
-    return debugSetPlan(request.user.sub, request.body?.plan ?? 'FREE');
+    return debugSetPlan(request.user.sub, request.body?.plan ?? 'FREE', request.body?.simulation);
   });
 
   app.post<{ Body: { amount?: number } }>('/debug/xp', async (request) => {
@@ -177,6 +200,21 @@ export async function gameRoutes(app: FastifyInstance) {
   app.post('/debug/complete-all', async (request) => {
     await assertGodmode(request.user.sub);
     return debugCompleteAll(request.user.sub);
+  });
+
+  app.post<{ Body: { amount?: number } }>('/debug/coins', async (request) => {
+    await assertGodmode(request.user.sub);
+    return debugSetCoins(request.user.sub, Number(request.body?.amount ?? 0));
+  });
+
+  app.post<{ Params: { code: string } }>('/debug/items/:code', async (request) => {
+    await assertGodmode(request.user.sub);
+    return debugGrantEnergyItem(request.user.sub, request.params.code);
+  });
+
+  app.post('/debug/economy/reset', async (request) => {
+    await assertGodmode(request.user.sub);
+    return debugResetEconomy(request.user.sub);
   });
 
   // (GET /ranges mudou para guest.routes — conteúdo estático, público, para
@@ -202,13 +240,40 @@ export async function gameRoutes(app: FastifyInstance) {
     return claimMilestone(request.user.sub, request.params.code);
   });
 
-  // ─── Amigos (código curto → amizade mútua) ────────────────
+  // Baús de mundo: a lista também faz o backfill seguro para quem concluiu
+  // mundos antes desta feature. Equipar só aceita item já possuído no servidor.
+  app.get('/rewards', async (request) => {
+    const { plan, godmode } = await accountOf(request.user.sub);
+    return { rewards: await getWorldRewards(request.user.sub, plan, godmode) };
+  });
+
+  app.put<{ Params: { code: string } }>('/rewards/:code/equip', async (request) => {
+    await equipWorldReward(request.user.sub, request.params.code);
+    const { plan, godmode } = await accountOf(request.user.sub);
+    return { rewards: await getWorldRewards(request.user.sub, plan, godmode) };
+  });
+
+  // ─── Amigos (código curto ou @ → amizade mútua) ───────────
   app.get('/friends', async (request) => {
     return listFriends(request.user.sub);
   });
 
-  app.post<{ Body: { code?: string } | null }>('/friends', async (request) => {
-    const code = typeof request.body?.code === 'string' ? request.body.code : '';
+  app.get<{ Params: { friendId: string } }>('/friends/:friendId', async (request) => {
+    return { friend: await getFriendProfile(request.user.sub, request.params.friendId) };
+  });
+
+  app.post<{ Body: { code?: unknown; username?: unknown } | null }>('/friends', async (request) => {
+    const body = request.body;
+    if (body?.username !== undefined) {
+      if (typeof body.username !== 'string') {
+        throw new BadRequestError('username deve ser um texto.', 'VALIDATION_ERROR');
+      }
+      if (body.code !== undefined) {
+        throw new BadRequestError('Informe um código ou um @, não os dois.', 'VALIDATION_ERROR');
+      }
+      return { friend: await addFriendByUsername(request.user.sub, body.username) };
+    }
+    const code = typeof body?.code === 'string' ? body.code : '';
     return { friend: await addFriend(request.user.sub, code) };
   });
 

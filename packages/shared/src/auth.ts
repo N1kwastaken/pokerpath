@@ -90,8 +90,12 @@ export interface PublicUser {
   usernameNextChangeAt: string | null;
   email: string;
   plan: 'FREE' | 'PREMIUM';
-  /** Beta tester pré-launch: premium liberado + badge DEV. */
+  /** Conta de desenvolvimento reconhecida pelo servidor. */
   isDev: boolean;
+  /** Habilita a central de debug; a API continua validando cada operação. */
+  debugEnabled: boolean;
+  /** DEV desligou temporariamente o bypass para testar o fluxo FREE. */
+  debugSimulation: boolean;
   totalXp: number;
   level: number;
   levelName: string;
@@ -114,7 +118,7 @@ export interface PublicUser {
   createdAt: string;
 }
 
-/** Amigo na lista (adicionado via código curto). */
+/** Amigo na lista (adicionado pelo @; código curto legado continua compatível). */
 export interface FriendView {
   id: string;
   name: string;
@@ -127,6 +131,25 @@ export interface FriendView {
   /** A vitrine dele — é o que faz escolher badge valer a pena. */
   showcaseBadges: string[];
   avatar: string | null;
+}
+
+/** Um badge público já vem com o texto que a interface deve anunciar. */
+export interface FriendBadgeView {
+  id: string;
+  name: string;
+  description: string;
+}
+
+/**
+ * Perfil de um amigo. Esta resposta deliberadamente não carrega e-mail,
+ * plano ou dados de jogo: só a identidade e os feitos que a pessoa escolheu
+ * compartilhar dentro da relação de amizade.
+ */
+export interface FriendProfileView extends FriendView {
+  /** Melhor sequência já alcançada, usada para os badges de sequência. */
+  maxStreak: number;
+  /** Todos os badges já desbloqueados pelo amigo, com texto para a UI. */
+  badges: FriendBadgeView[];
 }
 
 /**
@@ -143,7 +166,7 @@ export function isValidAvatar(v: string): boolean {
 }
 
 export interface FriendsResponse {
-  /** Seu código para compartilhar. */
+  /** Código legado, mantido para convites antigos; a interface usa o @. */
   code: string;
   friends: FriendView[];
 }

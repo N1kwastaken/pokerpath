@@ -7,21 +7,27 @@ import { AchievementBadge } from './AchievementBadge.js';
  * As duas famílias têm arte vetorial própria — conquista é um ESCUDO, streak é
  * a chama numa ficha —, então quem desenha é este componente e não a página.
  */
-export function ProfileBadge({ id, achievements, size = 44 }: {
+export function ProfileBadge({ id, achievements, size = 44, assumeOwned = false }: {
   id: string;
   achievements: AchievementView[];
   size?: number;
+  /**
+   * Perfis de amigos já chegam filtrados pelo servidor: a vitrine só contém
+   * badges que o amigo possui. A lista local de achievements pertence ao
+   * jogador que está olhando e, portanto, não pode esconder a arte do amigo.
+   */
+  assumeOwned?: boolean;
 }) {
   if (id.startsWith('streak:')) {
     const tier = tierForTarget(Number(id.slice(7)));
     if (!tier) return null;
     return <StreakBadge tier={tier} size={size} />;
   }
-  // achievements só serve para confirmar a POSSE — a arte vem do código, não
-  // mais do emoji do seed.
+  // achievements confirma a posse local; em perfil social, assumeOwned só é
+  // usado após o servidor já ter validado a vitrine daquele amigo.
   const a = achievements.find((x) => x.code === id.slice(4));
-  if (!a) return null;
-  return <AchievementBadge code={a.code} size={size} />;
+  if (!a && !assumeOwned) return null;
+  return <AchievementBadge code={a?.code ?? id.slice(4)} size={size} />;
 }
 
 /** Nome legível do badge (tooltip, seletor). */

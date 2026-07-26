@@ -8,7 +8,6 @@ import {
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, BadRequestError } from '../lib/errors.js';
 import { evaluateAchievements } from './achievement.service.js';
-import { addEnergyBonus } from './game.service.js';
 
 /**
  * Marcos (milestones) — a escada de progresso.
@@ -71,7 +70,6 @@ export async function claimMilestone(userId: string, code: string): Promise<Mile
   const totalXp = user.totalXp + def.xpReward;
   const after = resolveLevel(totalXp);
   await prisma.user.update({ where: { id: userId }, data: { totalXp } });
-  if (def.energyReward > 0) await addEnergyBonus(userId, def.energyReward);
 
   const newAchievements = await evaluateAchievements({
     userId,
@@ -81,7 +79,7 @@ export async function claimMilestone(userId: string, code: string): Promise<Mile
   return {
     code,
     xpGained: def.xpReward,
-    energyGained: def.energyReward,
+    energyGained: 0,
     totalXp,
     level: after.level,
     levelName: after.name,

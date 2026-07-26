@@ -111,5 +111,8 @@ export type ProgressStatus = (typeof PROGRESS_STATUS)[number];
 export const PLANS = ['FREE', 'PREMIUM'] as const;
 export type Plan = (typeof PLANS)[number];
 
-/** Limite diário de exercícios no plano gratuito (PRD seção 13.2). */
-export const FREE_DAILY_EXERCISE_LIMIT = 20;
+/**
+ * Alias legado para integrações que ainda importam o nome antigo. A fonte da
+ * economia agora é BASE_ENERGY_CAP em economy.ts; o cap inicial é 10.
+ */
+export const FREE_DAILY_EXERCISE_LIMIT = 10;

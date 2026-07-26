@@ -118,7 +118,9 @@ Convenções do domínio que não são óbvias:
   condição real de cada trilha em vez de fingir que o XP libera.
 - **Fold é vermelho nos botões, mas neutro nos charts** (`rgb(var(--card2))`).
   Vermelho no chart foi testado e rejeitado: "desagradável aos olhos".
-- **`isDev` tem `@default(true)`** (beta pré-launch ⇒ premium liberado).
-  **Trocar para `false` no launch.**
-- **Godmode** (`sousa@gmail.com`, `lib/godmode.ts`) ignora **toda** trava,
-  inclusive a progressão — diferente de DEV, que só vira PREMIUM.
+- **DEV é allow-list dupla:** somente `@kowalski`, `@sousa` e `@dev` com
+  `isDev=true` têm debug. O @ é fixo para essas contas; cadastro normal nasce
+  com `isDev=false`. Use `db:dev-accounts` em dry-run antes de reconciliar
+  uma base existente.
+- **Simulação DEV:** a central pode desligar o bypass e testar FREE de verdade,
+  mas essa opção não concede acesso a ninguém fora da allow-list.

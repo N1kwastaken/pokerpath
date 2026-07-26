@@ -8,7 +8,6 @@ import {
   resetPasswordSchema,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
-import { betaSignup } from '../lib/beta.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
 import {
   BadRequestError,
@@ -57,16 +56,17 @@ export async function authRoutes(app: FastifyInstance) {
     // do create para o handle já nascer com a conta.
     const username = await generateUniqueUsername(name || email);
 
-    // Cria usuário e streak vazio juntos. `isDev` vem EXPLÍCITO do ambiente
-    // (ver lib/beta.ts): assim o launch é uma variável no Render, não uma
-    // migration que recria a tabela users.
+    // Nenhum cadastro recebe DEV por padrão. As três contas de desenvolvimento
+    // são promovidas de forma explícita pelo script administrativo, nunca por
+    // nome/e-mail informado no formulário.
     const user = await prisma.user.create({
       data: {
         name,
         username,
         email,
         passwordHash,
-        isDev: betaSignup(),
+        isDev: false,
+        devSimulation: false,
         streak: { create: {} },
       },
       include: { streak: true },

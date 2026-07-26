@@ -6,12 +6,13 @@ import { useAuth } from '../auth/AuthContext.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { IconCheck, IconLock, IconBook, IconTarget, IconStar, IconGrad, IconFlag } from '../components/Icons.js';
 import { stageGroup, categoryColor, categoryDesc } from '../lib/stageGroup.js';
+import { PathWatermark, PokerPathMark } from '../components/BrandMark.js';
 
 /**
  * Trilha de UM mundo por vez (Preflop/Flop/Turn/River), sub-dividida em
  * "mesas" (Fundamentos, UTG, MP, …). Ascendente, com visual de poker:
  * feltro ao fundo, fases = FICHAS (borda listrada), fase atual marcada
- * pelo dealer button, fase perfeita = ficha dourada.
+ * pelo dealer button e estrela para uma sessão perfeita.
  */
 const DX = [0, 18, 0, -18];
 const GOLD = '#C9A84C';
@@ -46,9 +47,10 @@ function DrawCheck({ size = 12 }: { size?: number }) {
 export function TrailPage() {
   const { data: trail, isLoading, isError } = useTrail();
   const { user } = useAuth();
-  // Contas DEV (beta) são premium mesmo com plan=FREE — bater com o servidor
-  // (effectivePlan), senão as fases premium travam na interface sem motivo.
-  const isFree = user?.plan !== 'PREMIUM' && !user?.isDev;
+  // DEV pode desligar o bypass para simular FREE. Esta expressão espelha o
+  // effectivePlan do servidor para a interface não prometer fase Premium que
+  // a API vai bloquear.
+  const isFree = user?.plan !== 'PREMIUM' && !(user?.isDev && !user?.debugSimulation);
   const navigate = useNavigate();
   const location = useLocation();
   const fromExercise = !!(location.state as { fromExercise?: boolean } | null)?.fromExercise;
@@ -109,9 +111,14 @@ export function TrailPage() {
         background: 'radial-gradient(ellipse at 50% 0%, var(--felt-1) 0%, var(--felt-2) 45%, var(--felt-3) 100%)',
       }}
     >
-      <header className="mb-3">
-        <p className="text-xs text-white/55">Sua jornada</p>
-        <h1 className="text-2xl font-bold text-white">Treino</h1>
+      <header className="mb-4 flex items-center gap-3">
+        <div className="brand-tile flex h-10 w-10 items-center justify-center rounded-2xl">
+          <PokerPathMark size={27} className="text-white" />
+        </div>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-white/55">Sua jornada</p>
+          <h1 className="text-2xl font-black tracking-tight text-white">Treino</h1>
+        </div>
       </header>
 
       {isLoading && <LogoLoader inline label="Carregando trilha..." />}
@@ -135,7 +142,8 @@ export function TrailPage() {
           </div>
 
           {/* Cabeçalho do mundo (rua) */}
-          <div className="mb-2 flex items-center justify-between rounded-xl px-4 py-3 text-white" style={{ backgroundColor: selected.color }}>
+          <div className="relative mb-3 flex items-center justify-between overflow-hidden rounded-2xl px-4 py-4 text-white shadow-pop" style={{ backgroundColor: selected.color }}>
+            <PathWatermark className="pointer-events-none absolute -right-12 -top-2 h-28 w-64 text-white/35" />
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/80">Mundo {selected.order}</p>
               <h2 className="truncate text-lg font-extrabold">{selected.name}</h2>

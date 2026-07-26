@@ -8,6 +8,7 @@ import {
   type ProgressStatus,
 } from './domain.js';
 import type { Frequencies } from './gto.js';
+import type { WorldRewardView } from './rewards.js';
 
 /**
  * Tipos e schemas do conteúdo e do loop de jogo (PRD 5, 6, 7, 15.3).
@@ -225,11 +226,13 @@ export interface AnswerResult {
   stageCompleted: boolean;
   /** Verdadeiro quando esta resposta concluiu o mundo inteiro. */
   worldCompleted: boolean;
+  /** Baú cosmético concedido ao fechar o mundo (null em respostas normais). */
+  worldReward: WorldRewardView | null;
   /**
-   * Energia devolvida por ter limpado a fase sem errar nenhuma (0 = nada a
-   * comemorar). Vale uma vez por fase: rejogar não devolve de novo.
+   * Fichas por fechar esta fase perfeita pela primeira vez. É sempre 0 fora
+   * desse momento; a fonte de verdade é o ledger do servidor.
    */
-  energyRestored: number;
+  coinsGained: number;
   /**
    * Frequências GTO da decisão (reveladas só após responder).
    *
@@ -258,6 +261,8 @@ export interface LessonResult {
   leveledUp: boolean;
   currentStreak: number;
   newAchievements: UnlockedAchievement[];
+  worldCompleted: boolean;
+  worldReward: WorldRewardView | null;
 }
 
 /** Erro de limite diário no plano FREE (PRD 13.2). */
@@ -285,6 +290,10 @@ export interface ReviewItem {
 /** Energia diária: quantos exercícios ainda dá para fazer hoje (Premium = infinito). */
 export interface EnergyState {
   max: number;
+  /** Capacidade base, antes dos itens permanentes. */
+  baseMax: number;
+  /** Quanto os itens já desbloqueados adicionaram ao cap. */
+  capBonus: number;
   used: number;
   remaining: number;
   infinite: boolean;

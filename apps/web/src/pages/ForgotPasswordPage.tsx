@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { forgotPasswordSchema } from '@pokerpath/shared';
 import { authApi } from '../api/auth.js';
 import { ApiError } from '../lib/api.js';
+import { PokerPathMark } from '../components/BrandMark.js';
 
 /** "Esqueci minha senha": pede o e-mail e dispara o link de recuperação. */
 export function ForgotPasswordPage() {
@@ -33,7 +34,7 @@ export function ForgotPasswordPage() {
       <Link to="/login" className="mb-6 self-start text-sm font-medium text-subtle">← Voltar ao login</Link>
 
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-primary shadow-pop"><img src="/logo-mark-white.png" alt="" className="h-3/4 w-3/4 object-contain" /></div>
+        <div className="brand-tile flex h-16 w-16 items-center justify-center rounded-3xl"><PokerPathMark size={43} className="text-white" /></div>
         <h1 className="mt-5 text-3xl font-bold text-title">Esqueceu a senha?</h1>
         <p className="mt-1 text-subtle">Digite seu e-mail e enviamos um link para redefinir.</p>
       </div>

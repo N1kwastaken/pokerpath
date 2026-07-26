@@ -4,7 +4,8 @@ import {
   CATEGORY_LABELS,
   resolveLevel,
   XP_PER_WORLD_COMPLETE,
-  FREE_DAILY_EXERCISE_LIMIT,
+  BASE_ENERGY_CAP,
+  remainingEnergy,
   type EnergyState,
   DAILY_LIMIT_CODE,
   type Action,
@@ -34,10 +35,12 @@ import {
 } from '@pokerpath/shared';
 import type { Stage, UserProgress } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
-import { ForbiddenError, NotFoundError } from '../lib/errors.js';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../lib/errors.js';
 import { computeStreak } from './streak.service.js';
 import { evaluateAchievements, consecutiveCorrect } from './achievement.service.js';
-import { isGodmodeEmail, effectivePlan } from '../lib/godmode.js';
+import { isDeveloperBypass, effectivePlan } from '../lib/godmode.js';
+import { awardWorldReward } from './world-reward.service.js';
+import { awardPerfectStageCoins, getEnergyCap } from './economy.service.js';
 
 /** Todo o PRÉ-FLOP é grátis; o PÓS-FLOP (C-Bet em diante, Mundo 11+) é Premium. */
 /**
@@ -54,6 +57,60 @@ function isStagePremiumLocked(plan: string, stagePremium: boolean): boolean {
 function startOfToday(): Date {
   const n = new Date();
   return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+
+function outOfEnergy(cap: number): ForbiddenError {
+  return new ForbiddenError(
+    `Sua energia de hoje acabou (${cap} exercícios). Volte amanhã ou expanda o cap com itens.`,
+    DAILY_LIMIT_CODE,
+  );
+}
+
+/**
+ * Reserva uma das cargas diárias antes de uma resposta ser escrita. O UPDATE
+ * condicional é a trava real contra duas abas consumirem a mesma última carga.
+ * Na primeira leitura depois da migração, preserva as respostas já feitas hoje
+ * como baseline para não dar energia extra por causa do rollout.
+ */
+async function consumeExerciseEnergy(userId: string, cap: number): Promise<void> {
+  const today = startOfToday();
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const current = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { energyUsed: true, energyUsageDate: true },
+    });
+    if (!current) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
+
+    if (current.energyUsageDate && current.energyUsageDate >= today) {
+      const reserved = await prisma.user.updateMany({
+        where: { id: userId, energyUsageDate: { gte: today }, energyUsed: { lt: cap } },
+        data: { energyUsed: { increment: 1 } },
+      });
+      if (reserved.count === 1) return;
+      throw outOfEnergy(cap);
+    }
+
+    const historicalUsed = await prisma.userAnswer.count({
+      where: { userId, createdAt: { gte: today } },
+    });
+    if (historicalUsed >= cap) throw outOfEnergy(cap);
+
+    // Só uma requisição vence a troca de dia. Quem perder dá uma volta curta
+    // no loop e usa o UPDATE condicional acima.
+    const initialized = await prisma.user.updateMany({
+      where: {
+        id: userId,
+        OR: [{ energyUsageDate: null }, { energyUsageDate: { lt: today } }],
+      },
+      data: { energyUsed: historicalUsed + 1, energyUsageDate: today },
+    });
+    if (initialized.count === 1) return;
+  }
+
+  // Só é alcançável se houve corrida exata na virada do dia; não libera uma
+  // resposta sem reserva nessa situação rara.
+  throw outOfEnergy(cap);
 }
 
 /** Monta o StageSummary a partir da fase, do status e do progresso. */
@@ -125,8 +182,11 @@ export async function getWorldsForUser(
   let prevWorldComplete = true;
 
   for (const w of worlds) {
-    const total = w.stages.length;
-    const completed = w.stages.filter(
+    // O contador do mapa também segue a regra de progressão: para FREE,
+    // conteúdo premium não infla o denominador nem esconde um mundo concluído.
+    const required = w.stages.filter((s) => godmode || !isStagePremiumLocked(plan, s.premium));
+    const total = required.length;
+    const completed = required.filter(
       (s) => progByStage.get(s.id)?.status === 'COMPLETED',
     ).length;
     const xpEarned = w.stages.reduce(
@@ -149,7 +209,6 @@ export async function getWorldsForUser(
     });
 
     // Para FREE, fases premium não contam como exigidas para "completar".
-    const required = w.stages.filter((s) => godmode || !isStagePremiumLocked(plan, s.premium));
     const requiredDone = required.filter((s) => progByStage.get(s.id)?.status === 'COMPLETED').length;
     prevWorldComplete = required.length > 0 && requiredDone === required.length;
   }
@@ -328,6 +387,26 @@ async function assertStageAccessible(
   }
 }
 
+/**
+ * A última fase acabou de ser concluída: restou alguma OUTRA fase exigida?
+ * Para contas FREE, premium não entra nesta conta — a mesma regra da trilha.
+ */
+async function finishesWorld(
+  userId: string,
+  stage: Stage,
+  free: boolean,
+): Promise<boolean> {
+  const remaining = await prisma.stage.count({
+    where: {
+      worldId: stage.worldId,
+      id: { not: stage.id },
+      ...(free ? { premium: false } : {}),
+      NOT: { progress: { some: { userId, status: 'COMPLETED' } } },
+    },
+  });
+  return remaining === 0;
+}
+
 // ─── Jogar uma Fase (PRD 15.3) ─────────────────────────────────
 export async function getStagePlay(
   userId: string,
@@ -359,7 +438,7 @@ export async function getStagePlay(
   } else if (existingProg.status !== 'COMPLETED') {
     progress = await prisma.userProgress.update({
       where: { userId_stageId: { userId, stageId } },
-      data: { exercisesDone: 0, correctAnswers: 0, accuracy: 0, xpEarned: 0 },
+      data: { exercisesDone: 0, correctAnswers: 0, accuracy: 0, xpEarned: 0, attemptStartedAt: null },
     });
   } else {
     progress = existingProg;
@@ -416,18 +495,16 @@ export async function submitAnswer(
     throw new NotFoundError('Exercício não encontrado', 'EXERCISE_NOT_FOUND');
   }
 
-  const godmode = isGodmodeEmail(user.email);
+  const godmode = isDeveloperBypass(user);
   const stage = exercise.stage;
   const isFree = effectivePlan(user) === 'FREE' && !godmode;
 
   // Fase 2 de leitura — acesso, limite diário, progresso e tamanho da sessão
   // são independentes entre si: tudo em paralelo (assertStageAccessible lança
   // se a fase estiver travada, antes de qualquer escrita).
-  const [, todayCount, existing, sessionTarget] = await Promise.all([
+  const [, energyCap, existing, sessionTarget] = await Promise.all([
     assertStageAccessible(userId, effectivePlan(user), stage, godmode),
-    isFree
-      ? prisma.userAnswer.count({ where: { userId, createdAt: { gte: startOfToday() } } })
-      : Promise.resolve(0),
+    isFree ? getEnergyCap(userId) : Promise.resolve(BASE_ENERGY_CAP),
     prisma.userProgress.findUnique({
       where: { userId_stageId: { userId, stageId: stage.id } },
     }),
@@ -436,15 +513,36 @@ export async function submitAnswer(
       : prisma.exercise.count({ where: { stageId: stage.id } }),
   ]);
 
-  // Limite diário no plano FREE (PRD 13.2). Contas DEV = premium. O bônus de
-  // fase perfeita entra aqui: é o que faz a energia devolvida valer de fato.
-  const dailyLimit = FREE_DAILY_EXERCISE_LIMIT + todaysEnergyBonus(user);
-  if (isFree && todayCount >= dailyLimit) {
-    throw new ForbiddenError(
-      `Limite diário de ${dailyLimit} exercícios atingido. Assine o Premium para jogar sem limites.`,
-      DAILY_LIMIT_CODE,
-    );
+  // A ordem da sessão é sorteada no cliente, então não dá para exigir ordem
+  // numérica. Em vez disso, guardamos o início da tentativa e recusamos o
+  // mesmo exercício duas vezes nela — requisito para uma estrela ser honesta.
+  const freshAttempt = (existing?.exercisesDone ?? 0) >= sessionTarget;
+  const baseDone = freshAttempt ? 0 : existing?.exercisesDone ?? 0;
+  const baseCorrect = freshAttempt ? 0 : existing?.correctAnswers ?? 0;
+  const baseXpEarned = freshAttempt ? 0 : existing?.xpEarned ?? 0;
+  const attemptStartedAt = freshAttempt || !existing?.attemptStartedAt
+    ? new Date()
+    : existing.attemptStartedAt;
+
+  if (!freshAttempt && baseDone > 0) {
+    const alreadyAnswered = existing?.attemptStartedAt
+      ? !!await prisma.userAnswer.findFirst({
+        where: { userId, exerciseId: exercise.id, createdAt: { gte: existing.attemptStartedAt } },
+        select: { id: true },
+      })
+      // Fallback de rollout para tentativas criadas antes de attemptStartedAt.
+      : (await prisma.userAnswer.findMany({
+        where: { userId, exercise: { stageId: stage.id } },
+        orderBy: { createdAt: 'desc' },
+        take: baseDone,
+        select: { exerciseId: true },
+      })).some((answer) => answer.exerciseId === exercise.id);
+    if (alreadyAnswered) {
+      throw new BadRequestError('Este exercício já faz parte da tentativa atual.', 'EXERCISE_ALREADY_ANSWERED');
+    }
   }
+
+  if (isFree) await consumeExerciseEnergy(userId, energyCap);
 
   // ── Validação server-side da resposta (a correta nunca vai ao cliente). ──
   const correctAction = exercise.correctAction as Action;
@@ -458,11 +556,6 @@ export async function submitAnswer(
   // zera os contadores para medir só a tentativa atual (evita que a precisão
   // vire "vitalícia"). Vale também para REPLAYS de fase concluída — assim cada
   // rejogo é uma sessão própria e pode conquistar a estrela de sessão perfeita.
-  const freshAttempt = (existing?.exercisesDone ?? 0) >= sessionTarget;
-  const baseDone = freshAttempt ? 0 : existing?.exercisesDone ?? 0;
-  const baseCorrect = freshAttempt ? 0 : existing?.correctAnswers ?? 0;
-  const baseXpEarned = freshAttempt ? 0 : existing?.xpEarned ?? 0;
-
   const exercisesDone = baseDone + 1;
   const correctAnswers = baseCorrect + (correct ? 1 : 0);
   const accuracy = correctAnswers / exercisesDone;
@@ -487,28 +580,16 @@ export async function submitAnswer(
     sessionTarget > 0 && exercisesDone >= sessionTarget && correctAnswers === exercisesDone;
   const perfectAt = existing?.perfectAt ?? (perfectRun ? new Date() : null);
 
-  // Fase perfeita DEVOLVE a energia gasta nela. Só na primeira vez que a fase
-  // é limpa sem erro (`perfectAt` ainda vazio) — senão bastaria rejogar a fase
-  // mais fácil do jogo para ter energia infinita de graça.
-  const energyRestored = perfectRun && !existing?.perfectAt ? exercisesDone : 0;
-  const energyBonus = energyRestored + todaysEnergyBonus(user);
+  // Fase perfeita mantém o custo de cada exercício, mas dá fichas uma única
+  // vez. O ledger no serviço de economia impede crédito duplicado em replay.
+  const earnsPerfectCoins = perfectRun && !existing?.perfectAt;
 
   // ── Conclusão do mundo (PRD 4.5): checada ANTES das escritas, em 1 consulta —
   // "existe alguma OUTRA fase deste mundo ainda não completa?".
-  let worldCompleted = false;
-  if (stageCompleted) {
-    const remaining = await prisma.stage.count({
-      where: {
-        worldId: stage.worldId,
-        id: { not: stage.id },
-        NOT: { progress: { some: { userId, status: 'COMPLETED' } } },
-      },
-    });
-    if (remaining === 0) {
-      worldCompleted = true;
-      totalXpDelta += XP_PER_WORLD_COMPLETE;
-    }
-  }
+  // Premium não vira requisito escondido para uma conta FREE: a mesma regra
+  // determina o XP de conclusão e o baú cosmético.
+  const worldCompleted = stageCompleted && await finishesWorld(userId, stage, isFree);
+  if (worldCompleted) totalXpDelta += XP_PER_WORLD_COMPLETE;
 
   // ── XP total e nível. ──
   const xpBefore = user.totalXp;
@@ -526,7 +607,7 @@ export async function submitAnswer(
 
   // ── Escritas: linhas independentes → tudo em paralelo (1 ida ao banco de
   // latência total, em vez de 4 em sequência).
-  await Promise.all([
+  const [, , , , worldReward] = await Promise.all([
     prisma.userAnswer.create({
       data: {
         userId,
@@ -545,6 +626,7 @@ export async function submitAnswer(
         xpEarned,
         completedAt: stageCompleted ? new Date() : existing?.completedAt ?? null,
         perfectAt,
+        attemptStartedAt,
       },
       create: {
         userId,
@@ -556,14 +638,10 @@ export async function submitAnswer(
         xpEarned,
         completedAt: stageCompleted ? new Date() : null,
         perfectAt,
+        attemptStartedAt,
       },
     }),
-    prisma.user.update({
-      where: { id: userId },
-      data: energyRestored > 0
-        ? { totalXp, energyBonus, energyBonusDate: new Date() }
-        : { totalXp },
-    }),
+    prisma.user.update({ where: { id: userId }, data: { totalXp } }),
     prisma.streak.upsert({
       where: { userId },
       update: {
@@ -578,7 +656,16 @@ export async function submitAnswer(
         lastActiveAt: streakNow.lastActiveAt,
       },
     }),
+    worldCompleted
+      ? awardWorldReward(userId, stage.world)
+      : Promise.resolve(null),
   ]);
+
+  // Só depois de persistir a sessão perfeita: assim uma falha de progresso não
+  // pode criar fichas. A chave única usuário+fase impede duplicação.
+  const coinsGained = earnsPerfectCoins
+    ? await awardPerfectStageCoins(userId, stage.id)
+    : 0;
 
   // Acertos seguidos (persiste entre fases/sessões/níveis, vem do log). Só há
   // sequência quando a resposta foi certa; no erro é 0 por definição.
@@ -620,7 +707,8 @@ export async function submitAnswer(
     },
     stageCompleted,
     worldCompleted,
-    energyRestored,
+    worldReward,
+    coinsGained,
     frequencies: parseFrequencies(exercise.frequencies),
   };
 }
@@ -644,13 +732,16 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
     throw new ForbiddenError('Esta fase é de prática, não uma aula.', 'NOT_A_LESSON');
   }
 
-  const godmode = isGodmodeEmail(user.email);
+  const godmode = isDeveloperBypass(user);
   await assertStageAccessible(userId, effectivePlan(user), stage, godmode);
 
   const wasCompleted = existing?.status === 'COMPLETED';
+  const free = effectivePlan(user) === 'FREE' && !godmode;
+  const worldCompleted = !wasCompleted && await finishesWorld(userId, stage, free);
   const xpGained = wasCompleted ? 0 : stage.xpReward;
+  const worldXp = worldCompleted ? XP_PER_WORLD_COMPLETE : 0;
 
-  const totalXp = user.totalXp + xpGained;
+  const totalXp = user.totalXp + xpGained + worldXp;
   const before = resolveLevel(user.totalXp);
   const after = resolveLevel(totalXp);
   const streakNow = computeStreak({
@@ -659,11 +750,12 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
     lastActiveAt: user.streak?.lastActiveAt ?? null,
   });
 
-  // Aula perfeita (todos os quizzes certos de primeira) ganha a ficha dourada.
+  // Aula perfeita entra no perfil, mas não gera fichas: só fases práticas
+  // possuem exercícios e participam da economia.
   const perfectAt = existing?.perfectAt ?? (perfect ? new Date() : null);
 
   // Escritas independentes → em paralelo.
-  await Promise.all([
+  const [, , , worldReward] = await Promise.all([
     prisma.userProgress.upsert({
       where: { userId_stageId: { userId, stageId } },
       update: {
@@ -674,7 +766,7 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
       },
       create: { userId, stageId, status: 'COMPLETED', xpEarned: stage.xpReward, completedAt: new Date(), perfectAt },
     }),
-    xpGained > 0
+    xpGained > 0 || worldXp > 0
       ? prisma.user.update({ where: { id: userId }, data: { totalXp } })
       : Promise.resolve(),
     prisma.streak.upsert({
@@ -682,6 +774,9 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
       update: { currentStreak: streakNow.currentStreak, maxStreak: streakNow.maxStreak, lastActiveAt: streakNow.lastActiveAt },
       create: { userId, currentStreak: streakNow.currentStreak, maxStreak: streakNow.maxStreak, lastActiveAt: streakNow.lastActiveAt },
     }),
+    worldCompleted
+      ? awardWorldReward(userId, stage.world)
+      : Promise.resolve(null),
   ]);
 
   // Aula não registra resposta nem conclui prática com nota — só conquistas
@@ -692,8 +787,7 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
     answered: false,
     correct: false,
     stageCompleted: !wasCompleted,
-    // Uma aula pode ser a última fase de um mundo — deixa o FULL_GAME checar.
-    worldCompleted: !wasCompleted,
+    worldCompleted,
   });
 
   return {
@@ -704,6 +798,8 @@ export async function completeLesson(userId: string, stageId: string, perfect = 
     leveledUp: after.level > before.level,
     currentStreak: streakNow.currentStreak,
     newAchievements,
+    worldCompleted,
+    worldReward,
   };
 }
 
@@ -831,19 +927,30 @@ export async function resetProgress(userId: string): Promise<{ ok: true }> {
     prisma.userAnswer.deleteMany({ where: { userId } }),
     prisma.userProgress.deleteMany({ where: { userId } }),
     prisma.userAchievement.deleteMany({ where: { userId } }),
+    prisma.userWorldReward.deleteMany({ where: { userId } }),
+    prisma.userItem.deleteMany({ where: { userId } }),
+    prisma.userPerfectStageReward.deleteMany({ where: { userId } }),
     prisma.userMission.deleteMany({ where: { userId } }),
     prisma.streak.deleteMany({ where: { userId } }),
-    prisma.user.update({ where: { id: userId }, data: { totalXp: 0 } }),
+    prisma.user.update({ where: { id: userId }, data: { totalXp: 0, coins: 0, energyUsed: 0, energyUsageDate: null } }),
   ]);
   return { ok: true };
 }
 
-// ─── Debug (godmode): manipulação de estado para testes ────────
-/** Define o plano da conta (FREE/PREMIUM) para testar o gating premium. */
-export async function debugSetPlan(userId: string, plan: string): Promise<{ ok: true; plan: string }> {
+// ─── Debug (DEV): manipulação de estado para testes ────────────
+/**
+ * Alterna a simulação real de plano. FREE liga o modo de simulação (sem
+ * bypass); PREMIUM o encerra e restaura o acesso normal da conta DEV.
+ */
+export async function debugSetPlan(
+  userId: string,
+  plan: string,
+  requestedSimulation?: boolean,
+): Promise<{ ok: true; plan: string; simulation: boolean }> {
   const p = plan === 'PREMIUM' ? 'PREMIUM' : 'FREE';
-  await prisma.user.update({ where: { id: userId }, data: { plan: p } });
-  return { ok: true, plan: p };
+  const simulation = p === 'FREE' && requestedSimulation !== false;
+  await prisma.user.update({ where: { id: userId }, data: { plan: p, devSimulation: simulation } });
+  return { ok: true, plan: p, simulation };
 }
 
 /** Soma XP (pode ser negativo; nunca abaixo de zero) para testar níveis. */
@@ -868,52 +975,30 @@ export async function debugCompleteAll(userId: string): Promise<{ ok: true; coun
   return { ok: true, count: stages.length };
 }
 
-/**
- * Bônus de energia que vale HOJE.
- *
- * A energia não é um saldo guardado: ela é `limite − respostas de hoje`. Então
- * "devolver energia" não tem o que creditar — o que existe é este bônus, que
- * SOMA ao limite do dia. Como o bônus carrega a data, num dia diferente ele
- * simplesmente não conta (sem rotina de zeragem à meia-noite).
- */
-function todaysEnergyBonus(u: { energyBonus: number; energyBonusDate: Date | null }): number {
-  return u.energyBonusDate && u.energyBonusDate >= startOfToday() ? u.energyBonus : 0;
-}
-
-/**
- * Soma energia ao bônus de HOJE (marcos, e o que mais vier a dar energia).
- * Lê antes de escrever porque o bônus de ontem tem que ser descartado, não
- * incrementado — `increment` do Prisma somaria em cima do valor velho.
- */
-export async function addEnergyBonus(userId: string, amount: number): Promise<void> {
-  if (amount <= 0) return;
-  const u = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { energyBonus: true, energyBonusDate: true },
-  });
-  if (!u) return;
-  await prisma.user.update({
-    where: { id: userId },
-    data: { energyBonus: todaysEnergyBonus(u) + amount, energyBonusDate: new Date() },
-  });
-}
-
 // ─── Energia diária (Premium = infinita) ───────────────────────
 export async function getEnergy(userId: string): Promise<EnergyState> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { plan: true, email: true, isDev: true, energyBonus: true, energyBonusDate: true },
+    select: { plan: true, username: true, isDev: true, devSimulation: true, energyUsed: true, energyUsageDate: true },
   });
   if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
-  if (effectivePlan(user) === 'PREMIUM' || isGodmodeEmail(user.email)) {
-    const max = FREE_DAILY_EXERCISE_LIMIT;
-    return { max, used: 0, remaining: max, infinite: true };
+  const max = await getEnergyCap(userId);
+  const capBonus = max - BASE_ENERGY_CAP;
+  if (effectivePlan(user) === 'PREMIUM') {
+    return { max, baseMax: BASE_ENERGY_CAP, capBonus, used: 0, remaining: max, infinite: true };
   }
-  // O bônus entra no MÁXIMO, não no restante: assim a barra continua coerente
-  // (restante = max − usado) em vez de mostrar mais energia do que cabe nela.
-  const max = FREE_DAILY_EXERCISE_LIMIT + todaysEnergyBonus(user);
-  const used = await prisma.userAnswer.count({ where: { userId, createdAt: { gte: startOfToday() } } });
-  return { max, used, remaining: Math.max(0, max - used), infinite: false };
+  const today = startOfToday();
+  const used = user.energyUsageDate && user.energyUsageDate >= today
+    ? user.energyUsed
+    : await prisma.userAnswer.count({ where: { userId, createdAt: { gte: today } } });
+  return {
+    max,
+    baseMax: BASE_ENERGY_CAP,
+    capBonus,
+    used,
+    remaining: remainingEnergy(max, used),
+    infinite: false,
+  };
 }
 
 // ─── Estatísticas por categoria (PRD 9) ────────────────────────
@@ -1031,17 +1116,23 @@ export async function getReviewPlay(userId: string): Promise<PublicExercise[]> {
 /**
  * Responde um exercício NO MODO REVISÃO. Registra a resposta (é o que faz o
  * erro sumir da revisão quando o usuário acerta) mas NÃO dá XP, NÃO mexe no
- * progresso de fase e NÃO completa nada — é treino puro dos erros.
- * (Nota: como grava em user_answers, conta para stats/streak; num mundo pós-
- * launch com energia limitada, valeria não descontar energia aqui.)
+ * progresso de fase e NÃO completa nada — é treino puro dos erros. Para uma
+ * conta FREE, ainda custa uma energia porque é um exercício respondido.
  */
 export async function answerReview(
   userId: string,
   exerciseId: string,
   selectedAction: Action,
 ): Promise<ReviewAnswerResult> {
-  const ex = await prisma.exercise.findUnique({ where: { id: exerciseId } });
+  const [user, ex] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { plan: true, username: true, isDev: true, devSimulation: true } }),
+    prisma.exercise.findUnique({ where: { id: exerciseId } }),
+  ]);
+  if (!user) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
   if (!ex) throw new NotFoundError('Exercício não encontrado', 'EXERCISE_NOT_FOUND');
+  if (effectivePlan(user) === 'FREE' && !isDeveloperBypass(user)) {
+    await consumeExerciseEnergy(userId, await getEnergyCap(userId));
+  }
   const correctAction = ex.correctAction as Action;
   const correct = selectedAction === correctAction;
   await prisma.userAnswer.create({ data: { userId, exerciseId, selectedAction, isCorrect: correct } });

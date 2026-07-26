@@ -1,17 +1,19 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SHOWCASE_MAX, achievementBadgeId, streakBadgeId, STREAK_BADGE_DAYS } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
-import { useAchievements } from '../hooks/useGame.js';
-import { userApi } from '../api/game.js';
+import { useAchievements, useWorldRewards } from '../hooks/useGame.js';
+import { gameApi, userApi } from '../api/game.js';
 import { sound } from '../lib/sound.js';
+import { speakLabel } from '../lib/speech.js';
 import { fileToAvatar } from '../lib/avatarFile.js';
 import { ProfileBadge, badgeName } from '../components/ProfileBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
 import { Avatar } from '../components/Avatar.js';
+import { PathWatermark } from '../components/BrandMark.js';
 import { IdentityEditor } from '../components/IdentityEditor.js';
-import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy, IconLadder, IconUsers, IconBook, IconStar, IconPencil } from '../components/Icons.js';
+import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy, IconLadder, IconUsers, IconBook, IconStar, IconPencil, IconGift } from '../components/Icons.js';
 
 /**
  * Perfil — CARTÃO DE IDENTIDADE, não painel de controle.
@@ -23,6 +25,8 @@ import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy
 export function ProfilePage() {
   const { user, setUser } = useAuth();
   const { data: achievements } = useAchievements();
+  const { data: worldRewards } = useWorldRewards();
+  const queryClient = useQueryClient();
   const [picking, setPicking] = useState(false);
   const [editing, setEditing] = useState(false);
   const [avatarErr, setAvatarErr] = useState<string | null>(null);
@@ -39,6 +43,11 @@ export function ProfilePage() {
     onError: (e: unknown) => setAvatarErr(e instanceof Error ? e.message : 'Não deu para salvar a foto.'),
   });
 
+  const equipRewardMut = useMutation({
+    mutationFn: (code: string) => gameApi.equipWorldReward(code),
+    onSuccess: (rewards) => queryClient.setQueryData(['world-rewards'], rewards),
+  });
+
   /** Reduz no aparelho antes de enviar (a foto da galeria tem megabytes). */
   async function pickAvatar(file: File) {
     setAvatarErr(null);
@@ -50,6 +59,7 @@ export function ProfilePage() {
   }
 
   if (!user) return null;
+  const equippedReward = worldRewards?.find((reward) => reward.equipped) ?? null;
   const unlockedAch = (achievements ?? []).filter((a) => a.unlocked);
   const owned = [
     ...unlockedAch.map((a) => achievementBadgeId(a.code)),
@@ -80,7 +90,7 @@ export function ProfilePage() {
         style={{ marginTop: 'calc(env(safe-area-inset-top) * -1)', paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div
-          className="h-32 w-full"
+          className="relative h-32 w-full overflow-hidden"
           style={{
             background:
               'linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary2)) 55%, rgb(var(--card)) 100%)',
@@ -90,6 +100,7 @@ export function ProfilePage() {
             className="h-full w-full opacity-30"
             style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 12px)' }}
           />
+          <PathWatermark className="pointer-events-none absolute -right-6 -top-1 h-36 w-72 text-white/45" />
         </div>
 
         {/* engrenagem: a manutenção agora mora atrás deste botão */}
@@ -111,7 +122,7 @@ export function ProfilePage() {
           >
             {/* O próprio usuário usa a COR DO APP (a que ele escolheu); os
                 outros ganham cor derivada do nome, no Avatar. */}
-            <Avatar name={user.name} size={84} color="rgb(var(--primary))" src={user.avatar} />
+            <Avatar name={user.name} size={84} color="rgb(var(--primary))" src={user.avatar} frame={equippedReward?.code} />
             <span className="absolute bottom-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-card text-title ring-2 ring-bg">
               <IconCamera size={15} />
             </span>
@@ -136,15 +147,17 @@ export function ProfilePage() {
               {/* DEV agora é o brasão prata (mesma família das conquistas),
                   não mais uma pílula de texto solta ao lado do nome. */}
               {user.isDev && (
-                <span title="Beta tester — Premium liberado" className="shrink-0">
+                <span title={user.debugSimulation ? 'Conta DEV — simulando FREE' : 'Conta DEV'} className="shrink-0">
                   <AchievementBadge code="DEV" size={26} />
                 </span>
               )}
               <button
                 onClick={() => { sound.click(); setEditing((v) => !v); }}
-                aria-label="Editar nome e @" className="ml-auto shrink-0 text-subtle active:scale-90"
+                aria-label="Editar nome e @"
+                title="Editar perfil"
+                className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line bg-card2 text-title shadow-sm active:scale-95"
               >
-                <IconPencil size={18} />
+                <IconPencil size={22} />
               </button>
             </h1>
             {/* Nome grande em cima; @ logo abaixo (identidade estilo rede social). */}
@@ -167,9 +180,16 @@ export function ProfilePage() {
           {showcase.length > 0 && (
             <div className="flex shrink-0 gap-1.5 pt-1">
               {showcase.map((id) => (
-                <span key={id} title={badgeName(id, achievements ?? [])}>
+                <button
+                  key={id}
+                  type="button"
+                  title={`Ouvir: ${badgeName(id, achievements ?? [])}`}
+                  aria-label={`Ouvir o nome da badge: ${badgeName(id, achievements ?? [])}`}
+                  onClick={() => { sound.click(); speakLabel(badgeName(id, achievements ?? [])); }}
+                  className="rounded-full active:scale-95"
+                >
                   <ProfileBadge id={id} achievements={achievements ?? []} size={38} />
-                </span>
+                </button>
               ))}
             </div>
           )}
@@ -205,7 +225,10 @@ export function ProfilePage() {
                   {owned.map((id) => {
                     const on = showcase.includes(id);
                     return (
-                      <button key={id} onClick={() => toggleBadge(id)} title={badgeName(id, achievements ?? [])}
+                      <button
+                        key={id}
+                        onClick={() => { speakLabel(badgeName(id, achievements ?? [])); toggleBadge(id); }}
+                        title={`Ouvir e ${on ? 'remover' : 'adicionar'}: ${badgeName(id, achievements ?? [])}`}
                         aria-pressed={on}
                         className={`relative rounded-full transition-transform ${on ? 'scale-105' : 'opacity-55'}`}>
                         <ProfileBadge id={id} achievements={achievements ?? []} size={48} />
@@ -228,10 +251,50 @@ export function ProfilePage() {
           ) : (
             <div className="card flex items-center gap-3 p-4">
               {showcase.map((id) => (
-                <div key={id} className="flex items-center gap-2">
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => { sound.click(); speakLabel(badgeName(id, achievements ?? [])); }}
+                  aria-label={`Ouvir o nome da badge: ${badgeName(id, achievements ?? [])}`}
+                  className="flex items-center gap-2 rounded-xl text-left active:scale-[0.98]"
+                >
                   <ProfileBadge id={id} achievements={achievements ?? []} size={40} />
                   <span className="text-sm font-semibold text-title">{badgeName(id, achievements ?? [])}</span>
-                </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Coleção de baús ── */}
+        <section className="mt-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-subtle">Coleção de mundos</h2>
+            {worldRewards && <span className="text-xs font-semibold text-subtle">{worldRewards.length} {worldRewards.length === 1 ? 'item' : 'itens'}</span>}
+          </div>
+          {!worldRewards ? (
+            <div className="card p-4 text-sm text-subtle">Carregando sua coleção...</div>
+          ) : worldRewards.length === 0 ? (
+            <div className="card flex items-center gap-3 p-4 text-sm text-subtle">
+              <IconGift size={24} className="shrink-0 text-primary" />
+              Feche um mundo para abrir seu primeiro baú cosmético.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {worldRewards.map((reward) => (
+                <button
+                  key={reward.code}
+                  onClick={() => { sound.click(); equipRewardMut.mutate(reward.code); }}
+                  disabled={equipRewardMut.isPending}
+                  aria-pressed={reward.equipped}
+                  className={`card flex min-h-36 flex-col items-center p-3 text-center transition-transform active:scale-[0.98] disabled:opacity-60 ${
+                    reward.equipped ? 'ring-2 ring-primary' : ''
+                  }`}
+                >
+                  <Avatar name={user.name} size={54} color="rgb(var(--primary))" src={user.avatar} frame={reward.code} />
+                  <p className="mt-2 text-sm font-bold text-title">{reward.name}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-subtle">{reward.equipped ? 'Em uso' : reward.worldName}</p>
+                </button>
               ))}
             </div>
           )}
@@ -254,7 +317,10 @@ export function ProfilePage() {
 
         {user.isDev ? (
           <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 p-4 text-center text-sm font-semibold text-accent">
-            <IconStar size={16} className="shrink-0" /> Conta DEV — Premium liberado como beta tester. Obrigado por testar!
+            <IconStar size={16} className="shrink-0" />
+            {user.debugSimulation
+              ? 'Conta DEV — simulação FREE ativa.'
+              : 'Conta DEV — acesso Premium e ferramentas de teste liberados.'}
           </div>
         ) : (
           <Link to="/premium" className="btn-primary mt-4 w-full"><IconStar size={18} /> Conhecer o Premium</Link>

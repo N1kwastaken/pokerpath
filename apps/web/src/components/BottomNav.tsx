@@ -23,22 +23,22 @@ export function BottomNav() {
   const { isAuthenticated } = useAuth();
   const tabs = isAuthenticated ? TABS : GUEST_TABS;
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-line bg-card">
-      <div className="flex items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)] pt-2">
+    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-3 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] pt-2">
+      <div className="flex items-stretch justify-around rounded-[1.45rem] border border-line/90 bg-card/95 px-1.5 py-1.5 shadow-[0_18px_35px_-18px_rgba(0,0,0,0.95)] backdrop-blur-xl">
         {tabs.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition-colors ${
-                isActive ? 'text-primary' : 'text-subtle'
+              `relative flex flex-1 flex-col items-center gap-1 rounded-2xl py-2 text-[10px] font-bold uppercase tracking-wide transition-all ${
+                isActive ? 'bg-primary/12 text-primary' : 'text-subtle'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <Icon size={23} className={isActive ? 'scale-105' : ''} />
+                <Icon size={22} className={isActive ? 'scale-105' : ''} />
                 <span>{label}</span>
               </>
             )}

@@ -7,7 +7,7 @@ import { useAuth } from '../auth/AuthContext.js';
 import { sound } from '../lib/sound.js';
 import { Confetti } from '../components/Confetti.js';
 import { LogoLoader } from '../components/LogoLoader.js';
-import { IconCheck, IconBolt } from '../components/Icons.js';
+import { IconCheck } from '../components/Icons.js';
 import { StreakBadge, tierForTarget } from '../components/StreakBadge.js';
 
 /**
@@ -44,7 +44,6 @@ export function MilestonesPage() {
     onSuccess: (res) => {
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
-      if (res.energyGained > 0) queryClient.invalidateQueries({ queryKey: ['energy'] });
     },
     onError: (_e, code, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(['milestones'], ctx.previous);
@@ -65,7 +64,7 @@ export function MilestonesPage() {
       <header className="mb-5">
         <h1 className="text-2xl font-black text-title">Marcos</h1>
         <p className="mt-1 text-sm text-subtle">
-          {done} de {milestones.length} alcançados. Cada degrau paga XP — e a maioria devolve energia.
+          {done} de {milestones.length} alcançados. Cada degrau paga XP e marca sua evolução.
         </p>
       </header>
 
@@ -113,11 +112,6 @@ function Row({ m, claimed, onClaim }: { m: MilestoneView; claimed: boolean; onCl
             <p className="mt-0.5 text-xs text-subtle">{m.description}</p>
             <p className="mt-1 flex items-center gap-2 text-xs font-semibold text-subtle">
               <span className="text-primary">+{m.xpReward} XP</span>
-              {m.energyReward > 0 && (
-                <span className="flex items-center gap-0.5 text-call">
-                  <IconBolt size={12} />+{m.energyReward}
-                </span>
-              )}
             </p>
           </div>
         </div>

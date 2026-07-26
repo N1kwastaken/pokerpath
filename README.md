@@ -21,11 +21,13 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
 - **Charts GTO** — abertura (RFI) e 3-bet/defesa, com células mistas proporcionais.
 - **Gamificação** — XP, níveis, streak, energia, conquistas, missões diárias e
   semanais, fichas douradas por fase perfeita.
-- **Amigos** — código curto para adicionar; lista com XP, nível e streak.
+- **Amigos** — adicione pelo `@` do perfil; lista com XP, nível, streak e
+  perfis com badges compartilhados.
 - **Cores por progresso** — cada nível concluído libera uma cor de app;
   prata ao terminar o jogo, ouro no 100% perfeito.
-- **Contas DEV** — toda conta criada antes do launch tem premium liberado +
-  badge DEV (`User.isDev`, default `true`; trocar para `false` no launch).
+- **Contas DEV** — somente as contas administrativas `@kowalski`, `@sousa` e
+  `@dev` recebem badge, Premium e a central de debug. A promoção exige
+  reconciliação administrativa; cadastro comum nunca nasce DEV.
 - **Mascote Ace** — sprite sheet de expressões em `apps/web/public/mascot-sheet.png`.
 
 ## Arquitetura
@@ -78,6 +80,8 @@ npm run dev                              # API + Web em paralelo
 | `npm run dev:api` / `dev:web` | Só um dos lados             |
 | `npm run db:studio`   | Prisma Studio (UI do banco)        |
 | `npm run db:seed`     | Re-seed (idempotente: preserva progresso) |
+| `npm run db:dev-accounts -w @pokerpath/api` | Confere a allow-list DEV (dry-run; use `-- --apply` para gravar) |
+| `npm run db:sousa-email -w @pokerpath/api` | Confere a troca de e-mail de `@sousa` (dry-run; use `-- --apply` para gravar) |
 | `npm run typecheck`   | Checagem de tipos em todos os pkgs |
 
 ## Deploy (Render + Neon)
@@ -132,7 +136,8 @@ com gabarito no payload porque a validação é local e sem XP).
 
 ## Contas úteis (dev)
 
-- Godmode (debug, tudo liberado): `sousa@gmail.com`
+- Contas DEV (debug, tudo liberado): `@kowalski`, `@sousa` e `@dev` (a API
+  exige tanto a permissão persistida quanto o @ reservado; e-mail não autoriza).
 - Teste local: `reset.teste@pokerpath.dev` / `senhanova123`
 
 ## Próximos passos

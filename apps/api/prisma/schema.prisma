@@ -36,23 +36,32 @@ model User {
   email               String   @unique
   passwordHash        String
   plan                String   @default("FREE")
-  // Conta de beta tester (pré-launch): premium liberado + badge DEV.
-  // NO LAUNCH: trocar o default para false — as contas antigas permanecem true.
+  // Permissão administrativa. O default legado fica true porque trocar o
+  // default no SQLite exige RedefineTables (arriscado para friendCode); toda
+  // criação de conta da aplicação grava `false` explicitamente e o script
+  // reconcile-dev-accounts.mjs limpa contas antigas fora da allow-list.
   isDev               Boolean  @default(true)
+  // DEV pode desligar o bypass para simular uma conta FREE; a central de debug
+  // continua protegida pela allow-list e nunca depende desta flag.
+  devSimulation       Boolean  @default(false)
   totalXp             Int      @default(0)
+  // Fichas de progressão: só o servidor credita por fase perfeita e debita
+  // ao desbloquear item do catálogo. Nunca representa dinheiro real.
+  coins               Int      @default(0)
   onboardingCompleted Boolean  @default(false)
   // Código curto para adicionar amigos (gerado sob demanda no 1º acesso).
   friendCode          String?  @unique
   // Opt-out do lembrete diário de streak (e-mail sem descadastro é spam).
   emailReminders      Boolean  @default(true)
 
-  // Energia devolvida por fase perfeita. A energia em si NÃO é um saldo: ela é
-  // calculada (limite − respostas de hoje). Como não há o que debitar, o
-  // "devolver" vira um bônus que SOMA ao limite do dia. `energyBonusDate`
-  // guarda o dia a que o bônus pertence — em outro dia ele vale 0 sem
-  // precisar de rotina de limpeza.
+  // Campos legados do antigo bônus diário. Permanecem para não recriar users
+  // em SQLite; a energia atual ignora esses valores e usa cap base + itens.
   energyBonus         Int      @default(0)
   energyBonusDate     DateTime?
+  // Contador atômico do cap diário atual. Separado do histórico de respostas
+  // para duas requisições não atravessarem a última energia ao mesmo tempo.
+  energyUsed          Int      @default(0)
+  energyUsageDate     DateTime?
 
   // Vitrine do perfil: JSON com no MÁXIMO 2 ids de badge ("ach:PRIMEIRA_MAO",
   // "streak:30"). String porque o SQLite não tem array — a validação (posse e
@@ -82,6 +91,9 @@ model User {
   passwordResets      PasswordResetToken[]
   friendships         Friendship[]      @relation("userFriendships")
   friendOf            Friendship[]      @relation("friendOfUser")
+  worldRewards        UserWorldReward[]
+  items               UserItem[]
+  perfectStageRewards UserPerfectStageReward[]
 
   @@map("users")
 }
@@ -144,6 +156,7 @@ model World {
   createdAt   DateTime @default(now())
 
   stages      Stage[]
+  rewards     UserWorldReward[]
 
   @@map("worlds")
 }
@@ -169,6 +182,7 @@ model Stage {
 
   exercises    Exercise[]
   progress     UserProgress[]
+  perfectRewards UserPerfectStageReward[]
 
   @@unique([worldId, order])
   @@map("stages")
@@ -222,12 +236,63 @@ model UserProgress {
   accuracy       Float     @default(0)
   xpEarned       Int       @default(0)
   completedAt    DateTime?
-  perfectAt      DateTime? // primeira sessão completa 100% de acerto (estrela)
-  updatedAt      DateTime  @updatedAt
+  perfectAt       DateTime? // primeira sessão completa 100% de acerto (estrela)
+  // Início da tentativa em curso; impede repetir o mesmo exercício dentro da
+  // sessão mesmo com a ordem sorteada no cliente.
+  attemptStartedAt DateTime?
+  updatedAt       DateTime  @updatedAt
 
   @@unique([userId, stageId])
   @@index([userId])
   @@map("user_progress")
+}
+
+// Um baú por mundo concluído. O código do item é uma String porque o catálogo
+// de cosméticos mora no shared; a combinação usuário+mundo impede duplicata.
+model UserWorldReward {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worldId    String
+  world      World    @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  rewardCode String
+  awardedAt  DateTime @default(now())
+  equippedAt DateTime?
+
+  @@unique([userId, worldId])
+  @@index([userId])
+  @@map("user_world_rewards")
+}
+
+// Item permanente de energia. O catálogo e os custos vivem no shared; esta
+// tabela guarda somente a posse. A chave composta impede comprar duas vezes.
+model UserItem {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemCode     String
+  unlockedAt   DateTime @default(now())
+
+  @@unique([userId, itemCode])
+  @@index([userId])
+  @@map("user_items")
+}
+
+// Ledger imutável da recompensa por fase perfeita. Além de explicar a origem
+// do saldo, a chave usuário+fase é a última barreira contra crédito duplicado
+// em cliques/requisições concorrentes.
+model UserPerfectStageReward {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stageId   String
+  stage     Stage    @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  coins     Int
+  awardedAt DateTime @default(now())
+
+  @@unique([userId, stageId])
+  @@index([userId])
+  @@map("user_perfect_stage_rewards")
 }
 
 // -------------------------------------------------------------

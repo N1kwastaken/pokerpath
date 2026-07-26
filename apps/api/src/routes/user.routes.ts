@@ -7,6 +7,7 @@ import { prisma } from '../lib/prisma.js';
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../lib/errors.js';
 import { verifyPassword } from '../lib/password.js';
 import { toPublicUser, usernameNextChangeAt } from '../services/user.serializer.js';
+import { canClaimUsername, isDeveloperAccount } from '../lib/godmode.js';
 
 /**
  * Rotas do usuário autenticado.
@@ -49,7 +50,7 @@ export async function userRoutes(app: FastifyInstance) {
 
     const me = await prisma.user.findUnique({
       where: { id: request.user.sub },
-      select: { username: true, usernameChangedAt: true },
+      select: { username: true, usernameChangedAt: true, isDev: true },
     });
     if (!me) throw new NotFoundError('Usuário não encontrado', 'USER_NOT_FOUND');
 
@@ -57,6 +58,20 @@ export async function userRoutes(app: FastifyInstance) {
     if (me.username === next) {
       const user = await prisma.user.findUnique({ where: { id: request.user.sub }, include: { streak: true } });
       return reply.send({ user: toPublicUser(user!, user!.streak) });
+    }
+
+    // O @ é parte da segunda verificação da allow-list DEV. Permitir que uma
+    // dessas contas o troque a deixaria sem acesso e impediria a reconciliação
+    // administrativa de encontrar a identidade correta depois.
+    if (isDeveloperAccount(me)) {
+      throw new ConflictError('O @ de uma conta DEV é fixo.', 'DEVELOPER_USERNAME_LOCKED');
+    }
+
+    // Os três @ de desenvolvimento são reservados. A flag persistida + o @
+    // atual precisam bater; uma conta comum nunca consegue virar DEV apenas
+    // escolhendo um desses nomes.
+    if (!canClaimUsername(me, next)) {
+      throw new ConflictError('Esse @ é reservado.', 'USERNAME_RESERVED');
     }
 
     // Janela de 30 dias — bloqueia se ainda não liberou.

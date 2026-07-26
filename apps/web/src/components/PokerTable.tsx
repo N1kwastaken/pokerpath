@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Position, PublicExercise } from '@pokerpath/shared';
 import { Card } from './Card.js';
+import { PathWatermark, PokerPathMark } from './BrandMark.js';
 
 /**
  * Mesa 6-max — HUD escuro estilo GTO Wizard. Os assentos dos vilões ROTACIONAM
@@ -56,9 +57,9 @@ function SeatCards({ state }: { state: SeatState }) {
         ? { background: '#232628', border: '1px solid rgba(255,255,255,0.06)', filter: 'saturate(0)', opacity: 0.35 }
         : { background: '#33383d', border: '1px solid rgba(255,255,255,0.16)', opacity: 0.9 };
   return (
-    <div className="flex -space-x-1.5">
+    <div className="flex -space-x-2">
       {[-8, 8].map((rot, i) => (
-        <span key={i} className="relative h-8 w-6 overflow-hidden rounded-[4px]"
+        <span key={i} className="relative h-9 w-7 overflow-hidden rounded-[4px]"
           style={{ ...style, transform: `rotate(${rot}deg)` }}>
           {state === 'in' && <span className="absolute inset-0" style={{ backgroundImage: TEXTURE }} />}
         </span>
@@ -102,6 +103,10 @@ export function PokerTable({ ex, simple = false }: {
         style={{ boxShadow: '0 0 26px 2px rgb(var(--primary) / 0.55), inset 0 0 0 2px rgb(var(--primary) / 0.95)' }}
       />
       <div className="absolute inset-7 rounded-[42%] border border-white/10" />
+      <PathWatermark className="pointer-events-none absolute left-[8%] top-[19%] h-[43%] w-[84%] text-white/[0.09]" />
+      <div className="pointer-events-none absolute left-1/2 top-[21%] -translate-x-1/2 text-white/[0.08]">
+        <PokerPathMark size={100} className="text-white" cutColor="rgb(var(--primary))" />
+      </div>
 
       {/* Pot */}
       <div className="absolute left-1/2 top-[40%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">

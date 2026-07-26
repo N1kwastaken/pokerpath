@@ -1,4 +1,5 @@
 import { ACCENTS } from '../lib/accent.js';
+import { rewardForCode } from '@pokerpath/shared';
 
 /**
  * Avatar de inicial (não há upload de foto ainda).
@@ -16,7 +17,7 @@ function hueFor(seed: string): string {
   return PALETTE[h % PALETTE.length];
 }
 
-export function Avatar({ name, size = 44, color, ring, src }: {
+export function Avatar({ name, size = 44, color, ring, src, frame }: {
   name: string;
   size?: number;
   /** Força a cor (o próprio usuário usa a cor escolhida do app). */
@@ -25,21 +26,35 @@ export function Avatar({ name, size = 44, color, ring, src }: {
   ring?: boolean;
   /** Foto de perfil (data URI). Sem ela, cai na inicial colorida. */
   src?: string | null;
+  /** Aro cosmético de mundo equipado (não altera estatística nem jogo). */
+  frame?: string | null;
 }) {
   const letter = name.trim().charAt(0).toUpperCase() || '?';
+  const reward = rewardForCode(frame);
+  const innerSize = reward ? Math.max(1, size - 6) : size;
   const box = `flex shrink-0 items-center justify-center overflow-hidden rounded-full font-black text-white ${
     ring ? 'ring-2 ring-primary ring-offset-2 ring-offset-bg' : ''
   }`;
-  return (
+  const inner = (
     <span
       aria-hidden
       className={box}
       style={{
-        width: size, height: size, fontSize: size * 0.42,
+        width: innerSize, height: innerSize, fontSize: innerSize * 0.42,
         background: src ? 'rgb(var(--card2))' : color ?? hueFor(name),
       }}
     >
       {src ? <img src={src} alt="" className="h-full w-full object-cover" /> : letter}
+    </span>
+  );
+  if (!reward) return inner;
+  return (
+    <span
+      aria-hidden
+      className="flex shrink-0 items-center justify-center rounded-full p-[3px] shadow-[0_3px_10px_rgba(0,0,0,0.3)]"
+      style={{ width: size, height: size, background: reward.frame }}
+    >
+      {inner}
     </span>
   );
 }

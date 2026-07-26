@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Action, AnswerResult, PublicExercise, Position } from '@pokerpath/shared';
+import type { Action, AnswerResult, PublicExercise, Position, WorldRewardView } from '@pokerpath/shared';
 import { XP_BY_DIFFICULTY } from '@pokerpath/shared';
 import { useStage, useRange, useEnergy } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
@@ -16,10 +16,11 @@ import { CountUp } from '../components/CountUp.js';
 import { StreakBadge, tierForDays } from '../components/StreakBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
 import { GtoBars } from '../components/GtoBars.js';
-import { IconX, IconCheck, IconBolt, IconFlame, IconHome, IconChart, IconTrophy } from '../components/Icons.js';
+import { IconX, IconCheck, IconBolt, IconFlame, IconHome, IconChart, IconTrophy, IconStar } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
 import { LessonPlayer } from '../components/LessonPlayer.js';
+import { WorldChest } from '../components/WorldChest.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { Explanation } from '../components/Explanation.js';
 import { TableTutorial, tableTutorialPending } from '../components/TableTutorial.js';
@@ -86,12 +87,13 @@ export function StagePlayPage() {
   const [sessionXp, setSessionXp] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [worldDone, setWorldDone] = useState(false);
-  // Energia devolvida pela fase perfeita — anunciada no resumo, que é onde a
-  // pessoa está olhando quando termina.
-  const [energyBack, setEnergyBack] = useState(0);
+  // Fichas da primeira sessão perfeita, anunciadas no resumo da fase.
+  const [coinsAwarded, setCoinsAwarded] = useState(0);
   // Nome do nível alcançado NESTA sessão (null = não subiu). Vai pro resumo:
   // subir de nível no meio da fase não pode ser um banner que some.
   const [levelUpTo, setLevelUpTo] = useState<string | null>(null);
+  const [lessonWorldComplete, setLessonWorldComplete] = useState(false);
+  const [lessonReward, setLessonReward] = useState<WorldRewardView | null>(null);
 
   function scrollTop() { window.scrollTo({ top: 0 }); }
   function invalidateProgress() {
@@ -114,6 +116,12 @@ export function StagePlayPage() {
       sound.correct();
       if (stageId) localStorage.setItem('pp.justCompleted', stageId);
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
+      if (res.worldCompleted) {
+        setLessonWorldComplete(true);
+        setLessonReward(res.worldReward);
+        queryClient.invalidateQueries({ queryKey: ['world-rewards'] });
+        return;
+      }
       backToWorld();
     },
   });
@@ -209,12 +217,14 @@ export function StagePlayPage() {
       setCombo(res.answerStreak);
       if (res.stageCompleted) { setCompleted(true); if (stageId) localStorage.setItem('pp.justCompleted', stageId); }
       if (res.worldCompleted) setWorldDone(true);
-      if (res.energyRestored > 0) setEnergyBack(res.energyRestored);
+      if (res.coinsGained > 0) setCoinsAwarded(res.coinsGained);
       if (res.leveledUp) { setLevelUpTo(res.levelName); setTimeout(() => sound.levelUp(), 250); }
       if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName, currentStreak: res.currentStreak, streakAtRisk: false, streakPlayedToday: true });
       queryClient.invalidateQueries({ queryKey: ['energy'] });
+      if (res.coinsGained > 0) queryClient.invalidateQueries({ queryKey: ['economy'] });
+      if (res.worldReward) queryClient.invalidateQueries({ queryKey: ['world-rewards'] });
     },
-    onError: (err) => { if (err instanceof ApiError && err.code === 'DAILY_LIMIT_REACHED') navigate('/premium'); },
+    onError: (err) => { if (err instanceof ApiError && err.code === 'DAILY_LIMIT_REACHED') navigate('/loadout'); },
   });
 
   useEffect(() => {
@@ -234,6 +244,21 @@ export function StagePlayPage() {
 
   // ─── AULA ────────────────────────────────────────────────────
   if (data.stage.isLesson) {
+    if (lessonWorldComplete) {
+      return (
+        <div className="relative flex min-h-dvh flex-col items-center justify-center px-6 py-10 text-center">
+          <Confetti count={90} />
+          <div className="relative animate-spin-in">
+            <span className="absolute inset-0 -z-10 rounded-full bg-gold/25 blur-2xl" aria-hidden />
+            <span className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-gold bg-gold/15 shadow-pop"><IconTrophy size={56} className="text-gold" /></span>
+          </div>
+          <h1 className="mt-5 text-3xl font-black text-title">Mundo completo!</h1>
+          <p className="mt-1 text-sm font-semibold text-gold">Todas as fases fechadas. O próximo mundo é seu.</p>
+          {lessonReward && <WorldChest reward={lessonReward} playerName={user?.name ?? 'Você'} />}
+          <button className="btn-primary mt-8 w-full" onClick={goHome}><IconHome size={18} /> Voltar ao início</button>
+        </div>
+      );
+    }
     return (
       <LessonPlayer
         title={data.stage.title}
@@ -256,7 +281,7 @@ export function StagePlayPage() {
     if (stageId) localStorage.removeItem(sessionKey(stageId));
     setIdx(0); setAnswers([]); setSessionXp(0); setResult(null); setLastChoice(null);
     comboRef.current = 0; setCombo(0);
-    setCompleted(false); setWorldDone(false); setEnergyBack(0); setLevelUpTo(null); setPhase('playing'); scrollTop();
+    setCompleted(false); setWorldDone(false); setCoinsAwarded(0); setLevelUpTo(null); setPhase('playing'); scrollTop();
   }
   function choose(action: Action) {
     if (phase !== 'playing') return;
@@ -287,10 +312,9 @@ export function StagePlayPage() {
       newAchievements: [],
       stage: { stageId: stageId!, status: 'IN_PROGRESS', exercisesDone: answers.length + 1, correctAnswers: 0, accuracy: 0, xpEarned: sessionXp + xpGained, minExercises: sessionLen, passRate: data!.stage.passRate },
       stageCompleted: false,
-      // Devolução de energia é decisão do servidor (ele é quem sabe se a fase
-      // já tinha sido limpa sem erro antes); chega na reconciliação.
       worldCompleted: false,
-      energyRestored: 0,
+      worldReward: null,
+      coinsGained: 0,
     });
     setPhase('feedback');
     mutation.mutate(action); // grava XP/progresso no servidor + reconcilia
@@ -324,6 +348,10 @@ export function StagePlayPage() {
         )}
         {!passed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
 
+        {worldDone && result?.worldReward && (
+          <WorldChest reward={result.worldReward} playerName={user?.name ?? 'Você'} />
+        )}
+
         {/* Subiu de nível nesta sessão */}
         {levelUpTo && (
           <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-primary/50 bg-primary/10 px-4 py-3">
@@ -335,15 +363,14 @@ export function StagePlayPage() {
           </div>
         )}
 
-        {/* Fase perfeita: a energia gasta volta. É o incentivo a aprender de
-            verdade em vez de chutar até passar no pass_rate. */}
-        {energyBack > 0 && (
-          <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-call/50 bg-call/10 px-4 py-3">
-            <IconBolt size={28} className="shrink-0 text-call" />
+        {/* Sessão perfeita: recompensa fixa, conquistada só uma vez por fase. */}
+        {coinsAwarded > 0 && (
+          <div className="mt-5 flex animate-slide-up items-center gap-3 rounded-2xl border border-gold/50 bg-gold/10 px-4 py-3">
+            <IconStar size={28} className="shrink-0 text-gold" />
             <div className="text-left">
-              <p className="text-lg font-extrabold text-call">Perfeito! Energia restaurada.</p>
+              <p className="text-lg font-extrabold text-gold">Fase perfeita!</p>
               <p className="text-xs text-subtle">
-                Sem errar nenhuma — os {energyBack} de energia desta fase voltaram para você.
+                Sem errar nenhuma — você conquistou {coinsAwarded} fichas para itens de energia.
               </p>
             </div>
           </div>

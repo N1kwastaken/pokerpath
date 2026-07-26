@@ -30,16 +30,15 @@ export function FriendsPage() {
   const { user } = useAuth();
   const { data, isLoading } = useQuery({ queryKey: ['friends'], queryFn: gameApi.friends });
   const { data: achievements } = useAchievements();
-  const [code, setCode] = useState('');
+  const [username, setUsername] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const addMut = useMutation({
-    mutationFn: (c: string) => gameApi.addFriend(c),
+    mutationFn: (handle: string) => gameApi.addFriendByUsername(handle),
     onSuccess: (f) => {
       sound.correct();
       setMsg({ ok: true, text: `${f.name} agora é seu amigo!` });
-      setCode('');
+      setUsername('');
       queryClient.invalidateQueries({ queryKey: ['friends'] });
     },
     onError: (e) => {
@@ -55,25 +54,7 @@ export function FriendsPage() {
   function submit(e: FormEvent) {
     e.preventDefault();
     setMsg(null);
-    if (code.trim()) addMut.mutate(code);
-  }
-
-  /** Compartilhar > copiar: no celular abre o menu nativo (WhatsApp, etc.). */
-  async function share() {
-    if (!data) return;
-    const text = `Bora treinar poker comigo no PokerPath? Meu código de amigo é ${data.code} — https://pokerpath.onrender.com`;
-    sound.click();
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'PokerPath', text });
-        return;
-      }
-      await navigator.clipboard.writeText(data.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* usuário cancelou o menu, ou clipboard bloqueado — o código está na tela */
-    }
+    if (username.trim()) addMut.mutate(username);
   }
 
   if (isLoading) return <LogoLoader label="Chamando a galera..." />;
@@ -98,23 +79,21 @@ export function FriendsPage() {
       <button onClick={() => navigate(-1)} className="mb-4 text-sm font-medium text-subtle">← Voltar</button>
       <h1 className="text-3xl font-bold text-title">Amigos</h1>
 
-      {/* Convite — o código com o compartilhamento nativo do aparelho. */}
+      {/* O @ é a identidade visível: não obriga ninguém a ditar um código. */}
       <div className="card mt-5 p-5 text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-subtle">Seu código de amigo</p>
-        <p className="mt-2 font-display text-4xl font-black tracking-[0.3em] text-primary">{data.code}</p>
-        <button onClick={share} className="btn-primary mt-3 w-full">
-          {copied ? 'Copiado! ✓' : 'Convidar um amigo'}
-        </button>
+        <p className="text-xs font-bold uppercase tracking-widest text-subtle">Jogue com amigos</p>
+        <p className="mt-2 text-base font-bold text-title">Adicione pelo @ do perfil</p>
+        <p className="mt-1 text-sm text-subtle">Peça o identificador que aparece abaixo do nome, como @{user.username ?? 'jogador'}.</p>
       </div>
 
       <form onSubmit={submit} className="mt-4 flex gap-2">
         <input
-          className="field flex-1 uppercase tracking-widest"
-          placeholder="CÓDIGO DO AMIGO" aria-label="Código do amigo"
-          value={code} maxLength={10}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          className="field flex-1"
+          placeholder="@USUÁRIO" aria-label="@ do amigo"
+          value={username} maxLength={21}
+          onChange={(e) => setUsername(e.target.value.toLowerCase())}
         />
-        <button className="btn-primary px-5" disabled={addMut.isPending || !code.trim()}>
+        <button className="btn-primary px-5" disabled={addMut.isPending || !username.trim()}>
           {addMut.isPending ? '...' : 'Adicionar'}
         </button>
       </form>
@@ -148,6 +127,7 @@ export function FriendsPage() {
                 key={r.id} row={r} pos={i + 1}
                 achievements={achievements ?? []}
                 accent={r.me}
+                onView={() => navigate(r.me ? '/profile' : `/friends/${r.id}`)}
                 onRemove={r.me ? undefined : () => {
                   if (window.confirm(`Remover ${r.name} dos amigos?`)) removeMut.mutate(r.id);
                 }}
@@ -160,10 +140,11 @@ export function FriendsPage() {
   );
 }
 
-function RankRow({ row, pos, achievements, accent, onRemove }: {
+function RankRow({ row, pos, achievements, accent, onView, onRemove }: {
   row: Row; pos: number;
   achievements: Parameters<typeof ProfileBadge>[0]['achievements'];
   accent: boolean;
+  onView: () => void;
   onRemove?: () => void;
 }) {
   return (
@@ -172,29 +153,31 @@ function RankRow({ row, pos, achievements, accent, onRemove }: {
     <div className={`flex items-center gap-2.5 rounded-2xl border p-3 ${
       accent ? 'border-primary/60 bg-primary/10' : 'border-line bg-card'
     }`}>
-      <span className="w-6 shrink-0 text-center text-sm font-black tabular-nums text-subtle">
-        {pos <= 3 ? <IconMedal place={pos as 1 | 2 | 3} size={22} /> : `${pos}º`}
-      </span>
-      <Avatar name={row.name} size={38} ring={accent} src={row.avatar} />
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 truncate font-bold text-title">
-          <span className="truncate">{row.name}</span>
-          {accent && <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-primary">você</span>}
-          {row.isDev && <span className="shrink-0" title="Beta tester"><AchievementBadge code="DEV" size={16} /></span>}
-        </p>
-        <p className="flex items-center gap-1.5 text-xs text-subtle">
-          {/* @ quando existe; senão o nível. É a identidade estável do amigo. */}
-          <span className="truncate">{row.username ? `@${row.username}` : row.levelName}</span>
-          {/* A vitrine dele — é o que faz escolher badge valer alguma coisa. */}
-          {row.showcaseBadges.slice(0, 2).map((id) => (
-            <ProfileBadge key={id} id={id} achievements={achievements} size={16} />
-          ))}
-        </p>
-      </div>
-      <div className="shrink-0 text-right">
-        <p className="text-sm font-black tabular-nums text-title">{row.totalXp.toLocaleString('pt-BR')}</p>
-        <p className="flex items-center justify-end gap-0.5 text-xs tabular-nums text-subtle">{row.currentStreak}<IconFlame size={12} className="text-gold" /></p>
-      </div>
+      <button onClick={onView} className="flex min-w-0 flex-1 items-center gap-2.5 text-left active:scale-[0.99]" aria-label={`Ver perfil de ${row.name}`}>
+        <span className="w-6 shrink-0 text-center text-sm font-black tabular-nums text-subtle">
+          {pos <= 3 ? <IconMedal place={pos as 1 | 2 | 3} size={22} /> : `${pos}º`}
+        </span>
+        <Avatar name={row.name} size={38} ring={accent} src={row.avatar} />
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1.5 truncate font-bold text-title">
+            <span className="truncate">{row.name}</span>
+            {accent && <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-primary">você</span>}
+            {row.isDev && <span className="shrink-0" title="Conta DEV"><AchievementBadge code="DEV" size={16} /></span>}
+          </p>
+          <p className="flex items-center gap-1.5 text-xs text-subtle">
+            {/* @ quando existe; senão o nível. É a identidade estável do amigo. */}
+            <span className="truncate">{row.username ? `@${row.username}` : row.levelName}</span>
+            {/* A vitrine dele — é o que faz escolher badge valer alguma coisa. */}
+            {row.showcaseBadges.slice(0, 2).map((id) => (
+              <ProfileBadge key={id} id={id} achievements={achievements} assumeOwned={!row.me} size={16} />
+            ))}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-sm font-black tabular-nums text-title">{row.totalXp.toLocaleString('pt-BR')}</p>
+          <p className="flex items-center justify-end gap-0.5 text-xs tabular-nums text-subtle">{row.currentStreak}<IconFlame size={12} className="text-gold" /></p>
+        </div>
+      </button>
       {onRemove && (
         <button onClick={onRemove} className="shrink-0 text-subtle active:scale-90" aria-label={`Remover ${row.name}`}>
           <IconX size={16} />
