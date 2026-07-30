@@ -39,6 +39,21 @@ const ACT: { key: Action; label: string; color: string }[] = [
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
 type Phase = 'playing' | 'feedback' | 'summary';
 
+function correctPraise(combo: number): string {
+  if (combo >= 7) return 'Imparável!';
+  if (combo >= 5) return 'Leitura afiada!';
+  if (combo >= 3) return 'Em chamas!';
+  if (combo === 2) return 'Boa sequência!';
+  return 'Boa decisão!';
+}
+
+function passedTitle(accuracy: number): string {
+  if (accuracy === 100) return 'Mesa perfeita!';
+  if (accuracy >= 90) return 'Leitura afiada!';
+  if (accuracy >= 80) return 'Bela sessão!';
+  return 'Fase concluída!';
+}
+
 /** Sessão salva por fase: sair no meio e voltar retoma de onde parou. */
 type SavedSession = { ids: string[]; answers: boolean[]; xp: number };
 const sessionKey = (stageId: string) => `pp.session.${stageId}`;
@@ -343,7 +358,7 @@ export function StagePlayPage() {
         ) : (
           <>
             <Mascot mood={passed ? 'win' : 'sad'} size={176} />
-            <h1 className="mt-5 text-3xl font-bold text-title">{passed ? 'Fase concluída!' : 'Quase lá!'}</h1>
+            <h1 className="mt-5 text-3xl font-bold text-title">{passed ? passedTitle(accuracy) : 'Quase lá!'}</h1>
           </>
         )}
         {!passed && <p className="mt-1 text-subtle">Você precisa de {Math.round(data.stage.passRate * 100)}% de acerto.</p>}
@@ -443,7 +458,13 @@ export function StagePlayPage() {
       {/* Header do exercício — chips bold sem outline, no estilo da home. */}
       <div className="flex items-center gap-2">
         <button onClick={backToWorld} className="shrink-0 text-subtle" aria-label="Sair"><IconX size={24} /></button>
-        <div className="flex-1"><ProgressBar value={answers.length} max={sessionLen} /></div>
+        <div className="flex-1">
+          <ProgressBar
+            value={answers.length}
+            max={sessionLen}
+            hot={answers.length >= 2 && answers.every(Boolean)}
+          />
+        </div>
         {showCheat && (
           <button onClick={() => { setSheetOpen(true); setSheetPrev(false); }}
             className="shrink-0 rounded-2xl bg-card2 px-2.5 py-1.5 text-base" aria-label="Ver range">
@@ -476,7 +497,7 @@ export function StagePlayPage() {
             </motion.span>
             <div className="min-w-0 flex-1">
               <p className={`font-extrabold ${result.correct ? 'text-primary' : 'text-error'}`}>
-                {result.correct ? 'Correto' : `Incorreto — era ${actionLabel(result.correctAction)}`}
+                {result.correct ? correctPraise(combo) : `Incorreto — era ${actionLabel(result.correctAction)}`}
               </p>
             </div>
             {result.correct && (

@@ -20,7 +20,9 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
   frequências GTO no feedback, cheat-sheet de range (📊) e glossário integrado.
 - **Charts GTO** — abertura (RFI) e 3-bet/defesa, com células mistas proporcionais.
 - **Gamificação** — XP, níveis, streak, energia, conquistas, missões diárias e
-  semanais, fichas douradas por fase perfeita.
+  semanais, carta educativa do dia e fichas douradas por fase perfeita.
+- **Personalização** — tema, cores conquistáveis, feltro, verso das cartas,
+  marca da mesa, avatar, aros e vitrine de badges.
 - **Amigos** — envie pedido pelo `@`, aceite/recuse/cancele; só amizades
   confirmadas liberam ranking de XP, streak e perfis com badges.
 - **Cores por progresso** — cada nível concluído libera uma cor de app;

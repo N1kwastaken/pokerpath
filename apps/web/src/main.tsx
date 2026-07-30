@@ -11,13 +11,6 @@ import { initAccent } from './lib/accent.js';
 initAccent();
 initA11y();
 
-// O iOS Safari IGNORA user-scalable=no do viewport: bloqueia o pinch-zoom
-// manualmente (gesture* são eventos só do iOS). O double-tap-zoom é bloqueado
-// pelo touch-action: manipulation no CSS.
-for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
-  document.addEventListener(ev, (e) => e.preventDefault());
-}
-
 /**
  * Entrypoint.
  * Providers: React Query (cache de dados do servidor) + Auth (sessão).

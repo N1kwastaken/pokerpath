@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { levelProgress } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
-import { useEconomy, useEnergy, useTrail } from '../hooks/useGame.js';
+import { useEconomy, useEnergy, useMilestones, useTrail } from '../hooks/useGame.js';
 import { stageGroup } from '../lib/stageGroup.js';
 import { MissionsCard } from '../components/MissionsCard.js';
-import { IconChevron, IconBolt, IconStar, IconCrown, IconFlame, IconSparkles } from '../components/Icons.js';
+import { DailyCard } from '../components/DailyCard.js';
+import { IconChevron, IconBolt, IconStar, IconCrown, IconFlame, IconGift, IconSparkles } from '../components/Icons.js';
 import { PathWatermark, ProgressMedallion } from '../components/BrandMark.js';
 
 /** Home — enxuta e game-like: um CTA grande para voltar à mão, sem cards corporativos. */
@@ -15,6 +16,7 @@ export function DashboardPage() {
   const { data: trail } = useTrail();
   const { data: energy } = useEnergy();
   const { data: economy } = useEconomy();
+  const { data: milestones } = useMilestones();
 
   // Cadastro de quem JÁ JOGA marca a prova de nivelamento como pendente —
   // o redirect acontece aqui porque o RegisterPage é desmontado pelo guard.
@@ -31,6 +33,7 @@ export function DashboardPage() {
   const curStage = curWorld?.stages.find((s) => s.status === 'IN_PROGRESS') ?? null;
   const category = curStage ? stageGroup(curStage.concept) : null;
   const pct = curWorld && curWorld.stages.length > 0 ? Math.round((curWorld.stages.filter((s) => s.status === 'COMPLETED').length / curWorld.stages.length) * 100) : 0;
+  const rewardsReady = milestones?.filter((milestone) => milestone.reached && !milestone.claimed).length ?? 0;
 
   return (
     <div className="px-4 py-5">
@@ -75,7 +78,7 @@ export function DashboardPage() {
           className="mb-5 flex w-full items-center justify-between rounded-2xl border border-line bg-card px-4 py-3 text-left active:scale-[0.99]"
         >
           <span className="flex items-center gap-2 text-sm font-bold text-title"><IconBolt size={18} className="text-call" /> Itens de energia</span>
-          <span className="flex items-center gap-1.5 text-xs font-black text-gold"><IconStar size={14} /> {economy.coins} fichas · cap {economy.energyCap}</span>
+          <span className="flex items-center gap-1.5 text-xs font-black text-gold"><IconStar size={14} /> {economy.coins} fichas · limite {economy.energyCap}</span>
         </button>
       )}
 
@@ -153,6 +156,26 @@ export function DashboardPage() {
         </button>
       )}
 
+      {rewardsReady > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate('/milestones')}
+          className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-gold/45 bg-gold/10 p-3.5 text-left active:scale-[0.99]"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold text-black shadow-pop">
+            <IconGift size={22} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-black text-title">
+              {rewardsReady === 1 ? 'Uma recompensa está pronta' : `${rewardsReady} recompensas estão prontas`}
+            </span>
+            <span className="block text-xs text-subtle">Você já alcançou o marco. Falta só resgatar o XP.</span>
+          </span>
+          <span className="rounded-full bg-gold px-3 py-1 text-xs font-black text-black">Abrir</span>
+        </button>
+      )}
+
+      <div className="mt-4"><DailyCard /></div>
       <div className="mt-4"><MissionsCard /></div>
     </div>
   );

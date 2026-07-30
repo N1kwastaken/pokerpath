@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Position, PublicExercise } from '@pokerpath/shared';
 import { Card } from './Card.js';
-import { PathWatermark } from './BrandMark.js';
+import { readTablePrefs, type CardBackStyle } from '../lib/tablePrefs.js';
 
 /**
  * Mesa 6-max — HUD escuro estilo GTO Wizard. Os assentos dos vilões ROTACIONAM
@@ -38,21 +38,23 @@ const POS_NAME: Record<Position, string> = {
 /** Estado do assento: na mão (verde), foldou (escuro dessaturado) ou ainda não agiu (escuro). */
 type SeatState = 'in' | 'folded' | 'pending';
 
-// Verso da carta do oponente. Segue a cor do app (`--primary`) em vez do verde
-// fixo de antes, e o brilho no topo + a textura diagonal são o que fazem 24px
-// de largura parecerem uma carta de baralho, e não um retângulo colorido.
-const CARD_BACK: CSSProperties = {
-  background:
-    'linear-gradient(150deg, color-mix(in srgb, rgb(var(--primary)) 80%, #fff) 0%, rgb(var(--primary)) 42%, color-mix(in srgb, rgb(var(--primary)) 55%, #000) 100%)',
-  border: '1px solid rgba(255,255,255,0.55)',
-  boxShadow: '0 3px 7px -1px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4)',
-};
+// Verso da carta do oponente. Pode seguir a cor do app, azul ou rubi; o brilho
+// no topo + a textura diagonal fazem 24px parecerem carta, não retângulo.
 const TEXTURE = 'repeating-linear-gradient(48deg, rgba(255,255,255,0.16) 0 1.5px, transparent 1.5px 5px)';
 
-function SeatCards({ state }: { state: SeatState }) {
+function cardBack(style: CardBackStyle): CSSProperties {
+  const color = style === 'blue' ? '#2f6fda' : style === 'ruby' ? '#b93648' : 'rgb(var(--primary))';
+  return {
+    background: `linear-gradient(150deg, color-mix(in srgb, ${color} 80%, #fff) 0%, ${color} 42%, color-mix(in srgb, ${color} 55%, #000) 100%)`,
+    border: '1px solid rgba(255,255,255,0.55)',
+    boxShadow: '0 3px 7px -1px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4)',
+  };
+}
+
+function SeatCards({ state, back }: { state: SeatState; back: CSSProperties }) {
   const style: CSSProperties =
     state === 'in'
-      ? CARD_BACK
+      ? back
       : state === 'folded'
         ? { background: '#232628', border: '1px solid rgba(255,255,255,0.06)', filter: 'saturate(0)', opacity: 0.35 }
         : { background: '#33383d', border: '1px solid rgba(255,255,255,0.16)', opacity: 0.9 };
@@ -79,6 +81,14 @@ export function PokerTable({ ex, simple = false }: {
 }) {
   const heroIdx = RING.indexOf(ex.heroPosition);
   const cards = tokens(ex.heroHand);
+  const prefs = readTablePrefs();
+  const activeCardBack = cardBack(prefs.cardBack);
+  const felt = prefs.felt === 'classic'
+    ? 'radial-gradient(ellipse at 50% 38%, #1d704f 0%, #114a35 55%, #082a1d 100%)'
+    : prefs.felt === 'night'
+      ? 'radial-gradient(ellipse at 50% 38%, #24322d 0%, #17211d 55%, #0a0f0d 100%)'
+      : 'radial-gradient(ellipse at 50% 38%, color-mix(in srgb, rgb(var(--primary)) 55%, #06170e) 0%, color-mix(in srgb, rgb(var(--primary)) 38%, #05130b) 55%, color-mix(in srgb, rgb(var(--primary)) 20%, #040f08) 100%)';
+  const glow = prefs.felt === 'accent' ? 0.48 : prefs.felt === 'classic' ? 0.22 : 0.16;
 
   return (
     <div className="relative mx-auto h-[55dvh] w-[46dvh] max-h-[455px] max-w-[388px] shrink-0">
@@ -91,8 +101,7 @@ export function PokerTable({ ex, simple = false }: {
       <div
         className="absolute inset-1 rounded-[42%]"
         style={{
-          background:
-            'radial-gradient(ellipse at 50% 38%, color-mix(in srgb, rgb(var(--primary)) 55%, #06170e) 0%, color-mix(in srgb, rgb(var(--primary)) 38%, #05130b) 55%, color-mix(in srgb, rgb(var(--primary)) 20%, #040f08) 100%)',
+          background: felt,
           boxShadow: 'inset 0 0 0 7px rgba(0,0,0,0.5), inset 0 0 0 9px rgba(255,255,255,0.06), inset 0 0 55px rgba(0,0,0,0.55), 0 10px 30px -12px rgba(0,0,0,0.7)',
         }}
       />
@@ -100,13 +109,17 @@ export function PokerTable({ ex, simple = false }: {
           borda acesa no accent + glow que vaza pra fora. */}
       <div
         className="pointer-events-none absolute inset-1 rounded-[42%]"
-        style={{ boxShadow: '0 0 26px 2px rgb(var(--primary) / 0.55), inset 0 0 0 2px rgb(var(--primary) / 0.95)' }}
+        style={{ boxShadow: `0 0 24px 2px rgb(var(--primary) / ${glow}), inset 0 0 0 2px rgb(var(--primary) / 0.82)` }}
       />
       <div className="absolute inset-7 rounded-[42%] border border-white/10" />
-      <PathWatermark className="pointer-events-none absolute left-[8%] top-[19%] h-[43%] w-[84%] text-white/[0.09]" />
-      <div className="pointer-events-none absolute left-1/2 top-[21%] -translate-x-1/2 text-white/[0.08]">
-        <img src="/logo-mark-white.png" alt="" className="h-24 w-24 object-contain" />
-      </div>
+      {prefs.brand === 'subtle' && (
+        <img
+          src="/logo-mark-white.png"
+          alt=""
+          className="pointer-events-none absolute left-1/2 top-[23%] h-16 w-16 -translate-x-1/2 object-contain"
+          style={{ opacity: 0.035 }}
+        />
+      )}
 
       {/* Pot */}
       <div className="absolute left-1/2 top-[40%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
@@ -146,7 +159,7 @@ export function PokerTable({ ex, simple = false }: {
         return (
           <div key={pos} className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-500 ease-out" style={{ left: `${x}%`, top: `${y}%` }}>
             <div className="flex flex-col items-center gap-0.5">
-              <SeatCards state={seat} />
+              <SeatCards state={seat} back={activeCardBack} />
               {simple ? (
                 // Iniciante: os outros são só "jogadores" — a sigla viria antes
                 // da hora e rouba a atenção da única pergunta que importa aqui.

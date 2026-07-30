@@ -6,6 +6,14 @@ import { useTheme } from '../lib/theme.js';
 import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
 import { a11y } from '../lib/a11y.js';
+import {
+  readTablePrefs,
+  saveTablePrefs,
+  type CardBackStyle,
+  type FeltStyle,
+  type TableBrandStyle,
+  type TablePrefs,
+} from '../lib/tablePrefs.js';
 import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
 import { gameApi, userApi } from '../api/game.js';
@@ -28,6 +36,7 @@ export function SettingsPage() {
   const [reduceMotion, setReduceMotion] = useState(a11y.reduceMotion());
   const [largeText, setLargeText] = useState(a11y.largeText());
   const [haptics, setHaptics] = useState(a11y.haptics());
+  const [tablePrefs, setTablePrefs] = useState(readTablePrefs);
 
   const { data: trail } = useQuery({ queryKey: ['trail'], queryFn: gameApi.trail });
   const unlocked = unlockedAccents(trail, user?.maxStreak ?? 0);
@@ -43,6 +52,12 @@ export function SettingsPage() {
   });
 
   function run(fn: () => Promise<unknown>) { debugMut.mutate(fn); }
+  function updateTablePrefs(patch: Partial<TablePrefs>) {
+    const next = { ...tablePrefs, ...patch };
+    saveTablePrefs(next);
+    setTablePrefs(next);
+    sound.click();
+  }
   function confirmProgressReset() {
     if (window.confirm('Reiniciar TODO o seu progresso? Apaga XP, fases, conquistas, missões e streak. Não dá para desfazer.')) {
       run(() => gameApi.resetProgress());
@@ -87,6 +102,44 @@ export function SettingsPage() {
             prata ao terminar o jogo e ouro no 100% perfeito.
           </p>
         </div>
+      </Section>
+
+      <Section title="Mesa de treino">
+        <div className="p-4">
+          <TablePreview prefs={tablePrefs} />
+          <p className="mt-3 text-xs leading-snug text-subtle">
+            Deixe a mesa com a sua cara. Essas escolhas são visuais e não alteram as decisões ou os ranges.
+          </p>
+        </div>
+        <ChoiceRow<FeltStyle>
+          label="Feltro"
+          value={tablePrefs.felt}
+          options={[
+            { value: 'accent', label: 'Dinâmico' },
+            { value: 'classic', label: 'Clássico' },
+            { value: 'night', label: 'Noite' },
+          ]}
+          onChange={(felt) => updateTablePrefs({ felt })}
+        />
+        <ChoiceRow<CardBackStyle>
+          label="Verso das cartas"
+          value={tablePrefs.cardBack}
+          options={[
+            { value: 'accent', label: 'Cor do app' },
+            { value: 'blue', label: 'Azul' },
+            { value: 'ruby', label: 'Rubi' },
+          ]}
+          onChange={(cardBack) => updateTablePrefs({ cardBack })}
+        />
+        <ChoiceRow<TableBrandStyle>
+          label="Marca no feltro"
+          value={tablePrefs.brand}
+          options={[
+            { value: 'subtle', label: 'Discreta' },
+            { value: 'hidden', label: 'Oculta' },
+          ]}
+          onChange={(brand) => updateTablePrefs({ brand })}
+        />
       </Section>
 
       <Section title="Som e vibração">
@@ -226,6 +279,60 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-subtle">{title}</h2>
       <div className="card divide-y divide-line">{children}</div>
     </section>
+  );
+}
+
+function ChoiceRow<T extends string>({ label, value, options, onChange }: {
+  label: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="p-4">
+      <p className="mb-2 text-sm font-semibold text-title">{label}</p>
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={value === option.value}
+            onClick={() => onChange(option.value)}
+            className={`rounded-xl border px-3 py-2 text-xs font-bold transition ${
+              value === option.value
+                ? 'border-primary bg-primary/15 text-primary'
+                : 'border-line bg-card2 text-subtle'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TablePreview({ prefs }: { prefs: TablePrefs }) {
+  const felt = prefs.felt === 'classic'
+    ? 'radial-gradient(ellipse, #1d704f, #082a1d)'
+    : prefs.felt === 'night'
+      ? 'radial-gradient(ellipse, #293630, #090e0c)'
+      : 'radial-gradient(ellipse, color-mix(in srgb, rgb(var(--primary)) 70%, #10241a), #07110b)';
+  const back = prefs.cardBack === 'blue' ? '#2f6fda' : prefs.cardBack === 'ruby' ? '#b93648' : 'rgb(var(--primary))';
+  return (
+    <div className="relative mx-auto h-28 w-52 rounded-[44%] border-[6px] border-black/55 shadow-inner" style={{ background: felt }}>
+      {prefs.brand === 'subtle' && (
+        <img
+          src="/logo-mark-white.png"
+          alt=""
+          className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 object-contain"
+          style={{ opacity: 0.09 }}
+        />
+      )}
+      <span className="absolute bottom-3 left-1/2 h-8 w-6 -translate-x-5 -rotate-6 rounded border border-white/50" style={{ backgroundColor: back }} />
+      <span className="absolute bottom-3 left-1/2 h-8 w-6 -translate-x-1 rotate-6 rounded border border-white/50" style={{ backgroundColor: back }} />
+    </div>
   );
 }
 

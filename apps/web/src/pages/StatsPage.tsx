@@ -3,7 +3,7 @@ import { IconChart, IconFlame, IconTarget } from '../components/Icons.js';
 import { useStats } from '../hooks/useGame.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 
-/** Stats — desempenho por categoria (estilo Preflop Wizard). */
+/** Desempenho por categoria (estilo Preflop Wizard). */
 export function StatsPage() {
   const { data, isLoading } = useStats();
 
@@ -26,11 +26,11 @@ export function StatsPage() {
         </div>
       ) : (
         <>
-          {/* Accuracy geral */}
+          {/* Precisão geral */}
           <div className="card mb-5 p-6">
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-subtle">Accuracy geral</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-subtle">Precisão geral</p>
                 <p className="mt-1 text-5xl font-bold text-title">{Math.round(data.overallAccuracy * 100)}%</p>
               </div>
               <p className="text-sm text-subtle">{data.totalCorrect}/{data.totalAnswered} acertos</p>

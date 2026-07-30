@@ -8,7 +8,7 @@ import { LogoLoader } from '../components/LogoLoader.js';
 import { IconBolt, IconCheck, IconLock, IconStar } from '../components/Icons.js';
 
 /**
- * Loadout de energia: itens permanentes, preço fixo e carteira conquistada.
+ * Inventário de energia: itens permanentes, preço fixo e carteira conquistada.
  * Não há moeda vendida, giro ou chance escondida nesta tela.
  */
 export function EnergyLoadoutPage() {
@@ -32,7 +32,7 @@ export function EnergyLoadoutPage() {
     <div className="mx-auto w-full max-w-md px-4 pb-28 pt-5">
       <Link to="/" className="text-sm font-semibold text-subtle">← Início</Link>
       <header className="mt-4">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Loadout</p>
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Inventário</p>
         <h1 className="mt-1 text-3xl font-black text-title">Fôlego de treino</h1>
         <p className="mt-2 text-sm text-subtle">
           Cada exercício usa 1 energia. Aulas são gratuitas; o fôlego recarrega no dia seguinte.
@@ -72,7 +72,7 @@ export function EnergyLoadoutPage() {
       <section className="mt-6">
         <div className="mb-2 flex items-baseline justify-between">
           <h2 className="text-sm font-black uppercase tracking-wide text-subtle">Itens de capacidade</h2>
-          <span className="text-xs font-semibold text-subtle">cap máximo {economy.baseEnergyCap + economy.items.reduce((sum, item) => sum + item.energyCapBonus, 0)}</span>
+          <span className="text-xs font-semibold text-subtle">limite máximo {economy.baseEnergyCap + economy.items.reduce((sum, item) => sum + item.energyCapBonus, 0)}</span>
         </div>
         <div className="space-y-3">
           {economy.items.map((item) => {

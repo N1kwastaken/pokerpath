@@ -136,6 +136,14 @@
     #root { @apply border-x border-line; }
   }
   h1, h2, h3 { @apply font-display text-title; }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid rgb(var(--primary));
+    outline-offset: 3px;
+  }
   ::-webkit-scrollbar { width: 7px; height: 7px; }
   ::-webkit-scrollbar-thumb { @apply rounded-full bg-line; }
 }
