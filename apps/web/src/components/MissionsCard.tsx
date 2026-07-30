@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { nextProductDayStart, nextProductWeekStart, type MissionView } from '@pokerpath/shared';
+import type { MissionView } from '@pokerpath/shared';
 import { useMissions } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { useAuth } from '../auth/AuthContext.js';
@@ -8,51 +8,39 @@ import { sound } from '../lib/sound.js';
 import { Confetti } from './Confetti.js';
 import { IconCheck } from './Icons.js';
 
-const p2 = (n: number) => String(n).padStart(2, '0');
-function fmt(ms: number): string {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return `${p2(Math.floor(s / 3600))}:${p2(Math.floor((s % 3600) / 60))}:${p2(s % 60)}`;
-}
-/** Missões em 2 setores (Diárias/Semanais) com timer até a próxima troca. */
+/** Missões em 2 setores, com a renovação informada sem contagem regressiva. */
 export function MissionsCard() {
   const { data: missions, isLoading } = useMissions();
   const { user, setUser } = useAuth();
   const queryClient = useQueryClient();
   const [celebrate, setCelebrate] = useState(0);
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
 
-  // Códigos já resgatados NESTA sessão. O estado do servidor é a autoridade,
-  // mas até ele responder um refetch pode devolver claimed=false e o botão
-  // "Resgatar" volta a aparecer — daí o duplo-clique. Este conjunto é a trava.
+  // Trava o duplo-clique sem fingir que o resgate já foi confirmado.
   const [claiming, setClaiming] = useState<Set<string>>(new Set());
 
   const claim = useMutation({
     mutationFn: (code: string) => gameApi.claimMission(code),
-    // Resgate INSTANTÂNEO: som + confete + "Resgatado" na hora; o servidor grava
-    // e reconcilia XP/nível em segundo plano (autoridade do servidor).
     onMutate: async (code) => {
       // Sem isto, um GET /missions que já estava em voo responde DEPOIS do
-      // update otimista e reescreve claimed=false por cima dele.
+      // resgate e pode disputar a reconciliação final.
       await queryClient.cancelQueries({ queryKey: ['missions'] });
       setClaiming((s) => new Set(s).add(code));
+    },
+    onSuccess: (res, code) => {
+      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
+      queryClient.setQueryData<MissionView[]>(['missions'], (old) =>
+        old?.map((mission) => (mission.code === code ? { ...mission, claimed: true } : mission)),
+      );
+      setClaiming((current) => {
+        const next = new Set(current);
+        next.delete(code);
+        return next;
+      });
       sound.levelUp();
       setCelebrate((c) => c + 1);
-      const previous = queryClient.getQueryData<MissionView[]>(['missions']);
-      const m = previous?.find((x) => x.code === code);
-      queryClient.setQueryData<MissionView[]>(['missions'], (old) =>
-        old?.map((x) => (x.code === code ? { ...x, claimed: true } : x)),
-      );
-      if (user && m) setUser({ ...user, totalXp: user.totalXp + m.xpReward });
-      return { previous };
-    },
-    onSuccess: (res) => {
-      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
       queryClient.invalidateQueries({ queryKey: ['missions'] });
     },
-    onError: (_err, code, ctx) => {
-      // Desfaz o otimismo; a trava sai junto para o botão voltar a funcionar.
-      if (ctx?.previous) queryClient.setQueryData(['missions'], ctx.previous);
+    onError: (_err, code) => {
       setClaiming((s) => { const n = new Set(s); n.delete(code); return n; });
       queryClient.invalidateQueries({ queryKey: ['missions'] });
     },
@@ -61,29 +49,25 @@ export function MissionsCard() {
   if (isLoading || !missions || missions.length === 0) return null;
   const daily = missions.filter((m) => m.type === 'DAILY');
   const weekly = missions.filter((m) => m.type === 'WEEKLY');
-  const instant = new Date(now);
-  const dailyLeft = fmt(nextProductDayStart(instant).getTime() - now);
-  const wms = nextProductWeekStart(instant).getTime() - now;
-  const weeklyLeft = wms > 86_400_000 ? `${Math.ceil(wms / 86_400_000)}d` : fmt(wms);
 
   return (
     <section className="mt-2">
       {celebrate > 0 && <Confetti key={celebrate} count={40} />}
-      {daily.length > 0 && <Group title="Diárias" timer={dailyLeft} items={daily} claiming={claiming} onClaim={(c) => claim.mutate(c)} />}
-      {weekly.length > 0 && <Group title="Semanais" timer={weeklyLeft} items={weekly} claiming={claiming} onClaim={(c) => claim.mutate(c)} />}
+      {daily.length > 0 && <Group title="Diárias" renewal="Renovam no próximo dia" items={daily} claiming={claiming} onClaim={(c) => claim.mutate(c)} />}
+      {weekly.length > 0 && <Group title="Semanais" renewal="Renovam na segunda" items={weekly} claiming={claiming} onClaim={(c) => claim.mutate(c)} />}
     </section>
   );
 }
 
-function Group({ title, timer, items, claiming, onClaim }: { title: string; timer: string; items: MissionView[]; claiming: Set<string>; onClaim: (code: string) => void }) {
+function Group({ title, renewal, items, claiming, onClaim }: { title: string; renewal: string; items: MissionView[]; claiming: Set<string>; onClaim: (code: string) => void }) {
   return (
     <div className="mb-4">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-bold uppercase tracking-wide text-subtle">{title}</h2>
-        <span className="rounded-md bg-black/20 px-2 py-0.5 text-[10px] font-bold tabular-nums text-subtle">⏳ {timer}</span>
+        <span className="rounded-md bg-black/20 px-2 py-0.5 text-[10px] font-bold text-subtle">{renewal}</span>
       </div>
       <div className="card divide-y divide-line">
-        {items.map((m) => <Row key={m.code} m={m} claimed={m.claimed || claiming.has(m.code)} onClaim={() => onClaim(m.code)} />)}
+        {items.map((m) => <Row key={m.code} m={m} claiming={claiming.has(m.code)} onClaim={() => onClaim(m.code)} />)}
       </div>
     </div>
   );
@@ -104,7 +88,7 @@ function Level({ d }: { d: MissionView['difficulty'] }) {
   );
 }
 
-function Row({ m, onClaim, claimed }: { m: MissionView; onClaim: () => void; claimed: boolean }) {
+function Row({ m, onClaim, claiming }: { m: MissionView; onClaim: () => void; claiming: boolean }) {
   const pct = m.target ? Math.round((m.progress / m.target) * 100) : 0;
   return (
     <div className="p-4">
@@ -116,9 +100,13 @@ function Row({ m, onClaim, claimed }: { m: MissionView; onClaim: () => void; cla
           </div>
           <p className="mt-0.5 text-xs text-subtle">{m.progress}/{m.target} · +{m.xpReward} XP</p>
         </div>
-        {claimed ? (
+        {m.claimed ? (
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-bold text-primary">
             <IconCheck size={14} /> Resgatado
+          </span>
+        ) : claiming ? (
+          <span className="shrink-0 rounded-full bg-card2 px-3 py-1.5 text-xs font-bold text-subtle">
+            Confirmando…
           </span>
         ) : m.completed ? (
           <button onClick={onClaim} className="shrink-0 rounded-full bg-gold px-4 py-1.5 text-xs font-bold text-black active:scale-95">

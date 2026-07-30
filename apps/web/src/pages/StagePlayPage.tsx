@@ -404,7 +404,9 @@ export function StagePlayPage() {
                 {user!.currentStreak} {user!.currentStreak === 1 ? 'dia seguido' : 'dias seguidos'}
               </p>
               <p className="text-xs text-subtle">
-                {user!.currentStreak === 1 ? 'Começou. Volte amanhã para somar 2.' : 'Dia garantido — volte amanhã para não perder.'}
+                {user!.currentStreak === 1
+                  ? 'Primeiro dia registrado. Continue quando fizer sentido.'
+                  : 'Sessão registrada. Seu progresso continua salvo se amanhã for dia de pausa.'}
               </p>
             </div>
           </div>

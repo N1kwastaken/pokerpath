@@ -19,16 +19,16 @@ export function WorldChest({ reward, playerName }: {
       <button
         onClick={() => { sound.correct(); setOpened(true); }}
         className="card mt-5 w-full overflow-hidden border-gold/50 bg-gold/10 p-4 text-left active:scale-[0.99]"
-        aria-label="Abrir baú do mundo"
+        aria-label={`Ver recompensa do mundo: ${reward.name}`}
       >
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold text-white shadow-pop">
             <IconGift size={27} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase tracking-widest text-gold">Baú do mundo</span>
-            <span className="mt-0.5 block font-extrabold text-title">Sua recompensa está pronta</span>
-            <span className="mt-0.5 block text-xs text-subtle">Toque para abrir.</span>
+            <span className="block text-[11px] font-bold uppercase tracking-widest text-gold">Recompensa do mundo</span>
+            <span className="mt-0.5 block font-extrabold text-title">{reward.name}</span>
+            <span className="mt-0.5 block text-xs text-subtle">Conquista fixa deste mundo · sem sorteio.</span>
           </span>
           <IconSparkles size={21} className="shrink-0 text-gold" />
         </div>
@@ -41,7 +41,7 @@ export function WorldChest({ reward, playerName }: {
       <div className="flex items-center gap-3">
         <Avatar name={playerName} size={58} frame={reward.code} />
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-gold"><IconSparkles size={13} /> Novo cosmético</p>
+          <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-gold"><IconSparkles size={13} /> Cosmético liberado</p>
           <p className="mt-0.5 font-extrabold text-title">{reward.name}</p>
           <p className="mt-0.5 text-xs leading-snug text-subtle">{reward.description}</p>
         </div>

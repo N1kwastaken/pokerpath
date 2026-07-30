@@ -50,17 +50,8 @@ export function RewardsPage() {
     onMutate: async (code) => {
       await queryClient.cancelQueries({ queryKey: ['milestones'] });
       setClaiming((current) => new Set(current).add(code));
-      const previous = queryClient.getQueryData<MilestoneView[]>(['milestones']);
-      queryClient.setQueryData<MilestoneView[]>(['milestones'], (current) =>
-        current?.map((milestone) => (
-          milestone.code === code ? { ...milestone, claimed: true } : milestone
-        )),
-      );
-      sound.levelUp();
-      setCelebrate((count) => count + 1);
-      return { previous };
     },
-    onSuccess: (result) => {
+    onSuccess: (result, code) => {
       if (user) {
         setUser({
           ...user,
@@ -69,10 +60,21 @@ export function RewardsPage() {
           levelName: result.levelName,
         });
       }
+      queryClient.setQueryData<MilestoneView[]>(['milestones'], (current) =>
+        current?.map((milestone) => (
+          milestone.code === code ? { ...milestone, claimed: true } : milestone
+        )),
+      );
+      setClaiming((current) => {
+        const next = new Set(current);
+        next.delete(code);
+        return next;
+      });
+      sound.levelUp();
+      setCelebrate((count) => count + 1);
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
     },
-    onError: (_error, code, context) => {
-      if (context?.previous) queryClient.setQueryData(['milestones'], context.previous);
+    onError: (_error, code) => {
       setClaiming((current) => {
         const next = new Set(current);
         next.delete(code);
@@ -134,7 +136,7 @@ export function RewardsPage() {
           </div>
           <div className="card divide-y divide-line">
             {readyMilestones.map((milestone) => {
-              const claimed = milestone.claimed || claiming.has(milestone.code);
+              const isClaiming = claiming.has(milestone.code);
               return (
                 <div key={milestone.code} className="flex items-center gap-3 p-4">
                   <span className="text-2xl" aria-hidden>{milestone.icon}</span>
@@ -142,9 +144,13 @@ export function RewardsPage() {
                     <span className="block truncate text-sm font-black text-title">{milestone.title}</span>
                     <span className="block text-xs font-semibold text-primary">+{milestone.xpReward} XP</span>
                   </span>
-                  {claimed ? (
+                  {milestone.claimed ? (
                     <span className="flex items-center gap-1 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-bold text-primary">
                       <IconCheck size={13} /> Resgatado
+                    </span>
+                  ) : isClaiming ? (
+                    <span className="rounded-full bg-card2 px-3 py-1.5 text-xs font-bold text-subtle">
+                      Confirmando…
                     </span>
                   ) : (
                     <button

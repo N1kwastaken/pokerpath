@@ -4,6 +4,7 @@
  * Preferência de mudo persistida em localStorage.
  */
 import { haptics } from './haptics.js';
+import { celebrations } from './celebrations.js';
 
 const MUTE_KEY = 'pp.muted';
 let ctx: AudioContext | null = null;
@@ -44,9 +45,30 @@ export const sound = {
     if (combo >= 3) tones([900 + step, 1120 + step], 0.07); // brilho discreto, sem passar de ~1300Hz
   },
   wrong() { haptics.wrong(); tones([200, 150], 0.16, 'sawtooth'); },
-  levelUp() { haptics.levelUp(); tones([523, 659, 784, 1046, 1319], 0.13); },
+  levelUp() {
+    const intensity = celebrations.intensity();
+    if (intensity === 'OFF') return;
+    if (intensity === 'SUBTLE') {
+      haptics.correct();
+      tones([659, 784], 0.09);
+      return;
+    }
+    haptics.levelUp();
+    tones([523, 659, 784, 1046, 1319], 0.13);
+  },
   /** Fanfarra de fim de fase — mais cheia que o level-up. */
-  fanfare() { haptics.fanfare(); tones([523, 659, 784, 1046], 0.14); tones([392, 523, 659, 784], 0.14); },
+  fanfare() {
+    const intensity = celebrations.intensity();
+    if (intensity === 'OFF') return;
+    if (intensity === 'SUBTLE') {
+      haptics.correct();
+      tones([659, 784], 0.1);
+      return;
+    }
+    haptics.fanfare();
+    tones([523, 659, 784, 1046], 0.14);
+    tones([392, 523, 659, 784], 0.14);
+  },
   click() { haptics.tap(); tones([440], 0.05); },
 };
 

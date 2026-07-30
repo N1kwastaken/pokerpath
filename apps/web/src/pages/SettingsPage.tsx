@@ -6,6 +6,7 @@ import { useTheme } from '../lib/theme.js';
 import { ACCENTS, applyAccent, currentAccent, unlockedAccents, unlockLabel } from '../lib/accent.js';
 import { sound } from '../lib/sound.js';
 import { a11y } from '../lib/a11y.js';
+import { celebrations, type CelebrationIntensity } from '../lib/celebrations.js';
 import {
   readTablePrefs,
   saveTablePrefs,
@@ -34,6 +35,7 @@ export function SettingsPage() {
   const queryClient = useQueryClient();
   const [accent, setAccent] = useState(currentAccent());
   const [muted, setMuted] = useState(sound.isMuted());
+  const [celebrationIntensity, setCelebrationIntensity] = useState(celebrations.intensity());
   const [reduceMotion, setReduceMotion] = useState(a11y.reduceMotion());
   const [largeText, setLargeText] = useState(a11y.largeText());
   const [haptics, setHaptics] = useState(a11y.haptics());
@@ -161,6 +163,21 @@ export function SettingsPage() {
           on={!muted} onChange={() => { const m = sound.toggleMute(); setMuted(m); if (!m) sound.click(); }} />
         <Toggle label="Vibração" hint="Resposta física a cada jogada (só em aparelhos com vibração)."
           on={haptics} onChange={() => { const v = !haptics; a11y.setHaptics(v); setHaptics(v); if (v) sound.click(); }} />
+        <ChoiceRow<CelebrationIntensity>
+          label="Celebrações"
+          hint="Controla confete e fanfarras. O retorno de acerto e erro continua funcionando."
+          value={celebrationIntensity}
+          options={[
+            { value: 'FULL', label: 'Completas' },
+            { value: 'SUBTLE', label: 'Discretas' },
+            { value: 'OFF', label: 'Desligadas' },
+          ]}
+          onChange={(value) => {
+            celebrations.setIntensity(value);
+            setCelebrationIntensity(value);
+            sound.click();
+          }}
+        />
       </Section>
 
       <Section title="Acessibilidade">
@@ -516,8 +533,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ChoiceRow<T extends string>({ label, value, options, onChange }: {
+function ChoiceRow<T extends string>({ label, hint, value, options, onChange }: {
   label: string;
+  hint?: string;
   value: T;
   options: { value: T; label: string }[];
   onChange: (value: T) => void;
@@ -543,6 +561,7 @@ function ChoiceRow<T extends string>({ label, value, options, onChange }: {
           </button>
         ))}
       </div>
+      {hint && <p className="mt-2 text-[11px] leading-snug text-subtle">{hint}</p>}
     </div>
   );
 }

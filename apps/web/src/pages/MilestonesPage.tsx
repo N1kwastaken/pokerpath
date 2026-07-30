@@ -31,23 +31,25 @@ export function MilestonesPage() {
     mutationFn: (code: string) => gameApi.claimMilestone(code),
     onMutate: async (code) => {
       // Mesmo cuidado das missões: sem cancelar o que está em voo, um GET que
-      // já saiu responde depois e faz o botão "Resgatar" reaparecer.
+      // já saiu pode disputar a reconciliação final.
       await queryClient.cancelQueries({ queryKey: ['milestones'] });
       setClaiming((s) => new Set(s).add(code));
+    },
+    onSuccess: (res, code) => {
+      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
+      queryClient.setQueryData<MilestoneView[]>(['milestones'], (old) =>
+        old?.map((milestone) => (milestone.code === code ? { ...milestone, claimed: true } : milestone)),
+      );
+      setClaiming((current) => {
+        const next = new Set(current);
+        next.delete(code);
+        return next;
+      });
       sound.levelUp();
       setCelebrate((c) => c + 1);
-      const previous = queryClient.getQueryData<MilestoneView[]>(['milestones']);
-      queryClient.setQueryData<MilestoneView[]>(['milestones'], (old) =>
-        old?.map((m) => (m.code === code ? { ...m, claimed: true } : m)),
-      );
-      return { previous };
-    },
-    onSuccess: (res) => {
-      if (user) setUser({ ...user, totalXp: res.totalXp, level: res.level, levelName: res.levelName });
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
     },
-    onError: (_e, code, ctx) => {
-      if (ctx?.previous) queryClient.setQueryData(['milestones'], ctx.previous);
+    onError: (_e, code) => {
       setClaiming((s) => { const n = new Set(s); n.delete(code); return n; });
       queryClient.invalidateQueries({ queryKey: ['milestones'] });
     },
@@ -84,7 +86,7 @@ export function MilestonesPage() {
                   <Row
                     key={m.code}
                     m={m}
-                    claimed={m.claimed || claiming.has(m.code)}
+                    claiming={claiming.has(m.code)}
                     onClaim={() => claim.mutate(m.code)}
                   />
                 ))}
@@ -97,7 +99,7 @@ export function MilestonesPage() {
   );
 }
 
-function Row({ m, claimed, onClaim }: { m: MilestoneView; claimed: boolean; onClaim: () => void }) {
+function Row({ m, claiming, onClaim }: { m: MilestoneView; claiming: boolean; onClaim: () => void }) {
   const pct = Math.round((m.progress / m.target) * 100);
   return (
     <div className={`p-4 ${m.reached ? '' : 'opacity-90'}`}>
@@ -117,9 +119,13 @@ function Row({ m, claimed, onClaim }: { m: MilestoneView; claimed: boolean; onCl
             </p>
           </div>
         </div>
-        {claimed ? (
+        {m.claimed ? (
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-3 py-1.5 text-xs font-bold text-primary">
             <IconCheck size={14} /> Resgatado
+          </span>
+        ) : claiming ? (
+          <span className="shrink-0 rounded-full bg-card2 px-3 py-1.5 text-xs font-bold text-subtle">
+            Confirmando…
           </span>
         ) : m.reached ? (
           <button onClick={onClaim} className="shrink-0 rounded-full bg-gold px-4 py-1.5 text-xs font-bold text-black active:scale-95">

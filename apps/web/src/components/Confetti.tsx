@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { celebrations } from '../lib/celebrations.js';
 
 /**
  * Confete leve, sem dependências. Renderize com uma `key` única para disparar
@@ -16,9 +17,10 @@ const COLORS = [
 ];
 
 export function Confetti({ count = 36 }: { count?: number }) {
+  const visibleCount = celebrations.confettiCount(count);
   const pieces = useMemo(
     () =>
-      Array.from({ length: count }, (_, i) => ({
+      Array.from({ length: visibleCount }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
         delay: Math.random() * 0.25,
@@ -27,8 +29,10 @@ export function Confetti({ count = 36 }: { count?: number }) {
         size: 6 + Math.random() * 8,
         rounded: Math.random() > 0.5,
       })),
-    [count],
+    [visibleCount],
   );
+
+  if (visibleCount === 0) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
