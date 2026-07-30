@@ -7,6 +7,7 @@ import type {
   PublicExercise, EnergyState, FriendsResponse, FriendProfileView, FriendRequestView, FriendView,
   WorldRewardView, EconomyState, ItemUnlockResult,
   ChangePasswordInput,
+  ProductAnalytics,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
 
@@ -78,6 +79,7 @@ export const gameApi = {
   debugSetCoins: (amount: number) => apiRequest<{ ok: true; coins: number }>('/debug/coins', { method: 'POST', body: { amount } }),
   debugGrantEnergyItem: (code: string) => apiRequest<{ ok: true; code: string }>(`/debug/items/${encodeURIComponent(code)}`, { method: 'POST' }),
   debugResetEconomy: () => apiRequest<{ ok: true }>('/debug/economy/reset', { method: 'POST' }),
+  debugAnalytics: () => apiRequest<ProductAnalytics>('/debug/analytics'),
 };
 
 export const userApi = {

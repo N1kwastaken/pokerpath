@@ -46,6 +46,7 @@ import {
   getEconomy,
   unlockEnergyItem,
 } from '../services/economy.service.js';
+import { getProductAnalytics } from '../services/analytics.service.js';
 
 /**
  * Rotas do loop de jogo (PRD 5, 6, 7, 15.3).
@@ -73,7 +74,7 @@ export async function gameRoutes(app: FastifyInstance) {
   }
 
   /** Bloqueia todas as mutações de debug fora da allow-list DEV. */
-  async function assertGodmode(userId: string): Promise<void> {
+  async function assertDeveloper(userId: string): Promise<void> {
     const { developer } = await accountOf(userId);
     if (!developer) throw new ForbiddenError('Apenas contas de debug.', 'NOT_DEVELOPER');
   }
@@ -190,38 +191,43 @@ export async function gameRoutes(app: FastifyInstance) {
     return placeAtLevel(request.user.sub, level);
   });
 
+  app.get('/debug/analytics', async (request) => {
+    await assertDeveloper(request.user.sub);
+    return getProductAnalytics();
+  });
+
   app.post('/debug/progress/reset', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return resetProgress(request.user.sub);
   });
 
   app.post<{ Body: { plan?: string; simulation?: boolean } }>('/debug/plan', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return debugSetPlan(request.user.sub, request.body?.plan ?? 'FREE', request.body?.simulation);
   });
 
   app.post<{ Body: { amount?: number } }>('/debug/xp', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return debugAddXp(request.user.sub, Number(request.body?.amount ?? 0));
   });
 
   app.post('/debug/complete-all', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return debugCompleteAll(request.user.sub);
   });
 
   app.post<{ Body: { amount?: number } }>('/debug/coins', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return debugSetCoins(request.user.sub, Number(request.body?.amount ?? 0));
   });
 
   app.post<{ Params: { code: string } }>('/debug/items/:code', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return debugGrantEnergyItem(request.user.sub, request.params.code);
   });
 
   app.post('/debug/economy/reset', async (request) => {
-    await assertGodmode(request.user.sub);
+    await assertDeveloper(request.user.sub);
     return debugResetEconomy(request.user.sub);
   });
 

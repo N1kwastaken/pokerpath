@@ -19,7 +19,7 @@ import { tokenStorage } from '../lib/tokenStorage.js';
 import { gameApi, systemApi, userApi } from '../api/game.js';
 import { IconLogout, IconChevron, IconLock, IconWrench } from '../components/Icons.js';
 import { PasswordField } from '../components/PasswordField.js';
-import { changePasswordSchema, ENERGY_ITEMS } from '@pokerpath/shared';
+import { changePasswordSchema, ENERGY_ITEMS, type ProductAnalytics } from '@pokerpath/shared';
 
 /**
  * Configurações — tudo que era "preferências" empilhado no perfil.
@@ -44,6 +44,13 @@ export function SettingsPage() {
     queryKey: ['health'],
     queryFn: systemApi.health,
     staleTime: 5 * 60_000,
+    retry: 1,
+  });
+  const analytics = useQuery({
+    queryKey: ['debug', 'analytics'],
+    queryFn: gameApi.debugAnalytics,
+    enabled: user?.debugEnabled === true,
+    staleTime: 60_000,
     retry: 1,
   });
   const unlocked = unlockedAccents(trail, user?.maxStreak ?? 0);
@@ -228,6 +235,14 @@ export function SettingsPage() {
         <div className="mt-8 rounded-2xl border border-dashed border-primary/45 bg-card2 p-4">
           <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary"><IconWrench size={14} /> Central de debug</p>
 
+          <DebugAnalytics
+            data={analytics.data}
+            loading={analytics.isLoading}
+            error={analytics.isError}
+            refreshing={analytics.isFetching}
+            onRefresh={() => { void analytics.refetch(); }}
+          />
+
           <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">Plano</p>
           <div className="mt-1 grid grid-cols-2 gap-2">
             <DebugBtn disabled={busy} onClick={() => run(() => gameApi.debugSetPlan('FREE', true))}>Simular FREE</DebugBtn>
@@ -280,6 +295,109 @@ export function SettingsPage() {
       )}
     </div>
   );
+}
+
+function DebugAnalytics({ data, loading, error, refreshing, onRefresh }: {
+  data: ProductAnalytics | undefined;
+  loading: boolean;
+  error: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
+}) {
+  return (
+    <section className="mt-3 rounded-xl border border-line bg-card p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-title">Métricas reais</p>
+          <p className="mt-0.5 text-[11px] leading-snug text-subtle">
+            Agregadas do uso do jogo, sem contas DEV e sem rastrear telas.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={refreshing}
+          className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-[11px] font-bold text-subtle disabled:opacity-50"
+        >
+          {refreshing ? 'Atualizando…' : 'Atualizar'}
+        </button>
+      </div>
+
+      {loading && <p className="mt-4 text-center text-xs text-subtle">Calculando métricas…</p>}
+      {error && !data && (
+        <p className="mt-4 rounded-lg bg-error/10 p-2 text-xs font-semibold text-error">
+          Não foi possível carregar as métricas.
+        </p>
+      )}
+
+      {data && (
+        <>
+          <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-subtle">Funil desde o cadastro</p>
+          <div className="mt-2 space-y-2.5">
+            <FunnelRow label="Cadastros" step={data.funnel.registered} />
+            <FunnelRow label="Onboarding concluído" step={data.funnel.onboarded} />
+            <FunnelRow label="Primeira fase" step={data.funnel.firstStage} />
+            <FunnelRow label="5 ou mais fases" step={data.funnel.fiveStages} />
+          </div>
+
+          <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-subtle">Uso recente</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <MetricCard label="Novos em 7 dias" value={formatMetric(data.funnel.newUsers7d)} />
+            <MetricCard label="Ativos em 24h" value={formatMetric(data.activity.active24h)} />
+            <MetricCard label="Ativos em 7 dias" value={formatMetric(data.activity.active7d)} />
+            <MetricCard label="Respostas em 7 dias" value={formatMetric(data.activity.answers7d)} />
+            <MetricCard label="Precisão em 7 dias" value={`${formatMetric(data.activity.accuracy7d)}%`} />
+            <MetricCard label="Fases em 7 dias" value={formatMetric(data.learning.stagesCompleted7d)} />
+            <MetricCard label="Perfeitas em 7 dias" value={formatMetric(data.learning.perfectStages7d)} />
+            <MetricCard label="Amizades aceitas" value={formatMetric(data.social.acceptedFriendships)} />
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-subtle">
+            <span>{formatMetric(data.social.pendingRequests)} pedidos pendentes</span>
+            <span>{formatMetric(data.social.rejectedRequests)} recusados</span>
+            <span>
+              Atualizado às {new Date(data.generatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function FunnelRow({ label, step }: {
+  label: string;
+  step: ProductAnalytics['funnel']['registered'];
+}) {
+  return (
+    <div>
+      <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
+        <span className="font-medium text-title">{label}</span>
+        <span className="font-bold tabular-nums text-subtle">
+          {formatMetric(step.count)} · {formatMetric(step.percentage)}%
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-card2">
+        <div
+          className="h-full rounded-full bg-primary transition-[width]"
+          style={{ width: `${Math.min(100, Math.max(0, step.percentage))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-card2 p-2.5">
+      <p className="text-lg font-black tabular-nums text-title">{value}</p>
+      <p className="mt-0.5 text-[10px] leading-tight text-subtle">{label}</p>
+    </div>
+  );
+}
+
+function formatMetric(value: number): string {
+  return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value);
 }
 
 /**

@@ -5,3 +5,4 @@ export * from './gto.js';
 export * from './gamification.js';
 export * from './rewards.js';
 export * from './economy.js';
+export * from './analytics.js';
