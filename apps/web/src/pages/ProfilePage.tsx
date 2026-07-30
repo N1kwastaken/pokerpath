@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SHOWCASE_MAX, achievementBadgeId, streakBadgeId, STREAK_BADGE_DAYS } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
@@ -12,7 +12,7 @@ import { AchievementBadge } from '../components/AchievementBadge.js';
 import { Avatar } from '../components/Avatar.js';
 import { PathWatermark } from '../components/BrandMark.js';
 import { IdentityEditor } from '../components/IdentityEditor.js';
-import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy, IconLadder, IconUsers, IconBook, IconStar, IconPencil, IconGift } from '../components/Icons.js';
+import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconUsers, IconBook, IconStar, IconPencil, IconGift } from '../components/Icons.js';
 
 /**
  * Perfil — CARTÃO DE IDENTIDADE, não painel de controle.
@@ -23,6 +23,7 @@ import { IconChevron, IconSettings, IconCheck, IconCamera, IconFlame, IconTrophy
  */
 export function ProfilePage() {
   const { user, setUser } = useAuth();
+  const location = useLocation();
   const { data: achievements } = useAchievements();
   const { data: worldRewards } = useWorldRewards();
   const { data: friendsData } = useQuery({
@@ -36,6 +37,15 @@ export function ProfilePage() {
   const [openBadge, setOpenBadge] = useState<string | null>(null);
   const [avatarErr, setAvatarErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // A Central de Recompensas aponta direto para a coleção. Esperar os itens
+  // carregarem garante que a âncora exista e tenha sua altura final no lazy load.
+  useEffect(() => {
+    if (location.hash !== '#collection' || !worldRewards) return;
+    requestAnimationFrame(() => {
+      document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }, [location.hash, worldRewards]);
 
   const showcaseMut = useMutation({
     mutationFn: (badges: string[]) => userApi.setShowcase(badges),
@@ -212,7 +222,7 @@ export function ProfilePage() {
         {editing && <div className="mt-4"><IdentityEditor onClose={() => setEditing(false)} /></div>}
 
         {/* ── Vitrine ── */}
-        <section className="mt-5">
+        <section id="collection" className="mt-5 scroll-mt-5">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wide text-subtle">
               Vitrine · {showcase.length}/{SHOWCASE_MAX}
@@ -334,8 +344,7 @@ export function ProfilePage() {
 
         {/* ── Navegação ── */}
         <nav className="mt-5 space-y-3">
-          <NavLink to="/achievements" icon={<IconTrophy size={20} className="text-gold" />} label="Conquistas" />
-          <NavLink to="/milestones" icon={<IconLadder size={20} className="text-primary" />} label="Marcos" />
+          <NavLink to="/rewards" icon={<IconGift size={20} className="text-gold" />} label="Recompensas" />
           <NavLink
             to="/friends"
             icon={<IconUsers size={20} className="text-primary" />}

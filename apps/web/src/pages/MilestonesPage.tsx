@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MILESTONE_TRACK_LABELS, type MilestoneTrack, type MilestoneView } from '@pokerpath/shared';
 import { useMilestones } from '../hooks/useGame.js';
@@ -62,6 +63,7 @@ export function MilestonesPage() {
       {celebrate > 0 && <Confetti key={celebrate} count={60} />}
 
       <header className="mb-5">
+        <Link to="/rewards" className="mb-3 inline-block text-sm font-semibold text-subtle">← Recompensas</Link>
         <h1 className="text-2xl font-black text-title">Marcos</h1>
         <p className="mt-1 text-sm text-subtle">
           {done} de {milestones.length} alcançados. Cada degrau paga XP e marca sua evolução.

@@ -14,7 +14,7 @@ export function AchievementsPage() {
 
   return (
     <div className="px-5 py-8">
-      <Link to="/profile" className="mb-4 inline-block text-sm font-medium text-subtle">← Perfil</Link>
+      <Link to="/rewards" className="mb-4 inline-block text-sm font-medium text-subtle">← Recompensas</Link>
       <h1 className="text-3xl font-bold text-title">Conquistas</h1>
 
       {isLoading ? (

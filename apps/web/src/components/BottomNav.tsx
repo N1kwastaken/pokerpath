@@ -2,12 +2,13 @@ import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthContext.js';
 import { gameApi } from '../api/game.js';
-import { IconHome, IconTarget, IconGrid, IconChart, IconUser, IconLogin } from './Icons.js';
+import { IconHome, IconTarget, IconGrid, IconChart, IconUser, IconLogin, IconGift } from './Icons.js';
 
 // Sem aba "Treino": o botão grande da Início já leva à trilha — a aba era
 // redundante e roubava espaço da barra.
 const TABS = [
   { to: '/', label: 'Início', Icon: IconHome, end: true },
+  { to: '/rewards', label: 'Prêmios', Icon: IconGift, end: false },
   { to: '/review', label: 'Revisão', Icon: IconGrid, end: false },
   { to: '/stats', label: 'Desempenho', Icon: IconChart, end: false },
   { to: '/profile', label: 'Perfil', Icon: IconUser, end: false },

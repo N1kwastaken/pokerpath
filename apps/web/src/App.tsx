@@ -35,6 +35,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.js').then
 const PlacementPage = lazy(() => import('./pages/PlacementPage.js').then((m) => ({ default: m.PlacementPage })));
 const SetupPage = lazy(() => import('./pages/SetupPage.js').then((m) => ({ default: m.SetupPage })));
 const EnergyLoadoutPage = lazy(() => import('./pages/EnergyLoadoutPage.js').then((m) => ({ default: m.EnergyLoadoutPage })));
+const RewardsPage = lazy(() => import('./pages/RewardsPage.js').then((m) => ({ default: m.RewardsPage })));
 
 export function App() {
   return (
@@ -89,6 +90,7 @@ export function App() {
               <Route path="/glossary" element={<GlossaryPage />} />
               <Route path="/premium" element={<PremiumPage />} />
               <Route path="/loadout" element={<EnergyLoadoutPage />} />
+              <Route path="/rewards" element={<RewardsPage />} />
             </Route>
           </Route>
         </Route>

@@ -30,7 +30,7 @@ export function EnergyLoadoutPage() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-28 pt-5">
-      <Link to="/" className="text-sm font-semibold text-subtle">← Início</Link>
+      <Link to="/rewards" className="text-sm font-semibold text-subtle">← Recompensas</Link>
       <header className="mt-4">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Inventário</p>
         <h1 className="mt-1 text-3xl font-black text-title">Fôlego de treino</h1>
