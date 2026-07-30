@@ -154,9 +154,9 @@ export function TermsPage() {
       <H>Fase beta</H>
       <P>
         O PokerPath está em <b>beta</b>: funcionalidades mudam, podem existir falhas e o serviço
-        pode ficar fora do ar. Contas criadas nesta fase recebem os recursos Premium liberados
-        como agradecimento — isso é uma cortesia, não um contrato vitalício, e comunicaremos
-        qualquer mudança antes que ela valha.
+        pode ficar fora do ar. Contas de desenvolvimento ou teste podem receber acesso Premium
+        temporário para validação — isso é uma cortesia, não uma assinatura nem um direito
+        permanente.
       </P>
 
       <H>Pagamentos</H>

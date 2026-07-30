@@ -185,7 +185,7 @@ export function SettingsPage() {
         <Link to="/premium" className="flex w-full items-center justify-between p-4 active:bg-card2">
           <span className="font-medium text-title">⭐ Premium</span>
           <span className="flex items-center gap-1 text-sm font-semibold text-subtle">
-            {user.debugSimulation ? 'Simulando FREE' : user.plan === 'PREMIUM' || user.isDev ? 'Ativo' : 'Conhecer'}
+            {user.debugSimulation ? 'Simulando FREE' : user.plan === 'PREMIUM' || user.isDev ? 'Ativo' : 'Em preparação'}
             <IconChevron size={16} />
           </span>
         </Link>

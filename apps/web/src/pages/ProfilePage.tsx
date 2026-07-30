@@ -353,7 +353,7 @@ export function ProfilePage() {
               : 'Conta DEV — acesso Premium e ferramentas de teste liberados.'}
           </div>
         ) : (
-          <Link to="/premium" className="btn-primary mt-4 w-full"><IconStar size={18} /> Conhecer o Premium</Link>
+          <Link to="/premium" className="btn-primary mt-4 w-full"><IconStar size={18} /> Premium em preparação</Link>
         )}
       </div>
     </div>

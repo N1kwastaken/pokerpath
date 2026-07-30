@@ -27,6 +27,8 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
   semanais, carta educativa do dia e fichas douradas por fase perfeita.
 - **Personalização** — tema, cores conquistáveis, feltro, verso das cartas,
   marca da mesa, avatar, aros e vitrine de badges.
+- **Premium em preparação** — recursos beta existem, mas ainda não há preços,
+  período de teste, cartão ou cobrança ativa.
 - **Amigos** — envie pedido pelo `@`, aceite/recuse/cancele; só amizades
   confirmadas liberam ranking de XP, streak e perfis com badges.
 - **Cores por progresso** — cada nível concluído libera uma cor de app;
