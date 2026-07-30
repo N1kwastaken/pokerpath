@@ -92,11 +92,14 @@ npm run dev                              # API + Web em paralelo
 
 ## Deploy (Render + Neon)
 
-O deploy é automático: **todo push na `main` redeploya** o serviço do Render
-(blueprint em `render.yaml`). O build instala tudo (`npm ci --include=dev`),
-gera o client Prisma para Postgres, compila shared+api+web, aplica o schema no
-Neon (`db push`) e roda o seed (idempotente). Em produção a própria API serve
-o site (`@fastify/static` + fallback SPA) — um serviço só, sem CORS.
+O deploy é automático: todo push na `main` inicia o CI, mas o Render só publica
+quando todos os checks passam (`autoDeployTrigger: checksPass`, no blueprint
+`render.yaml`). O CI também gera o client Postgres e executa o build completo,
+antes de liberar o Render. Só então o build de produção instala tudo
+(`npm ci --include=dev`), gera o client Prisma para Postgres, compila
+shared+api+web, aplica o schema no Neon (`db push`) e roda o seed (idempotente).
+Em produção a própria API serve o site (`@fastify/static` + fallback SPA) —
+um serviço só, sem CORS.
 Uma alteração de schema com risco de perda de dados interrompe o deploy para
 revisão; produção nunca recebe `--accept-data-loss` automaticamente.
 

@@ -8,6 +8,9 @@ services:
     name: pokerpath
     runtime: node
     plan: free
+    # Não publica no push: espera o GitHub Actions concluir typecheck, testes,
+    # geração do client Postgres e o build completo de produção.
+    autoDeployTrigger: checksPass
     # Build: instala tudo, compila shared+api+web e prepara o banco.
     # O db push NÃO aceita perda de dados automaticamente: uma alteração
     # destrutiva interrompe o deploy para revisão, preservando a produção.

@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -29,3 +33,9 @@ jobs:
 
       - run: npm run typecheck
       - run: npm test
+
+      # Reproduz a parte crítica do build do Render: gera o schema/client
+      # Postgres e compila API + web. Assim um CI verde prova que o artefato de
+      # produção existe antes de o Render iniciar o deploy.
+      - run: npm run deploy:generate -w @pokerpath/api
+      - run: npm run build

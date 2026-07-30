@@ -19,9 +19,6 @@
     "deploy:generate": "node prisma/make-postgres-schema.mjs && prisma generate --schema prisma/schema.postgres.prisma",
     "deploy:db": "node prisma/make-postgres-schema.mjs && prisma db push --schema prisma/schema.postgres.prisma && tsx prisma/seed.main.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.main.ts"
-  },
   "dependencies": {
     "@fastify/cors": "^10.0.1",
     "@fastify/jwt": "^9.0.1",
