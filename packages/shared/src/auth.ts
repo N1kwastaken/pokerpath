@@ -58,10 +58,44 @@ export const registerSchema = z.object({
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
-export const loginSchema = z.object({
-  email: emailSchema,
+/**
+ * Identificador de login: aceita e-mail, `username` ou `@username`.
+ *
+ * O `@` visual não faz parte do username salvo no banco. Normalizar aqui
+ * mantém frontend e API com a mesma regra e evita que diferenças de caixa ou
+ * espaços façam uma credencial válida parecer incorreta.
+ */
+export const loginIdentifierSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(1, 'Informe seu e-mail ou @')
+  .max(254, 'E-mail ou @ muito longo')
+  .transform((value) => value.startsWith('@') ? value.slice(1) : value)
+  .superRefine((value, ctx) => {
+    const isEmail = emailSchema.safeParse(value).success;
+    const isUsername = usernameSchema.safeParse(value).success;
+    if (!isEmail && !isUsername) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Informe um e-mail ou @ válido',
+      });
+    }
+  });
+
+/**
+ * `email` é aceito apenas na entrada para não quebrar versões antigas do web
+ * que ainda estejam no cache durante um deploy. A saída é sempre `identifier`.
+ */
+export const loginSchema = z.preprocess((value) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const input = value as Record<string, unknown>;
+  if (input.identifier !== undefined || input.email === undefined) return value;
+  return { ...input, identifier: input.email };
+}, z.object({
+  identifier: loginIdentifierSchema,
   password: z.string().min(1, 'Informe a senha'),
-});
+}));
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const refreshSchema = z.object({

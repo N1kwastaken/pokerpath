@@ -13,6 +13,8 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
   ~111 fases e ~790 exercícios validados contra os ranges.
 - **Modo visitante** — o Mundo 0 é jogável **sem conta** (`/g`); ao criar a
   conta, o progresso "gradua" automaticamente.
+- **Acesso simples** — login por e-mail, `username` ou `@username`, sem
+  diferença entre maiúsculas e minúsculas.
 - **Prova de nivelamento** — quem já jogou pode pular níveis (`/placement`).
 - **Aulas interativas** — mini-jogos (ordenar cartas, combinar pares), quizzes
   com a situação montada na mesa, tutorial guiado na primeira prática.

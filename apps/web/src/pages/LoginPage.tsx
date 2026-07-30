@@ -10,7 +10,7 @@ import { PasswordField } from '../components/PasswordField.js';
 /** Tela de login (repaginada) com "lembrar de mim". */
 export function LoginPage() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(tokenStorage.isRemembered());
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export function LoginPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = loginSchema.safeParse({ email, password });
+    const parsed = loginSchema.safeParse({ identifier, password });
     if (!parsed.success) return setError(parsed.error.errors[0]?.message ?? 'Dados inválidos');
     setSubmitting(true);
     tokenStorage.setRemember(remember);
@@ -43,8 +43,9 @@ export function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">
-        <input className="field" type="email" placeholder="E-mail" autoComplete="email"
-          value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="field" type="text" placeholder="E-mail ou @usuário" autoComplete="username"
+          autoCapitalize="none" spellCheck={false}
+          value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
         <PasswordField value={password} onChange={setPassword} placeholder="Senha" autoComplete="current-password" />
 
         <div className="flex items-center justify-between">

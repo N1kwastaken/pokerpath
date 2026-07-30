@@ -104,17 +104,24 @@ export async function authRoutes(app: FastifyInstance) {
         'VALIDATION_ERROR',
       );
     }
-    const { email, password } = parsed.data;
+    const { identifier, password } = parsed.data;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: { streak: true },
-    });
+    // O schema já remove o @ visual e normaliza caixa/espaços. Depois disso,
+    // somente e-mails contêm "@"; usernames são persistidos sem o prefixo.
+    const user = identifier.includes('@')
+      ? await prisma.user.findUnique({
+          where: { email: identifier },
+          include: { streak: true },
+        })
+      : await prisma.user.findUnique({
+          where: { username: identifier },
+          include: { streak: true },
+        });
 
-    // Mensagem genérica evita revelar se o e-mail existe.
+    // Mensagem genérica evita revelar se o e-mail ou @ existe.
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       throw new UnauthorizedError(
-        'E-mail ou senha incorretos',
+        'E-mail, @ ou senha incorretos',
         'INVALID_CREDENTIALS',
       );
     }
