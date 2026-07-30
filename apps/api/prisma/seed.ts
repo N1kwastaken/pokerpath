@@ -1497,7 +1497,9 @@ export const MISSIONS = [
   { code: 'WEEKLY_5_DAYS', title: '5 dias na semana', description: 'Jogue em 5 dias diferentes esta semana.', type: 'WEEKLY', difficulty: 'MEDIUM', xpReward: 200, target: 5 },
   { code: 'WEEKLY_5_STAGES', title: '5 fases na semana', description: 'Complete 5 fases esta semana.', type: 'WEEKLY', difficulty: 'MEDIUM', xpReward: 150, target: 5 },
 
-  { code: 'WEEKLY_7_DAYS', title: 'Semana cheia', description: 'Jogue todos os 7 dias desta semana.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 350, target: 7 },
+  // O código é legado, mas a meta deixa um dia livre: consistência não deve
+  // transformar descanso em punição ou exigir sete dias de uso para pagar XP.
+  { code: 'WEEKLY_7_DAYS', title: 'Ritmo consistente', description: 'Treine em 6 dias diferentes e preserve um dia de descanso.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 350, target: 6 },
   { code: 'WEEKLY_100_CORRECT', title: '100 acertos na semana', description: 'Acerte 100 exercícios esta semana.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 250, target: 100 },
   { code: 'WEEKLY_10_STAGES', title: '10 fases na semana', description: 'Complete 10 fases esta semana.', type: 'WEEKLY', difficulty: 'HARD', xpReward: 300, target: 10 },
 ];
@@ -1603,4 +1605,3 @@ export async function main() {
 
   console.log(`✅ Seed concluído: ${WORLDS.length} mundos, ${stageCount} fases, ${exerciseCount} exercícios.`);
 }
-

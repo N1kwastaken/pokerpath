@@ -111,13 +111,12 @@ export function welcomeMail(name: string): Omit<MailMessage, 'to'> {
              e o porquê de cada decisão.</p>
              <p style="margin:0 0 12px;"><b>Como tirar o máximo:</b></p>
              <ul style="margin:0 0 12px;padding-left:20px;">
-               <li style="margin-bottom:6px;">Jogue <b>um pouco todo dia</b> — o streak é o que faz a diferença.</li>
+               <li style="margin-bottom:6px;">Prefira <b>sessões curtas e consistentes</b> a estudar tudo de uma vez.</li>
                <li style="margin-bottom:6px;">Errar é de graça: cada erro vem com a explicação.</li>
                <li>Toque no <b>📊</b> dentro da fase para ver o gráfico da sua posição.</li>
              </ul>
              <p style="margin:0;padding:10px 12px;background:#FBF3DC;border-radius:8px;font-size:13px;color:#6B5A22;">
-               📁 Achou este e-mail no <b>spam</b>? Marque como "não é spam" para não perder
-               o lembrete do seu streak.
+               Consistência ajuda, mas seu progresso continua salvo quando você precisa descansar.
              </p>`,
       cta: { label: 'Jogar a primeira mão', href: env.WEB_ORIGIN },
     }),
@@ -127,13 +126,13 @@ export function welcomeMail(name: string): Omit<MailMessage, 'to'> {
 export function streakReminderMail(name: string, streak: number, unsubUrl: string): Omit<MailMessage, 'to'> {
   const dias = streak === 1 ? '1 dia' : `${streak} dias`;
   return {
-    subject: `🔥 Seu streak de ${dias} acaba hoje`,
+    subject: 'Seu treino de hoje está disponível',
     html: layout({
-      title: `${escapeHtml(name)}, não perca seus ${dias}`,
-      body: `<p style="margin:0 0 12px;">Você jogou ontem, mas ainda não hoje. Uma mão mantém o streak vivo —
-             leva menos de um minuto.</p>
+      title: `${escapeHtml(name)}, quer continuar de onde parou?`,
+      body: `<p style="margin:0 0 12px;">Você treinou ontem. Se fizer sentido hoje, uma mão mantém sua sequência.
+             Seu progresso e suas conquistas continuam salvos mesmo se hoje for dia de pausa.</p>
              <p style="margin:0;font-size:32px;font-weight:800;color:${BRAND};">🔥 ${dias}</p>`,
-      cta: { label: 'Salvar meu streak', href: env.WEB_ORIGIN },
+      cta: { label: 'Continuar treino', href: env.WEB_ORIGIN },
       footer: `Não quer mais lembretes? <a href="${unsubUrl}" style="color:#8A9199;">Descadastrar</a>.`,
     }),
   };

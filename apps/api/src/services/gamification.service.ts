@@ -5,22 +5,14 @@ import {
   type MissionType,
   type MissionDifficulty,
   type MissionClaimResult,
+  productDayIndex,
+  productDayKey,
+  startOfProductDay,
+  startOfProductWeek,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, BadRequestError } from '../lib/errors.js';
 import { evaluateAchievements } from './achievement.service.js';
-
-function startOfToday(): Date {
-  const n = new Date();
-  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
-}
-function startOfWeek(): Date {
-  const n = new Date();
-  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  const dow = (d.getDay() + 6) % 7; // segunda = 0
-  d.setDate(d.getDate() - dow);
-  return d;
-}
 
 // ─── Conquistas (PRD 9.5) ──────────────────────────────────────
 export async function getAchievements(userId: string): Promise<AchievementView[]> {
@@ -41,9 +33,9 @@ export async function getAchievements(userId: string): Promise<AchievementView[]
 }
 
 // ─── Missões (PRD 9.4) — progresso computado ao vivo ───────────
-async function missionProgress(userId: string, code: string): Promise<number> {
-  const today = startOfToday();
-  const week = startOfWeek();
+async function missionProgress(userId: string, code: string, now: Date = new Date()): Promise<number> {
+  const today = startOfProductDay(now);
+  const week = startOfProductWeek(now);
   switch (code) {
     case 'DAILY_PLAY':
       return prisma.userAnswer.count({ where: { userId, createdAt: { gte: today } } });
@@ -88,7 +80,7 @@ async function missionProgress(userId: string, code: string): Promise<number> {
     case 'WEEKLY_5_DAYS':
     case 'WEEKLY_7_DAYS': {
       const rows = await prisma.userAnswer.findMany({ where: { userId, createdAt: { gte: week } }, select: { createdAt: true } });
-      const days = new Set(rows.map((r) => r.createdAt.toISOString().slice(0, 10)));
+      const days = new Set(rows.map((r) => productDayKey(r.createdAt)));
       return days.size;
     }
     default:
@@ -126,15 +118,16 @@ function pickByDifficulty<T extends { difficulty: string }>(
 }
 
 export async function getMissions(userId: string): Promise<MissionView[]> {
+  const now = new Date();
   const all = await prisma.mission.findMany();
   const cmp = (a: { code: string }, b: { code: string }) => a.code.localeCompare(b.code);
   const daily = all.filter((m) => m.type === 'DAILY').sort(cmp);
   const weekly = all.filter((m) => m.type === 'WEEKLY').sort(cmp);
 
-  const today = startOfToday();
-  const week = startOfWeek();
-  const dayIdx = Math.floor(today.getTime() / 86_400_000);   // muda a cada 24h
-  const weekIdx = Math.floor(week.getTime() / (7 * 86_400_000)); // muda a cada 7 dias
+  const today = startOfProductDay(now);
+  const week = startOfProductWeek(now);
+  const dayIdx = productDayIndex(now);
+  const weekIdx = Math.floor(productDayIndex(week) / 7);
 
   // Subconjunto ativo do período, respeitando as vagas de cada dificuldade.
   const active = [
@@ -147,7 +140,7 @@ export async function getMissions(userId: string): Promise<MissionView[]> {
 
   const out: MissionView[] = [];
   for (const m of active) {
-    const progress = await missionProgress(userId, m.code);
+    const progress = await missionProgress(userId, m.code, now);
     const claimedAt = claimedAtBy.get(m.id) ?? null;
     const periodStart = m.type === 'WEEKLY' ? week : today;
     out.push({
@@ -169,16 +162,17 @@ export async function getMissions(userId: string): Promise<MissionView[]> {
 
 // ─── Resgatar recompensa de missão ─────────────────────────────
 export async function claimMission(userId: string, code: string): Promise<MissionClaimResult> {
+  const now = new Date();
   const mission = await prisma.mission.findUnique({ where: { code } });
   if (!mission) throw new NotFoundError('Missão não encontrada', 'MISSION_NOT_FOUND');
 
-  const periodStart = mission.type === 'WEEKLY' ? startOfWeek() : startOfToday();
+  const periodStart = mission.type === 'WEEKLY' ? startOfProductWeek(now) : startOfProductDay(now);
   const existing = await prisma.userMission.findFirst({ where: { userId, missionId: mission.id } });
   if (existing?.completedAt && existing.completedAt >= periodStart) {
     throw new BadRequestError('Recompensa já resgatada neste período.', 'MISSION_ALREADY_CLAIMED');
   }
 
-  const progress = await missionProgress(userId, code);
+  const progress = await missionProgress(userId, code, now);
   if (progress < mission.target) {
     throw new BadRequestError('Missão ainda não concluída.', 'MISSION_NOT_COMPLETED');
   }
@@ -186,11 +180,11 @@ export async function claimMission(userId: string, code: string): Promise<Missio
   if (existing) {
     await prisma.userMission.update({
       where: { id: existing.id },
-      data: { progress, completedAt: new Date() },
+      data: { progress, completedAt: now },
     });
   } else {
     await prisma.userMission.create({
-      data: { userId, missionId: mission.id, progress, completedAt: new Date() },
+      data: { userId, missionId: mission.id, progress, completedAt: now },
     });
   }
 

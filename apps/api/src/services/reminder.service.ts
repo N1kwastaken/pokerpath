@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { viewStreak } from './streak.service.js';
 import { unsubscribeToken } from '../lib/unsubscribe.js';
 import { sendMail, streakReminderMail, unsubscribeUrl } from './mail.service.js';
+import { productDayKey } from '@pokerpath/shared';
 
 /**
  * Lembrete diário de streak.
@@ -20,8 +21,7 @@ export interface ReminderReport {
   failed: number;
 }
 
-const sameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const sameDay = (a: Date, b: Date) => productDayKey(a) === productDayKey(b);
 
 export async function sendStreakReminders(now: Date = new Date()): Promise<ReminderReport> {
   // Só quem tem streak vivo e aceita lembrete. O corte fino (ontem x hoje)

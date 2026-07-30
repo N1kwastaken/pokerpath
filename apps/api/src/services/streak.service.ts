@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { differenceInProductDays } from '@pokerpath/shared';
 
 /**
  * Lógica de streak (PRD 9.3).
@@ -10,14 +11,8 @@ import type { Prisma } from '@prisma/client';
  *   • gap maior      → reinicia em 1.
  */
 
-/** Trunca uma data para o início do dia (00:00, horário local do servidor). */
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
 function diffInDays(a: Date, b: Date): number {
-  const ms = startOfDay(a).getTime() - startOfDay(b).getTime();
-  return Math.round(ms / 86_400_000);
+  return differenceInProductDays(a, b);
 }
 
 export interface StreakUpdate {

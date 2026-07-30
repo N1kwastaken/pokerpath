@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { MissionView } from '@pokerpath/shared';
+import { nextProductDayStart, nextProductWeekStart, type MissionView } from '@pokerpath/shared';
 import { useMissions } from '../hooks/useGame.js';
 import { gameApi } from '../api/game.js';
 import { useAuth } from '../auth/AuthContext.js';
@@ -13,9 +13,6 @@ function fmt(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   return `${p2(Math.floor(s / 3600))}:${p2(Math.floor((s % 3600) / 60))}:${p2(s % 60)}`;
 }
-function nextMidnight(): number { const d = new Date(); d.setHours(24, 0, 0, 0); return d.getTime(); }
-function nextMonday(): number { const d = new Date(); d.setHours(0, 0, 0, 0); const dow = (d.getDay() + 6) % 7; d.setDate(d.getDate() + (7 - dow)); return d.getTime(); }
-
 /** Missões em 2 setores (Diárias/Semanais) com timer até a próxima troca. */
 export function MissionsCard() {
   const { data: missions, isLoading } = useMissions();
@@ -64,8 +61,9 @@ export function MissionsCard() {
   if (isLoading || !missions || missions.length === 0) return null;
   const daily = missions.filter((m) => m.type === 'DAILY');
   const weekly = missions.filter((m) => m.type === 'WEEKLY');
-  const dailyLeft = fmt(nextMidnight() - now);
-  const wms = nextMonday() - now;
+  const instant = new Date(now);
+  const dailyLeft = fmt(nextProductDayStart(instant).getTime() - now);
+  const wms = nextProductWeekStart(instant).getTime() - now;
   const weeklyLeft = wms > 86_400_000 ? `${Math.ceil(wms / 86_400_000)}d` : fmt(wms);
 
   return (

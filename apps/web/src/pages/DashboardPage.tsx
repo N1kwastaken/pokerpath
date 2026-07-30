@@ -97,11 +97,14 @@ export function DashboardPage() {
           <IconFlame size={26} className="animate-flame text-gold" />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-extrabold text-title">
-              Seu streak de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'} acaba hoje
+              Você treinou ontem — quer continuar?
             </span>
-            <span className="block text-xs text-subtle">Uma mão salva ele. Leva menos de um minuto.</span>
+            <span className="block text-xs text-subtle">
+              Uma mão mantém a sequência de {user.currentStreak} {user.currentStreak === 1 ? 'dia' : 'dias'}.
+              Seu progresso continua salvo se hoje for dia de pausa.
+            </span>
           </span>
-          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-xs font-extrabold text-white">Salvar</span>
+          <span className="shrink-0 rounded-full bg-gold px-3 py-1 text-xs font-extrabold text-black">Continuar</span>
         </button>
       )}
       {!user.streakAtRisk && user.streakPlayedToday && user.currentStreak > 0 && (

@@ -32,6 +32,7 @@ import {
   type ReviewAnswerResult,
   type WorldDetail,
   type WorldSummary,
+  startOfProductDay,
 } from '@pokerpath/shared';
 import type { Stage, UserProgress } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
@@ -54,11 +55,6 @@ function isStagePremiumLocked(plan: string, stagePremium: boolean): boolean {
   return plan === 'FREE' && stagePremium;
 }
 
-function startOfToday(): Date {
-  const n = new Date();
-  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
-}
-
 function outOfEnergy(cap: number): ForbiddenError {
   return new ForbiddenError(
     `Sua energia de hoje acabou (${cap} exercícios). Volte amanhã ou expanda o cap com itens.`,
@@ -73,7 +69,7 @@ function outOfEnergy(cap: number): ForbiddenError {
  * como baseline para não dar energia extra por causa do rollout.
  */
 async function consumeExerciseEnergy(userId: string, cap: number): Promise<void> {
-  const today = startOfToday();
+  const today = startOfProductDay();
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const current = await prisma.user.findUnique({
@@ -987,7 +983,7 @@ export async function getEnergy(userId: string): Promise<EnergyState> {
   if (effectivePlan(user) === 'PREMIUM') {
     return { max, baseMax: BASE_ENERGY_CAP, capBonus, used: 0, remaining: max, infinite: true };
   }
-  const today = startOfToday();
+  const today = startOfProductDay();
   const used = user.energyUsageDate && user.energyUsageDate >= today
     ? user.energyUsed
     : await prisma.userAnswer.count({ where: { userId, createdAt: { gte: today } } });
