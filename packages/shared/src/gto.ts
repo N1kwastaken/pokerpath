@@ -1,9 +1,10 @@
 import type { Action, Category, Position } from './domain.js';
 
 /**
- * Tipos de dados GTO (frequências e ranges) e estatísticas.
- * As frequências são reveladas apenas APÓS o usuário responder (junto do
- * AnswerResult), nunca no exercício — mesma regra do gabarito (PRD 15.5).
+ * Tipos de estratégia, ranges e estatísticas.
+ *
+ * "Frequência" descreve a distribuição cadastrada no perfil de estratégia; ela
+ * só pode ser chamada de GTO quando a metodologia declarar solver verificado.
  */
 
 /** Frequência (%) de cada ação numa decisão. Soma ~100. */
@@ -54,9 +55,30 @@ export interface RangeGrid {
   /** Cenário do chart: 'RFI' (abertura) ou 'VS_<posição>' (defesa vs open, com call). */
   scenario: string;
   label: string;
+  /** Proveniência obrigatória: impede uma referência manual de parecer solver. */
+  methodology: RangeMethodology;
   /** 13x13 — linha 0 = A, coluna 0 = A. Diagonal = pares. */
   cells: RangeCell[][];
 }
+
+interface RangeMethodologyBase {
+  /** Muda quando a estratégia ou suas premissas mudarem. */
+  version: string;
+  title: string;
+  assumptions: string[];
+  note: string;
+}
+
+export type RangeMethodology =
+  | (RangeMethodologyBase & {
+      classification: 'REFERENCE';
+      solverVerified: false;
+    })
+  | (RangeMethodologyBase & {
+      classification: 'SOLVER_VERIFIED';
+      solverVerified: true;
+      solver: string;
+    });
 
 // ─── Estatísticas por categoria (PRD 9) ────────────────────────
 export interface CategoryStat {

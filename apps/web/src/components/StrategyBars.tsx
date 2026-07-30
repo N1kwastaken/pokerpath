@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Frequencies, Action } from '@pokerpath/shared';
 
-/** Frequências GTO (estilo GTO Wizard): barras + a ação que VOCÊ escolheu. */
+/** Distribuição do chart de referência + a ação que VOCÊ escolheu. */
 // Mesmas cores fixas dos botões: raise roxo, call azul, fold vermelho.
 const ROWS: { key: keyof Frequencies; label: string; bar: string }[] = [
   { key: 'RAISE', label: 'Raise', bar: 'bg-accent' },
@@ -10,7 +10,7 @@ const ROWS: { key: keyof Frequencies; label: string; bar: string }[] = [
   { key: 'ALLIN', label: 'All In', bar: 'bg-gold' },
 ];
 
-export function GtoBars({ freq, chosen, correct, aggressor = false }: {
+export function StrategyBars({ freq, chosen, correct, aggressor = false }: {
   /**
    * `null` = não existe chart por trás deste spot (postflop, 4-bet, squeeze).
    * Aí não renderiza nada: a explicação carrega o feedback sozinha. Preencher
@@ -32,7 +32,7 @@ export function GtoBars({ freq, chosen, correct, aggressor = false }: {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia GTO</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia de referência</p>
         <button onClick={() => setOpen((o) => !o)} className="text-[11px] font-bold text-primary">{open ? 'fechar' : '?'}</button>
       </div>
 
@@ -56,7 +56,9 @@ export function GtoBars({ freq, chosen, correct, aggressor = false }: {
 
       {open && (
         <p className="pt-1 text-[11px] leading-snug text-subtle">
-          Quanto cada ação aparece na estratégia ótima (no longo prazo) para esta mão e posição. Barra cheia = sempre; barras divididas = jogada mista. Treine escolhendo a de <b className="text-text">maior</b> frequência.
+          Distribuição usada pelo chart pedagógico desta mão e posição. Barra cheia = recomendação única;
+          barras divididas só aparecem quando a fonte cadastrada traz uma estratégia mista. Isso não certifica
+          uma solução de solver. Treine escolhendo a ação de <b className="text-text">maior</b> frequência.
         </p>
       )}
     </div>

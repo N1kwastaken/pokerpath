@@ -15,7 +15,7 @@ import { Confetti } from '../components/Confetti.js';
 import { CountUp } from '../components/CountUp.js';
 import { StreakBadge, tierForDays } from '../components/StreakBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
-import { GtoBars } from '../components/GtoBars.js';
+import { StrategyBars } from '../components/StrategyBars.js';
 import { IconX, IconCheck, IconBolt, IconFlame, IconHome, IconChart, IconTrophy, IconStar } from '../components/Icons.js';
 import { Mascot } from '../components/Mascot.js';
 import { RangeGridView } from '../components/RangeGridView.js';
@@ -516,9 +516,9 @@ export function StagePlayPage() {
               ela dividia espaço com o ícone e o XP e quebrava em 4 linhas. */}
           {result.explanation && <Explanation text={result.explanation} />}
 
-          {/* Frequências GTO no TOPO — o núcleo (a porcentagem) fica sempre
+          {/* Estratégia de referência no TOPO — o núcleo fica sempre
               visível. A barra de XP saiu (empurrava a porcentagem pra fora). */}
-          <GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} />
+          <StrategyBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} />
 
           {/* Selo de combo: acertos em sequência (3+) ganham um destaque pulsante. */}
           {result.correct && combo >= 3 && (
@@ -581,9 +581,9 @@ export function StagePlayPage() {
         <div className="card flex-1 p-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia</p>
           {!fb || !result ? (
-            <p className="mt-3 text-sm text-subtle">Responda a mão para ver as frequências GTO.</p>
+            <p className="mt-3 text-sm text-subtle">Responda a mão para ver a estratégia de referência.</p>
           ) : result.frequencies ? (
-            <div className="mt-3"><GtoBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} /></div>
+            <div className="mt-3"><StrategyBars freq={result.frequencies} chosen={lastChoice ?? undefined} correct={result.correctAction} aggressor={aggressor} /></div>
           ) : (
             // Sem chart por trás (postflop/4-bet/squeeze). Dizer isso é melhor
             // do que deixar o card vazio — ou do que inventar uma frequência.

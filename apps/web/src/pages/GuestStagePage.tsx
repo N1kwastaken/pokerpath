@@ -8,7 +8,7 @@ import { PokerTable } from '../components/PokerTable.js';
 import { ProgressBar } from '../components/ProgressBar.js';
 import { LogoLoader } from '../components/LogoLoader.js';
 import { Confetti } from '../components/Confetti.js';
-import { GtoBars } from '../components/GtoBars.js';
+import { StrategyBars } from '../components/StrategyBars.js';
 import { Mascot } from '../components/Mascot.js';
 import { Explanation } from '../components/Explanation.js';
 import { LessonPlayer } from '../components/LessonPlayer.js';
@@ -169,7 +169,7 @@ export function GuestStagePage() {
                 </div>
               </div>
               {current.explanation && <Explanation text={current.explanation} />}
-              <GtoBars freq={current.frequencies} chosen={choice ?? undefined} correct={current.correctAction} aggressor={aggressor} />
+              <StrategyBars freq={current.frequencies} chosen={choice ?? undefined} correct={current.correctAction} aggressor={aggressor} />
             </div>
             <button className="btn-primary mt-3 w-full shrink-0" onClick={next}>
               {answers.length >= sessionLen ? 'Ver resultado' : 'Próxima mão'}

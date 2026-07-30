@@ -2,7 +2,7 @@
 export type GlossaryEntry = { term: string; def: string; match: string[] };
 
 export const GLOSSARY: GlossaryEntry[] = [
-  { term: 'GTO', def: 'Game Theory Optimal: a estratégia equilibrada, impossível de ser explorada. Aqui usamos uma versão simplificada.', match: ['GTO'] },
+  { term: 'GTO', def: 'Game Theory Optimal: uma estratégia de equilíbrio. Os charts atuais do PokerPath são referências pedagógicas e não soluções verificadas por solver.', match: ['GTO'] },
   { term: 'Range', def: 'O conjunto de mãos com que você joga numa situação (ex.: o range de abertura do BTN).', match: ['range', 'ranges'] },
   { term: 'Open raise (RFI)', def: 'Ser o primeiro a aumentar quando ninguém entrou no pote.', match: ['open raise', 'open-raise', 'RFI'] },
   { term: 'Sizing', def: 'O tamanho da aposta. Open padrão ~2,5x o BB; da SB costuma ser maior (~3x).', match: ['sizing'] },

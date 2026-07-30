@@ -2,7 +2,7 @@ import { Card } from './Card.js';
 import { IconFlame } from './Icons.js';
 
 /**
- * "Vitrine": renderiza a própria UI do produto (chart GTO, barras, mesa,
+ * "Vitrine": renderiza a própria UI do produto (chart, barras, mesa,
  * progresso) como imagem de atração — sem mascote, foco no que o app faz.
  */
 type Kind = 'cards' | 'table' | 'gto' | 'grid' | 'progress';
@@ -42,10 +42,10 @@ function Bar({ label, pct, color }: { label: string; pct: number; color: string 
 function GtoLure() {
   return (
     <div className="w-full max-w-[230px] space-y-2.5 rounded-xl border border-line bg-card p-4">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia GTO</p>
-      <Bar label="Raise" pct={72} color="bg-primary" />
-      <Bar label="Call" pct={18} color="bg-call" />
-      <Bar label="Fold" pct={10} color="bg-error" />
+      <p className="text-[10px] font-bold uppercase tracking-widest text-subtle">Estratégia de referência</p>
+      <Bar label="Raise" pct={100} color="bg-primary" />
+      <Bar label="Call" pct={0} color="bg-call" />
+      <Bar label="Fold" pct={0} color="bg-error" />
     </div>
   );
 }

@@ -42,6 +42,7 @@ import { evaluateAchievements, consecutiveCorrect } from './achievement.service.
 import { isDeveloperBypass, effectivePlan } from '../lib/godmode.js';
 import { awardWorldReward } from './world-reward.service.js';
 import { awardPerfectStageCoins, getEnergyCap } from './economy.service.js';
+import { methodologyForRange } from '../lib/strategy-methodology.js';
 
 /** Todo o PRÉ-FLOP é grátis; o PÓS-FLOP (C-Bet em diante, Mundo 11+) é Premium. */
 /**
@@ -1160,6 +1161,12 @@ export async function getRange(filters: {
     position: row.position as RangeGrid['position'],
     scenario: row.scenario,
     label: row.label,
+    methodology: methodologyForRange({
+      gameType: row.gameType,
+      tableSize: row.tableSize,
+      stackBb: row.stackBb,
+      scenario: row.scenario,
+    }),
     cells,
   };
 }

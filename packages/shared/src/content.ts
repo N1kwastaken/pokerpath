@@ -234,7 +234,7 @@ export interface AnswerResult {
    */
   coinsGained: number;
   /**
-   * Frequências GTO da decisão (reveladas só após responder).
+   * Distribuição da estratégia de referência (revelada só após responder).
    *
    * `null` quando não existe chart por trás do spot (postflop, 4-bet, squeeze):
    * aí o app não mostra as barras. Inventar um número para preencher a tela é

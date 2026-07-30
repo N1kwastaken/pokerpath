@@ -4,7 +4,7 @@ import { Card } from './Card.js';
 import { readTablePrefs, type CardBackStyle } from '../lib/tablePrefs.js';
 
 /**
- * Mesa 6-max — HUD escuro estilo GTO Wizard. Os assentos dos vilões ROTACIONAM
+ * Mesa 6-max — HUD escuro de trainer. Os assentos dos vilões ROTACIONAM
  * (animado) quando a posição do hero muda; o hero fica fixo embaixo com as
  * cartas grandes e o rótulo da posição LOGO ABAIXO das cartas (sem overlap).
  */

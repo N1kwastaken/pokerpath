@@ -4,7 +4,7 @@ import type { ReviewItem, Action } from '@pokerpath/shared';
 import { useReview } from '../hooks/useGame.js';
 import { LogoLoader } from './LogoLoader.js';
 import { Hand } from './Card.js';
-import { GtoBars } from './GtoBars.js';
+import { StrategyBars } from './StrategyBars.js';
 import { ReviewPlay } from './ReviewPlay.js';
 
 const LABEL: Record<Action, string> = { FOLD: 'Fold', CALL: 'Call', RAISE: 'Raise' };
@@ -28,7 +28,7 @@ function seatLabel(item: ReviewItem): string {
   return item.villainPosition ? `${item.heroPosition} vs ${item.villainPosition}` : item.heroPosition;
 }
 
-/** Lista de mãos que o usuário ERROU, com gabarito e GTO (estudo). */
+/** Lista de mãos que o usuário errou, com gabarito e estratégia de referência. */
 export function ReviewList() {
   const { data, isLoading } = useReview();
   const [playing, setPlaying] = useState(false);
@@ -80,7 +80,7 @@ function ReviewCard({ item }: { item: ReviewItem }) {
         <p className="text-sm font-bold text-error">Você: {label(item.yourAction)} · Certo: {label(item.correctAction)}</p>
         <p className="mt-0.5 text-xs text-text">{item.explanation}</p>
       </div>
-      <GtoBars freq={item.frequencies} chosen={item.yourAction} correct={item.correctAction} aggressor={aggressor} />
+      <StrategyBars freq={item.frequencies} chosen={item.yourAction} correct={item.correctAction} aggressor={aggressor} />
     </div>
   );
 }

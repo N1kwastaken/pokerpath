@@ -7,7 +7,7 @@ import { ThemeToggle } from '../components/ThemeToggle.js';
 import { IconTarget, IconGrid, IconChart } from '../components/Icons.js';
 
 const FEATURES = [
-  { Icon: IconTarget, title: 'Trainer GTO', text: 'Decida em mãos reais e veja a frequência correta.' },
+  { Icon: IconTarget, title: 'Trainer de decisões', text: 'Decida em mãos reais e entenda a recomendação do chart.' },
   { Icon: IconGrid, title: 'Charts 13x13', text: 'Ranges de abertura por posição, sempre à mão.' },
   { Icon: IconChart, title: 'Estatísticas', text: 'Acompanhe sua precisão por categoria.' },
 ];
@@ -58,7 +58,7 @@ export function LandingPage() {
             Domine o <span className="text-gradient">pré-flop</span>.
           </h1>
           <p className="mt-4 mx-auto max-w-xs text-text">
-            Treine ranges com feedback GTO, do iniciante ao avançado — limpo, rápido e direto.
+            Treine ranges com feedback explicado, do iniciante ao avançado — limpo, rápido e direto.
           </p>
           <div className="mt-7 mx-auto w-full max-w-xs space-y-3">
             <Link to="/register" className="btn-primary w-full text-lg">Criar conta grátis</Link>

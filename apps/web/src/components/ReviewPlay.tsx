@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Action, PublicExercise, ReviewAnswerResult } from '@pokerpath/shared';
 import { gameApi } from '../api/game.js';
 import { PokerTable } from './PokerTable.js';
-import { GtoBars } from './GtoBars.js';
+import { StrategyBars } from './StrategyBars.js';
 import { LogoLoader } from './LogoLoader.js';
 import { Explanation } from './Explanation.js';
 import { IconX, IconCheck } from './Icons.js';
@@ -123,7 +123,7 @@ export function ReviewPlay({ onClose }: { onClose: () => void }) {
               </div>
             </div>
             {result.explanation && <Explanation text={result.explanation} />}
-            <GtoBars freq={result.frequencies} chosen={chosen ?? undefined} correct={result.correctAction} aggressor={aggressor} />
+            <StrategyBars freq={result.frequencies} chosen={chosen ?? undefined} correct={result.correctAction} aggressor={aggressor} />
             </div>
             <button className="btn-primary mt-3 w-full shrink-0" onClick={next}>Continuar</button>
           </div>

@@ -1,7 +1,7 @@
 # ♠ PokerPath
 
-Aprenda poker como um jogo — trilha gamificada (estilo Duolingo) com aulas
-ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
+Aprenda poker como um jogo — trilha gamificada com aulas ilustradas,
+mini-jogos, treino de decisões em mesas reais e charts pedagógicos.
 
 **🌐 Produção:** https://pokerpath.onrender.com
 *(plano grátis do Render: após ~15 min sem uso, o primeiro acesso demora ~30–60s para "acordar")*
@@ -10,7 +10,8 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
 
 - **4 níveis em espiral** — Primeiros Passos (Mundo 0), Iniciante, Intermediário
   e Avançado; cada nível cobre do preflop ao river, com jargão crescendo aos poucos.
-  ~111 fases e ~790 exercícios validados contra os ranges.
+  117 fases e 883 exercícios; o preflop coberto por chart é validado contra a
+  mesma fonte de estratégia usada na interface.
 - **Modo visitante** — o Mundo 0 é jogável **sem conta** (`/g`); ao criar a
   conta, o progresso "gradua" automaticamente.
 - **Acesso simples** — login por e-mail, `username` ou `@username`, sem
@@ -21,8 +22,10 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
 - **Aulas interativas** — mini-jogos (ordenar cartas, combinar pares), quizzes
   com a situação montada na mesa, tutorial guiado na primeira prática.
 - **Treino na mesa** — Fold/Call/Raise (e Bet/Check como agressor) com
-  frequências GTO no feedback, cheat-sheet de range (📊) e glossário integrado.
-- **Charts GTO** — abertura (RFI) e 3-bet/defesa, com células mistas proporcionais.
+  estratégia de referência no feedback, cheat-sheet de range (📊) e glossário.
+- **Charts de referência** — abertura (RFI) e 3-bet/defesa para Cash 6-max
+  100BB. São simplificações pedagógicas versionadas, não soluções certificadas
+  por solver; o app mostra essa proveniência no próprio chart.
 - **Gamificação** — XP, níveis, streak, energia, conquistas, missões diárias e
   semanais, carta educativa do dia e fichas douradas por fase perfeita.
 - **Personalização** — tema, cores conquistáveis, feltro, verso das cartas,
@@ -156,7 +159,7 @@ com gabarito no payload porque a validação é local e sem XP).
 
 ## Próximos passos
 
-Ranges postflop refinados por solver, ranking semanal entre amigos, tradução EN
+Importação auditável de soluções de solver, ranking semanal entre amigos, tradução EN
 (`pp.lang`), domínio próprio no Resend (sem ele, boas-vindas e lembrete não
 chegam a outros usuários), pagamento (Stripe) e app mobile.
 

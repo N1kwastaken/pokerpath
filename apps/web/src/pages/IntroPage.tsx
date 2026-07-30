@@ -6,7 +6,7 @@ import { LureVisual } from '../components/LureVisual.js';
 import { hasSeenIntro, markIntroSeen } from '../lib/intro.js';
 
 /**
- * Tour de introdução — usa a PRÓPRIA UI do app como vitrine (mesa, GTO, charts,
+ * Tour de introdução — usa a PRÓPRIA UI do app como vitrine (mesa, estratégia, charts,
  * progresso), sem mascote.
  */
 type Kind = 'cards' | 'table' | 'gto' | 'grid' | 'progress';
@@ -14,7 +14,7 @@ type Slide = { kind: Kind; title: string; text: string };
 
 const SLIDES: Slide[] = [
   { kind: 'cards', title: 'Bem-vindo ao PokerPath', text: 'Aprenda poker como um jogo: rápido, visual e direto ao ponto.' },
-  { kind: 'gto', title: 'Treine na mesa', text: 'Decida Fold, Call ou Raise em mãos reais e veja a frequência GTO certa.' },
+  { kind: 'gto', title: 'Treine na mesa', text: 'Decida Fold, Call ou Raise em mãos reais e entenda a estratégia de referência.' },
   { kind: 'grid', title: 'Estude de verdade', text: 'Charts de ranges 13×13 por posição e estatísticas da sua precisão.' },
   { kind: 'progress', title: 'Evolua jogando', text: 'Ganhe XP, mantenha seu streak e avance por uma trilha de fases.' },
 ];

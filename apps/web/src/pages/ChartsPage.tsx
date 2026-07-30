@@ -127,6 +127,18 @@ export function ChartsPage({ embedded = false }: { embedded?: boolean }) {
         ) : range && range.cells.length ? (
           <div className="card p-3">
             <p className="mb-3 px-1 text-sm font-bold text-title">{range.label}</p>
+            <div className="mb-3 rounded-xl border border-call/25 bg-call/8 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-black text-title">{range.methodology.title}</p>
+                <span className="rounded-full bg-card2 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-subtle">
+                  Não verificado por solver
+                </span>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-subtle">{range.methodology.note}</p>
+              <p className="mt-2 text-[10px] font-semibold text-subtle">
+                {range.methodology.assumptions.join(' · ')} · versão {range.methodology.version}
+              </p>
+            </div>
             <RangeGridView grid={range} />
           </div>
         ) : (

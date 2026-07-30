@@ -69,8 +69,8 @@ const SECTIONS: Section[] = [
       { term: 'Sizing', def: 'O tamanho da aposta. Open padrão ~2,5x o BB; da SB costuma ser maior (~3x).' },
       { term: 'Value / Blefe', def: 'Value = apostar com mão forte para ser pago. Blefe = apostar com mão fraca para fazer foldar.' },
       { term: 'Equity', def: 'Sua fatia do pote: a chance da sua mão ganhar no showdown.' },
-      { term: 'Estratégia mista', def: 'Quando o GTO manda jogar a mesma mão de formas diferentes numa frequência (ex.: 70% raise, 30% fold).' },
-      { term: 'GTO', def: 'Game Theory Optimal: a forma de jogar equilibrada, que não pode ser explorada. Aqui usamos uma versão simplificada.' },
+      { term: 'Estratégia mista', def: 'Quando uma fonte recomenda jogar a mesma mão de formas diferentes numa frequência (ex.: 70% raise, 30% fold).' },
+      { term: 'GTO', def: 'Game Theory Optimal: estratégia de equilíbrio. Os charts atuais do PokerPath são referências pedagógicas e não soluções verificadas por solver.' },
     ],
   },
 ];

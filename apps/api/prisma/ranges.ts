@@ -39,8 +39,8 @@ export type RangeDef = {
   /** Só nos charts de defesa: abrir é raise-ou-fold, não tem call. */
   call?: string[];
   /**
-   * Mãos de fronteira, onde a estratégia é mista de verdade. O resto do range
-   * é 100% — os tokens dão o grosso, isto dá a borda.
+   * Mãos de fronteira quando uma fonte versionada trouxer estratégia mista.
+   * Os charts manuais atuais não preenchem este campo.
    */
   mix?: Record<string, Freq>;
 };
