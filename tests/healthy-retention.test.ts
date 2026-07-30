@@ -1,6 +1,19 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MISSIONS } from '../apps/api/prisma/seed.js';
+
+// Templates são puros para este teste. O módulo de e-mail também importa a
+// configuração de envio, então isolamos o ambiente para o CI não exigir
+// segredos de produção apenas para conferir texto.
+vi.mock('../apps/api/src/config/env.js', () => ({
+  env: {
+    WEB_ORIGIN: 'https://pokerpath.example',
+    MAIL_DRIVER: 'console',
+    RESEND_API_KEY: undefined,
+    MAIL_FROM: 'PokerPath <test@example.com>',
+  },
+}));
+
 import { streakReminderMail, welcomeMail } from '../apps/api/src/services/mail.service.js';
 
 describe('retenção saudável', () => {
