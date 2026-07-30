@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { FriendView } from '@pokerpath/shared';
+import type { FriendRequestView, FriendView } from '@pokerpath/shared';
 import { gameApi } from '../api/game.js';
 import { ApiError } from '../lib/api.js';
 import { useAuth } from '../auth/AuthContext.js';
@@ -11,7 +11,7 @@ import { Mascot } from '../components/Mascot.js';
 import { Avatar } from '../components/Avatar.js';
 import { ProfileBadge } from '../components/ProfileBadge.js';
 import { AchievementBadge } from '../components/AchievementBadge.js';
-import { IconX, IconMedal, IconFlame } from '../components/Icons.js';
+import { IconCheck, IconX, IconMedal, IconFlame } from '../components/Icons.js';
 import { sound } from '../lib/sound.js';
 
 /**
@@ -33,17 +33,45 @@ export function FriendsPage() {
   const [username, setUsername] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const addMut = useMutation({
-    mutationFn: (handle: string) => gameApi.addFriendByUsername(handle),
-    onSuccess: (f) => {
+  const sendMut = useMutation({
+    mutationFn: (handle: string) => gameApi.sendFriendRequest(handle),
+    onSuccess: (request) => {
       sound.correct();
-      setMsg({ ok: true, text: `${f.name} agora é seu amigo!` });
+      setMsg({ ok: true, text: `Solicitação enviada para ${request.user.name}.` });
       setUsername('');
       queryClient.invalidateQueries({ queryKey: ['friends'] });
     },
     onError: (e) => {
       sound.wrong();
-      setMsg({ ok: false, text: e instanceof ApiError ? e.message : 'Não foi possível adicionar' });
+      setMsg({ ok: false, text: e instanceof ApiError ? e.message : 'Não foi possível enviar a solicitação.' });
+    },
+  });
+  const acceptMut = useMutation({
+    mutationFn: (id: string) => gameApi.acceptFriendRequest(id),
+    onSuccess: (friend) => {
+      sound.correct();
+      setMsg({ ok: true, text: `Você e ${friend.name} agora são amigos!` });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+    },
+    onError: (e) => {
+      sound.wrong();
+      setMsg({ ok: false, text: e instanceof ApiError ? e.message : 'Não foi possível aceitar o pedido.' });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+    },
+  });
+  const deleteRequestMut = useMutation({
+    mutationFn: (id: string) => gameApi.deleteFriendRequest(id),
+    onSuccess: (result) => {
+      setMsg({
+        ok: true,
+        text: result.outcome === 'CANCELLED' ? 'Solicitação cancelada.' : 'Solicitação recusada.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
+    },
+    onError: (e) => {
+      sound.wrong();
+      setMsg({ ok: false, text: e instanceof ApiError ? e.message : 'Não foi possível atualizar o pedido.' });
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
     },
   });
   const removeMut = useMutation({
@@ -54,7 +82,7 @@ export function FriendsPage() {
   function submit(e: FormEvent) {
     e.preventDefault();
     setMsg(null);
-    if (username.trim()) addMut.mutate(username);
+    if (username.trim()) sendMut.mutate(username);
   }
 
   if (isLoading) return <LogoLoader label="Chamando a galera..." />;
@@ -82,8 +110,10 @@ export function FriendsPage() {
       {/* O @ é a identidade visível: não obriga ninguém a ditar um código. */}
       <div className="card mt-5 p-5 text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-subtle">Jogue com amigos</p>
-        <p className="mt-2 text-base font-bold text-title">Adicione pelo @ do perfil</p>
-        <p className="mt-1 text-sm text-subtle">Peça o identificador que aparece abaixo do nome, como @{user.username ?? 'jogador'}.</p>
+        <p className="mt-2 text-base font-bold text-title">Envie um pedido pelo @</p>
+        <p className="mt-1 text-sm text-subtle">
+          A amizade e o perfil completo só aparecem depois que a outra pessoa aceitar.
+        </p>
       </div>
 
       <form onSubmit={submit} className="mt-4 flex gap-2">
@@ -93,16 +123,68 @@ export function FriendsPage() {
           value={username} maxLength={21}
           onChange={(e) => setUsername(e.target.value.toLowerCase())}
         />
-        <button className="btn-primary px-5" disabled={addMut.isPending || !username.trim()}>
-          {addMut.isPending ? '...' : 'Adicionar'}
+        <button className="btn-primary px-5" disabled={sendMut.isPending || !username.trim()}>
+          {sendMut.isPending ? '...' : 'Enviar'}
         </button>
       </form>
       {msg && <p className={`mt-2 text-sm font-semibold ${msg.ok ? 'text-primary' : 'text-error'}`} role="status">{msg.text}</p>}
 
+      {data.incomingRequests.length > 0 && (
+        <section className="mt-7" aria-labelledby="incoming-title">
+          <div className="mb-2.5 flex items-center justify-between">
+            <h2 id="incoming-title" className="font-bold text-title">Pedidos recebidos</h2>
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-black text-white">
+              {data.incomingRequests.length}
+            </span>
+          </div>
+          <div className="space-y-2.5">
+            {data.incomingRequests.map((request) => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                incoming
+                busy={(
+                  acceptMut.isPending && acceptMut.variables === request.id
+                ) || (
+                  deleteRequestMut.isPending && deleteRequestMut.variables === request.id
+                )}
+                onAccept={() => {
+                  setMsg(null);
+                  acceptMut.mutate(request.id);
+                }}
+                onDelete={() => {
+                  setMsg(null);
+                  deleteRequestMut.mutate(request.id);
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {data.outgoingRequests.length > 0 && (
+        <section className="mt-7" aria-labelledby="outgoing-title">
+          <h2 id="outgoing-title" className="mb-2.5 font-bold text-title">Aguardando resposta</h2>
+          <div className="space-y-2.5">
+            {data.outgoingRequests.map((request) => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                busy={deleteRequestMut.isPending && deleteRequestMut.variables === request.id}
+                onDelete={() => {
+                  setMsg(null);
+                  deleteRequestMut.mutate(request.id);
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {data.friends.length === 0 ? (
         <div className="mt-8 flex flex-col items-center text-center">
           <Mascot mood="think" size={120} />
-          <p className="mt-3 font-bold text-title">Ainda sem amigos por aqui</p>
+          <p className="mt-3 font-bold text-title">Ainda sem amizades aceitas</p>
           <p className="mt-1 max-w-xs text-sm text-subtle">
             Treinar junto rende mais: com amigo na lista, o XP vira disputa e a sequência vira compromisso.
           </p>
@@ -136,6 +218,50 @@ export function FriendsPage() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function RequestCard({ request, incoming = false, busy, onAccept, onDelete }: {
+  request: FriendRequestView;
+  incoming?: boolean;
+  busy: boolean;
+  onAccept?: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-line bg-card p-3.5">
+      <Avatar name={request.user.name} size={42} src={request.user.avatar} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-bold text-title">{request.user.name}</p>
+        <p className="truncate text-xs text-subtle">
+          {request.user.username ? `@${request.user.username}` : 'Conta sem @ público'}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        {incoming && onAccept && (
+          <button
+            type="button"
+            onClick={onAccept}
+            disabled={busy}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white active:scale-90 disabled:opacity-50"
+            aria-label={`Aceitar solicitação de ${request.user.name}`}
+            title="Aceitar"
+          >
+            <IconCheck size={20} />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={busy}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-card2 text-subtle active:scale-90 disabled:opacity-50"
+          aria-label={`${incoming ? 'Recusar' : 'Cancelar'} solicitação de ${request.user.name}`}
+          title={incoming ? 'Recusar' : 'Cancelar'}
+        >
+          <IconX size={19} />
+        </button>
+      </div>
     </div>
   );
 }

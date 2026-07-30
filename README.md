@@ -21,8 +21,8 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
 - **Charts GTO** — abertura (RFI) e 3-bet/defesa, com células mistas proporcionais.
 - **Gamificação** — XP, níveis, streak, energia, conquistas, missões diárias e
   semanais, fichas douradas por fase perfeita.
-- **Amigos** — adicione pelo `@` do perfil; lista com XP, nível, streak e
-  perfis com badges compartilhados.
+- **Amigos** — envie pedido pelo `@`, aceite/recuse/cancele; só amizades
+  confirmadas liberam ranking de XP, streak e perfis com badges.
 - **Cores por progresso** — cada nível concluído libera uma cor de app;
   prata ao terminar o jogo, ouro no 100% perfeito.
 - **Contas DEV** — somente as contas administrativas `@kowalski`, `@sousa` e
@@ -128,7 +128,8 @@ fica no perfil.
 Rotas autenticadas (`Authorization: Bearer <accessToken>`): `/worlds`, `/trail`,
 `/stages/:id` (exercícios **sem gabarito** — validação server-side), `/answers`,
 `/stages/:id/complete`, `/stats`, `/energy`, `/review`, `/placement`,
-`/achievements`, `/missions`, `/friends`, `/guest/graduate`.
+`/achievements`, `/missions`, `/friends`, `/friends/requests`,
+`/guest/graduate`.
 
 Rotas públicas: `/auth/*` (register/login/refresh/forgot/reset), `/ranges`
 (charts), `/guest/world0` e `/guest/stages/:id` (modo visitante — só Mundo 0,

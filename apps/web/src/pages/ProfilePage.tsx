@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SHOWCASE_MAX, achievementBadgeId, streakBadgeId, STREAK_BADGE_DAYS } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { useAchievements, useWorldRewards } from '../hooks/useGame.js';
@@ -25,6 +25,11 @@ export function ProfilePage() {
   const { user, setUser } = useAuth();
   const { data: achievements } = useAchievements();
   const { data: worldRewards } = useWorldRewards();
+  const { data: friendsData } = useQuery({
+    queryKey: ['friends'],
+    queryFn: gameApi.friends,
+    enabled: Boolean(user),
+  });
   const queryClient = useQueryClient();
   const [picking, setPicking] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -331,7 +336,12 @@ export function ProfilePage() {
         <nav className="mt-5 space-y-3">
           <NavLink to="/achievements" icon={<IconTrophy size={20} className="text-gold" />} label="Conquistas" />
           <NavLink to="/milestones" icon={<IconLadder size={20} className="text-primary" />} label="Marcos" />
-          <NavLink to="/friends" icon={<IconUsers size={20} className="text-primary" />} label="Amigos" />
+          <NavLink
+            to="/friends"
+            icon={<IconUsers size={20} className="text-primary" />}
+            label="Amigos"
+            badge={friendsData?.incomingRequests.length}
+          />
           <NavLink to="/glossary" icon={<IconBook size={20} className="text-primary" />} label="Glossário" />
         </nav>
 
@@ -350,11 +360,23 @@ export function ProfilePage() {
   );
 }
 
-function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+function NavLink({ to, icon, label, badge = 0 }: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  badge?: number;
+}) {
   return (
     <Link to={to} className="flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 active:scale-[0.98]">
       <span className="flex items-center gap-2.5 font-medium text-title">{icon} {label}</span>
-      <IconChevron size={18} className="text-subtle" />
+      <span className="flex items-center gap-2">
+        {badge > 0 && (
+          <span className="min-w-6 rounded-full bg-primary px-1.5 py-0.5 text-center text-xs font-black text-white" aria-label={`${badge} pedidos pendentes`}>
+            {badge > 99 ? '99+' : badge}
+          </span>
+        )}
+        <IconChevron size={18} className="text-subtle" />
+      </span>
     </Link>
   );
 }

@@ -22,7 +22,15 @@ import {
   debugAddXp,
   debugCompleteAll,
 } from '../services/game.service.js';
-import { listFriends, addFriend, addFriendByUsername, getFriendProfile, removeFriend } from '../services/friends.service.js';
+import {
+  acceptFriendRequest,
+  deleteFriendRequest,
+  getFriendProfile,
+  listFriends,
+  removeFriend,
+  sendFriendRequestByCode,
+  sendFriendRequestByUsername,
+} from '../services/friends.service.js';
 import { isDeveloperAccount, isDeveloperBypass, effectivePlan } from '../lib/godmode.js';
 import {
   getAchievements,
@@ -253,15 +261,38 @@ export async function gameRoutes(app: FastifyInstance) {
     return { rewards: await getWorldRewards(request.user.sub, plan, godmode) };
   });
 
-  // ─── Amigos (código curto ou @ → amizade mútua) ───────────
+  // ─── Amigos (@ → pedido → aceite → amizade mútua) ─────────
   app.get('/friends', async (request) => {
     return listFriends(request.user.sub);
+  });
+
+  app.post<{ Body: { username?: unknown } | null }>('/friends/requests', async (request) => {
+    if (typeof request.body?.username !== 'string') {
+      throw new BadRequestError('username deve ser um texto.', 'VALIDATION_ERROR');
+    }
+    return {
+      request: await sendFriendRequestByUsername(request.user.sub, request.body.username),
+    };
+  });
+
+  app.post<{ Params: { requestId: string } }>('/friends/requests/:requestId/accept', async (request) => {
+    return {
+      friend: await acceptFriendRequest(request.user.sub, request.params.requestId),
+    };
+  });
+
+  app.delete<{ Params: { requestId: string } }>('/friends/requests/:requestId', async (request) => {
+    return deleteFriendRequest(request.user.sub, request.params.requestId);
   });
 
   app.get<{ Params: { friendId: string } }>('/friends/:friendId', async (request) => {
     return { friend: await getFriendProfile(request.user.sub, request.params.friendId) };
   });
 
+  /**
+   * Compatibilidade com versões antigas do app e convites por código. A
+   * resposta ainda inclui `friend`, mas a relação agora fica pendente.
+   */
   app.post<{ Body: { code?: unknown; username?: unknown } | null }>('/friends', async (request) => {
     const body = request.body;
     if (body?.username !== undefined) {
@@ -271,10 +302,12 @@ export async function gameRoutes(app: FastifyInstance) {
       if (body.code !== undefined) {
         throw new BadRequestError('Informe um código ou um @, não os dois.', 'VALIDATION_ERROR');
       }
-      return { friend: await addFriendByUsername(request.user.sub, body.username) };
+      const friendRequest = await sendFriendRequestByUsername(request.user.sub, body.username);
+      return { request: friendRequest, friend: friendRequest.user };
     }
     const code = typeof body?.code === 'string' ? body.code : '';
-    return { friend: await addFriend(request.user.sub, code) };
+    const friendRequest = await sendFriendRequestByCode(request.user.sub, code);
+    return { request: friendRequest, friend: friendRequest.user };
   });
 
   app.delete<{ Params: { friendId: string } }>('/friends/:friendId', async (request) => {

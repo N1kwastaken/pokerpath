@@ -4,7 +4,7 @@ import type {
   AchievementView, MissionView, MissionClaimResult,
   MilestoneView,
   MilestoneClaimResult, ReviewItem, ReviewAnswerResult,
-  PublicExercise, EnergyState, FriendsResponse, FriendProfileView, FriendView,
+  PublicExercise, EnergyState, FriendsResponse, FriendProfileView, FriendRequestView, FriendView,
   WorldRewardView, EconomyState, ItemUnlockResult,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
@@ -38,9 +38,20 @@ export const gameApi = {
       `/ranges?gameType=${f.gameType}&tableSize=${f.tableSize}&stack=${f.stack}&position=${f.position}&scenario=${f.scenario ?? 'RFI'}`,
     ).then((r) => r.range),
   friends: () => apiRequest<FriendsResponse>('/friends'),
-  addFriend: (code: string) => apiRequest<{ friend: FriendView }>('/friends', { method: 'POST', body: { code } }).then((r) => r.friend),
-  addFriendByUsername: (username: string) =>
-    apiRequest<{ friend: FriendView }>('/friends', { method: 'POST', body: { username } }).then((r) => r.friend),
+  sendFriendRequest: (username: string) =>
+    apiRequest<{ request: FriendRequestView }>('/friends/requests', {
+      method: 'POST',
+      body: { username },
+    }).then((r) => r.request),
+  acceptFriendRequest: (requestId: string) =>
+    apiRequest<{ friend: FriendView }>(`/friends/requests/${encodeURIComponent(requestId)}/accept`, {
+      method: 'POST',
+    }).then((r) => r.friend),
+  deleteFriendRequest: (requestId: string) =>
+    apiRequest<{ ok: true; outcome: 'CANCELLED' | 'REJECTED' }>(
+      `/friends/requests/${encodeURIComponent(requestId)}`,
+      { method: 'DELETE' },
+    ),
   friendProfile: (friendId: string) =>
     apiRequest<{ friend: FriendProfileView }>(`/friends/${encodeURIComponent(friendId)}`).then((r) => r.friend),
   removeFriend: (friendId: string) => apiRequest<{ ok: true }>(`/friends/${friendId}`, { method: 'DELETE' }),

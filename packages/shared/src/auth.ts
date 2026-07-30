@@ -118,7 +118,11 @@ export interface PublicUser {
   createdAt: string;
 }
 
-/** Amigo na lista (adicionado pelo @; código curto legado continua compatível). */
+/** Estados persistidos da relação social. Prisma usa String; o Zod valida. */
+export const friendshipStatusSchema = z.enum(['PENDING', 'ACCEPTED', 'REJECTED']);
+export type FriendshipStatus = z.infer<typeof friendshipStatusSchema>;
+
+/** Amigo confirmado na lista. */
 export interface FriendView {
   id: string;
   name: string;
@@ -131,6 +135,23 @@ export interface FriendView {
   /** A vitrine dele — é o que faz escolher badge valer a pena. */
   showcaseBadges: string[];
   avatar: string | null;
+}
+
+/**
+ * Identidade mínima visível antes da amizade. XP, sequência, DEV e badges só
+ * aparecem depois da aceitação para um @ conhecido não virar busca de perfis.
+ */
+export interface FriendRequestUserView {
+  id: string;
+  name: string;
+  username: string | null;
+  avatar: string | null;
+}
+
+export interface FriendRequestView {
+  id: string;
+  user: FriendRequestUserView;
+  createdAt: string;
 }
 
 /** Um badge público já vem com o texto que a interface deve anunciar. */
@@ -168,7 +189,10 @@ export function isValidAvatar(v: string): boolean {
 export interface FriendsResponse {
   /** Código legado, mantido para convites antigos; a interface usa o @. */
   code: string;
+  /** Relações aceitas; só estas liberam perfil, ranking e badges. */
   friends: FriendView[];
+  incomingRequests: FriendRequestView[];
+  outgoingRequests: FriendRequestView[];
 }
 
 /** Resposta padrão de autenticação. */
