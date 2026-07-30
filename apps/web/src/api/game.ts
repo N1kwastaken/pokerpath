@@ -6,8 +6,15 @@ import type {
   MilestoneClaimResult, ReviewItem, ReviewAnswerResult,
   PublicExercise, EnergyState, FriendsResponse, FriendProfileView, FriendRequestView, FriendView,
   WorldRewardView, EconomyState, ItemUnlockResult,
+  ChangePasswordInput,
 } from '@pokerpath/shared';
 import { apiRequest } from '../lib/api.js';
+
+export interface HealthStatus {
+  status: 'ok';
+  timestamp: string;
+  version: string;
+}
 
 export interface RangeFilters {
   gameType: string; tableSize: string; stack: number; position: string;
@@ -86,6 +93,12 @@ export const userApi = {
     apiRequest<{ user: PublicUser }>('/name', { method: 'PATCH', body: { name } }).then((r) => r.user),
   setUsername: (username: string) =>
     apiRequest<{ user: PublicUser }>('/username', { method: 'PUT', body: { username } }).then((r) => r.user),
+  changePassword: (input: ChangePasswordInput) =>
+    apiRequest<void>('/account/password', { method: 'PUT', body: input }),
   deleteAccount: (password: string) =>
     apiRequest<void>('/account', { method: 'DELETE', body: { password } }),
+};
+
+export const systemApi = {
+  health: () => apiRequest<HealthStatus>('/health', { auth: false }),
 };

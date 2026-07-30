@@ -15,6 +15,8 @@ ilustradas, mini-jogos, treino de decisões em mesas reais e charts GTO.
   conta, o progresso "gradua" automaticamente.
 - **Acesso simples** — login por e-mail, `username` ou `@username`, sem
   diferença entre maiúsculas e minúsculas.
+- **Segurança da conta** — troca de senha exige a senha atual e encerra as
+  sessões persistentes; recuperação por e-mail usa token curto de uso único.
 - **Prova de nivelamento** — quem já jogou pode pular níveis (`/placement`).
 - **Aulas interativas** — mini-jogos (ordenar cartas, combinar pares), quizzes
   com a situação montada na mesa, tutorial guiado na primeira prática.
@@ -95,6 +97,8 @@ O deploy é automático: **todo push na `main` redeploya** o serviço do Render
 gera o client Prisma para Postgres, compila shared+api+web, aplica o schema no
 Neon (`db push`) e roda o seed (idempotente). Em produção a própria API serve
 o site (`@fastify/static` + fallback SPA) — um serviço só, sem CORS.
+Uma alteração de schema com risco de perda de dados interrompe o deploy para
+revisão; produção nunca recebe `--accept-data-loss` automaticamente.
 
 Variáveis no Render: `DATABASE_URL` (Neon, conexão direta), `NODE_ENV`,
 `NODE_VERSION=22` e segredos JWT gerados pelo painel.

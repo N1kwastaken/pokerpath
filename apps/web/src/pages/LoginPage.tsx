@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { loginSchema } from '@pokerpath/shared';
 import { useAuth } from '../auth/AuthContext.js';
 import { ApiError } from '../lib/api.js';
@@ -10,6 +10,7 @@ import { PasswordField } from '../components/PasswordField.js';
 /** Tela de login (repaginada) com "lembrar de mim". */
 export function LoginPage() {
   const { login } = useAuth();
+  const [searchParams] = useSearchParams();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(tokenStorage.isRemembered());
@@ -43,6 +44,11 @@ export function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">
+        {searchParams.get('password') === 'changed' && (
+          <p className="rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary" role="status">
+            Senha atualizada. Entre novamente.
+          </p>
+        )}
         <input className="field" type="text" placeholder="E-mail ou @usuário" autoComplete="username"
           autoCapitalize="none" spellCheck={false}
           value={identifier} onChange={(e) => setIdentifier(e.target.value)} />

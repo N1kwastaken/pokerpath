@@ -114,6 +114,17 @@ export const resetPasswordSchema = z.object({
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Informe a senha atual'),
+    newPassword: passwordSchema,
+  })
+  .refine(({ currentPassword, newPassword }) => currentPassword !== newPassword, {
+    path: ['newPassword'],
+    message: 'A nova senha deve ser diferente da atual',
+  });
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
 /** Formato público do usuário retornado pela API (sem dados sensíveis). */
 export interface PublicUser {
   id: string;

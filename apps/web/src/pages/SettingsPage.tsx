@@ -16,9 +16,10 @@ import {
 } from '../lib/tablePrefs.js';
 import { ApiError } from '../lib/api.js';
 import { tokenStorage } from '../lib/tokenStorage.js';
-import { gameApi, userApi } from '../api/game.js';
+import { gameApi, systemApi, userApi } from '../api/game.js';
 import { IconLogout, IconChevron, IconLock, IconWrench } from '../components/Icons.js';
-import { ENERGY_ITEMS } from '@pokerpath/shared';
+import { PasswordField } from '../components/PasswordField.js';
+import { changePasswordSchema, ENERGY_ITEMS } from '@pokerpath/shared';
 
 /**
  * Configurações — tudo que era "preferências" empilhado no perfil.
@@ -39,6 +40,12 @@ export function SettingsPage() {
   const [tablePrefs, setTablePrefs] = useState(readTablePrefs);
 
   const { data: trail } = useQuery({ queryKey: ['trail'], queryFn: gameApi.trail });
+  const { data: health } = useQuery({
+    queryKey: ['health'],
+    queryFn: systemApi.health,
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
   const unlocked = unlockedAccents(trail, user?.maxStreak ?? 0);
 
   const debugMut = useMutation({
@@ -186,6 +193,7 @@ export function SettingsPage() {
           <span className="font-medium text-title">Rever tour de introdução</span>
           <IconChevron size={16} className="text-subtle" />
         </Link>
+        <ChangePassword />
       </Section>
 
       <Section title="Legal">
@@ -211,6 +219,7 @@ export function SettingsPage() {
 
       <p className="mt-4 text-center text-[11px] text-subtle">
         <Link to="/privacidade" className="underline">Privacidade</Link> · <Link to="/termos" className="underline">Termos</Link>
+        {health?.version && <> · versão {health.version}</>}
       </p>
 
       {/* A API também protege cada rota. Esta condição apenas não expõe a
@@ -269,6 +278,113 @@ export function SettingsPage() {
           <p className="mt-3 text-[11px] text-subtle">Operações afetam apenas a sua conta de desenvolvimento.</p>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Troca de senha dentro da sessão. O servidor confirma a senha atual, grava o
+ * novo hash e revoga todas as sessões persistentes. O reload para /login
+ * garante que este dispositivo também precise autenticar novamente.
+ */
+function ChangePassword() {
+  const [open, setOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const change = useMutation({
+    mutationFn: userApi.changePassword,
+    onSuccess: () => {
+      tokenStorage.clear();
+      window.location.href = '/login?password=changed';
+    },
+  });
+
+  function close() {
+    setOpen(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmation('');
+    setValidationError(null);
+    change.reset();
+  }
+
+  function submit() {
+    setValidationError(null);
+    if (newPassword !== confirmation) {
+      setValidationError('As novas senhas não conferem.');
+      return;
+    }
+    const parsed = changePasswordSchema.safeParse({ currentPassword, newPassword });
+    if (!parsed.success) {
+      setValidationError(parsed.error.errors[0]?.message ?? 'Confira as senhas.');
+      return;
+    }
+    change.mutate(parsed.data);
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex w-full items-center justify-between p-4 text-left active:bg-card2"
+      >
+        <span>
+          <span className="block font-medium text-title">Alterar senha</span>
+          <span className="mt-0.5 block text-[11px] text-subtle">Encerra as outras sessões da conta.</span>
+        </span>
+        <IconChevron size={16} className="text-subtle" />
+      </button>
+    );
+  }
+
+  const error = validationError
+    ?? (change.isError
+      ? change.error instanceof ApiError
+        ? change.error.message
+        : 'Não foi possível alterar a senha.'
+      : null);
+
+  return (
+    <div className="p-4">
+      <p className="font-bold text-title">Crie uma nova senha</p>
+      <p className="mt-1 text-xs leading-snug text-subtle">
+        Por segurança, você precisará entrar novamente em todos os dispositivos.
+      </p>
+      <div className="mt-3 space-y-3">
+        <PasswordField
+          value={currentPassword}
+          onChange={setCurrentPassword}
+          placeholder="Senha atual"
+          autoComplete="current-password"
+        />
+        <PasswordField
+          value={newPassword}
+          onChange={setNewPassword}
+          placeholder="Nova senha (mín. 8 caracteres)"
+          autoComplete="new-password"
+        />
+        <PasswordField
+          value={confirmation}
+          onChange={setConfirmation}
+          placeholder="Confirme a nova senha"
+          autoComplete="new-password"
+        />
+      </div>
+      {error && <p className="mt-2 text-xs font-semibold text-error" role="alert">{error}</p>}
+      <div className="mt-3 flex gap-2">
+        <button type="button" onClick={close} className="btn-soft flex-1">Cancelar</button>
+        <button
+          type="button"
+          onClick={submit}
+          disabled={change.isPending}
+          className="btn-primary flex-1"
+        >
+          {change.isPending ? 'Alterando...' : 'Alterar senha'}
+        </button>
+      </div>
     </div>
   );
 }

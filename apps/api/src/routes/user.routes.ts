@@ -1,13 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 import {
   onboardingSchema, ownsBadge, SHOWCASE_MAX, isValidAvatar, AVATAR_MAX_CHARS,
-  nameSchema, usernameSchema,
+  nameSchema, usernameSchema, changePasswordSchema,
 } from '@pokerpath/shared';
 import { prisma } from '../lib/prisma.js';
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../lib/errors.js';
 import { verifyPassword } from '../lib/password.js';
 import { toPublicUser, usernameNextChangeAt } from '../services/user.serializer.js';
 import { canClaimUsername, isDeveloperAccount } from '../lib/godmode.js';
+import { updateAccountPassword } from '../services/account.service.js';
 
 /**
  * Rotas do usuário autenticado.
@@ -15,6 +16,7 @@ import { canClaimUsername, isDeveloperAccount } from '../lib/godmode.js';
  *   PATCH  /preferences  — preferências da conta (hoje: lembrete por e-mail)
  *   PATCH  /name         — nome de exibição (livre, sempre)
  *   PUT    /username     — @ único (1x a cada 30 dias, unicidade validada)
+ *   PUT    /account/password — troca senha e revoga sessões persistentes
  *   DELETE /account      — exclusão da conta (LGPD): pede senha, apaga tudo
  *   PUT    /showcase     — badges exibidos no perfil (posse validada aqui)
  *   PUT   /avatar       — foto de perfil (data URI pequeno, ou null para remover)
@@ -99,6 +101,29 @@ export async function userRoutes(app: FastifyInstance) {
       // Corrida: dois pedidos com o mesmo @ ao mesmo tempo → a unique pega.
       throw new ConflictError('Esse @ já está em uso.', 'USERNAME_TAKEN');
     }
+  });
+
+  /**
+   * Troca de senha autenticada. Exige a senha atual para que um access token
+   * roubado não seja suficiente para tomar a conta. Ao concluir, revoga todos
+   * os refresh tokens; os access tokens curtos expiram naturalmente.
+   */
+  app.put('/account/password', async (request, reply) => {
+    const parsed = changePasswordSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new BadRequestError(
+        parsed.error.errors[0]?.message ?? 'Dados inválidos',
+        'VALIDATION_ERROR',
+      );
+    }
+
+    await updateAccountPassword(
+      request.user.sub,
+      parsed.data.currentPassword,
+      parsed.data.newPassword,
+    );
+
+    return reply.status(204).send();
   });
 
   /**
